@@ -2,10 +2,10 @@
 using Fur.DependencyInjection;
 using Fur.FriendlyException;
 using Fur.UnifyResult;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Mvc.Filters
@@ -56,21 +56,25 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
             // 解析验证异常
             var validationFlag = "[Validation]";
-            var errorMessage = exception.Message.StartsWith(validationFlag) ? exception.Message[validationFlag.Length..] : exception.Message;
+            var isValidationMessage = exception.Message.StartsWith(validationFlag);
+            var errorMessage = isValidationMessage ? exception.Message[validationFlag.Length..] : exception.Message;
 
             // 判断是否跳过规范化结果
             if (UnifyResultContext.IsSkipUnifyHandler(actionDescriptor.MethodInfo, out var unifyResult))
             {
+                // 解析异常信息
+                var (ErrorCode, ErrorObject) = UnifyResultContext.GetExceptionMetadata(context);
+
                 context.Result = new ContentResult
                 {
-                    Content = errorMessage,
-                    StatusCode = exception.Message.StartsWith(validationFlag) ? StatusCodes.Status400BadRequest : (int)(UnifyResultContext.Get(UnifyResultContext.UnifyResultStatusCodeKey) ?? StatusCodes.Status500InternalServerError)
+                    Content = JsonSerializer.Serialize(errorMessage),
+                    StatusCode = ErrorCode
                 };
             }
             else context.Result = unifyResult.OnException(context);
 
             // 处理验证异常，打印验证失败信息
-            if (exception.Message.StartsWith(validationFlag))
+            if (isValidationMessage)
             {
                 App.PrintToMiniProfiler("validation", "Failed", $"Exception Validation Failed:\r\n{errorMessage}", true);
             }

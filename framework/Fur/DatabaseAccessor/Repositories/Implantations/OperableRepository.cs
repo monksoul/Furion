@@ -18,53 +18,34 @@ namespace Fur.DatabaseAccessor
         /// 新增或更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdate(TEntity entity)
+        public virtual EntityEntry<TEntity> InsertOrUpdate(TEntity entity, bool? ignoreNullValues = null)
         {
-            return IsKeySet(entity) ? Update(entity) : Insert(entity);
+            return IsKeySet(entity) ? Update(entity, ignoreNullValues) : Insert(entity, ignoreNullValues);
         }
 
         /// <summary>
         /// 新增或更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>代理中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateAsync(entity) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateAsync(entity, ignoreNullValues) : InsertAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
         /// 新增或更新一条记录并立即执行
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity)
+        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool? ignoreNullValues = null)
         {
-            return IsKeySet(entity) ? UpdateNow(entity) : InsertNow(entity);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
-        /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool acceptAllChangesOnSuccess)
-        {
-            return IsKeySet(entity) ? UpdateNow(entity, acceptAllChangesOnSuccess) : InsertNow(entity, acceptAllChangesOnSuccess);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="cancellationToken">取消异步令牌</param>
-        /// <returns>数据库中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, CancellationToken cancellationToken = default)
-        {
-            return IsKeySet(entity) ? UpdateNowAsync(entity, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateNow(entity, ignoreNullValues) : InsertNow(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -72,11 +53,36 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <returns>数据库中的实体</returns>
+        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
+        {
+            return IsKeySet(entity) ? UpdateNow(entity, acceptAllChangesOnSuccess, ignoreNullValues) : InsertNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken) : InsertNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken);
+            return IsKeySet(entity) ? UpdateNowAsync(entity, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, ignoreNullValues, cancellationToken);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <param name="cancellationToken">取消异步令牌</param>
+        /// <returns>数据库中的实体</returns>
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
+        {
+            return IsKeySet(entity) ? UpdateNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -143,7 +149,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeAsync(TEntity entity, string[] propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyNames) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyNames) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -166,7 +172,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeAsync(TEntity entity, Expression<Func<TEntity, object>>[] propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyPredicates) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyPredicates) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -178,7 +184,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeAsync(TEntity entity, IEnumerable<string> propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyNames) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyNames) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -190,7 +196,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeAsync(TEntity entity, IEnumerable<Expression<Func<TEntity, object>>> propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyPredicates) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeAsync(entity, propertyPredicates) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -305,7 +311,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeNowAsync(TEntity entity, string[] propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -341,7 +347,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeNowAsync(TEntity entity, Expression<Func<TEntity, object>>[] propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -366,7 +372,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeNowAsync(TEntity entity, IEnumerable<string> propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -391,7 +397,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateIncludeNowAsync(TEntity entity, IEnumerable<Expression<Func<TEntity, object>>> propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateIncludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -471,7 +477,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeAsync(TEntity entity, string[] propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyNames) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyNames) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -494,7 +500,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeAsync(TEntity entity, Expression<Func<TEntity, object>>[] propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyPredicates) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyPredicates) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -506,7 +512,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeAsync(TEntity entity, IEnumerable<string> propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyNames) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyNames) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -518,7 +524,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeAsync(TEntity entity, IEnumerable<Expression<Func<TEntity, object>>> propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyPredicates) : InsertAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeAsync(entity, propertyPredicates) : InsertAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -633,7 +639,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeNowAsync(TEntity entity, string[] propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -669,7 +675,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeNowAsync(TEntity entity, Expression<Func<TEntity, object>>[] propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -694,7 +700,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeNowAsync(TEntity entity, IEnumerable<string> propertyNames, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyNames, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -719,7 +725,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>数据库中的实体</returns>
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeNowAsync(TEntity entity, IEnumerable<Expression<Func<TEntity, object>>> propertyPredicates, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, cancellationToken);
+            return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyPredicates, cancellationToken) : InsertNowAsync(entity, false, cancellationToken);
         }
 
         /// <summary>
@@ -733,6 +739,28 @@ namespace Fur.DatabaseAccessor
         public virtual Task<EntityEntry<TEntity>> InsertOrUpdateExcludeNowAsync(TEntity entity, IEnumerable<Expression<Func<TEntity, object>>> propertyPredicates, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             return IsKeySet(entity) ? UpdateExcludeNowAsync(entity, propertyPredicates, acceptAllChangesOnSuccess, cancellationToken) : InsertNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        /// <summary>
+        /// 忽略控制属性
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="ignoreNullValues"></param>
+        private void IgnoreNullValues(ref TEntity entity, bool? ignoreNullValues = null)
+        {
+            var isIgnore = ignoreNullValues ?? DynamicDbContext.InsertOrUpdateIgnoreNullValues;
+            if (isIgnore == false) return;
+
+            // 获取所有的属性
+            var properties = EntityType.GetProperties();
+            foreach (var propety in properties)
+            {
+                // 排除空值更新
+                if (propety.PropertyInfo.GetValue(entity) == null)
+                {
+                    EntityPropertyEntry(entity, propety.Name).IsModified = false;
+                }
+            }
         }
     }
 }

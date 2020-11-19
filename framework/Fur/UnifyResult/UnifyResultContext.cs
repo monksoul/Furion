@@ -1,8 +1,10 @@
 ﻿using Fur.DependencyInjection;
+using Fur.FriendlyException;
 using Fur.WebUtilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Linq;
@@ -39,21 +41,43 @@ namespace Fur.UnifyResult
         /// <returns></returns>
         public static (int ErrorCode, object ErrorObject) GetExceptionMetadata(ExceptionContext context)
         {
+            // 读取规范化状态码信息
             var errorCode = Get(UnifyResultStatusCodeKey) ?? StatusCodes.Status500InternalServerError;
 
             var errorMessage = context.Exception.Message;
             var validationFlag = "[Validation]";
 
             // 处理验证失败异常
-            object errorObject;
+            object errorObject = default;
             if (errorMessage.StartsWith(validationFlag))
             {
                 // 处理结果
                 errorObject = JsonSerializer.Deserialize<object>(errorMessage[validationFlag.Length..]);
 
+                // 设置为400状态码
                 errorCode = StatusCodes.Status400BadRequest;
             }
-            else errorObject = errorMessage;
+            else
+            {
+                // 判断是否定义了全局类型异常
+                var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
+
+                // 查找所有全局定义异常
+                var typeExceptionAttributes = actionDescriptor.MethodInfo
+                            .GetCustomAttributes<IfExceptionAttribute>()
+                            .Where(u => u.ErrorCode == null);
+
+                // 处理全局异常
+                if (typeExceptionAttributes.Any())
+                {
+                    // 首先判断是否有相同类型的异常
+                    var actionIfExceptionAttribute = typeExceptionAttributes.FirstOrDefault(u => u.ExceptionType == context.Exception.GetType())
+                            ?? typeExceptionAttributes.FirstOrDefault(u => u.ExceptionType == null);
+
+                    if (actionIfExceptionAttribute is { ErrorMessage: not null }) errorObject = actionIfExceptionAttribute.ErrorMessage;
+                }
+                else errorObject = errorMessage;
+            }
 
             return ((int)errorCode, errorObject);
         }

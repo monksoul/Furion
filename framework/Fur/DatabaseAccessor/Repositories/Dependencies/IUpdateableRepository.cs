@@ -29,8 +29,9 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        EntityEntry<TEntity> Update(TEntity entity);
+        EntityEntry<TEntity> Update(TEntity entity, bool? ignoreNullValues = null);
 
         /// <summary>
         /// 更新多条记录
@@ -48,8 +49,9 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        Task<EntityEntry<TEntity>> UpdateAsync(TEntity entity);
+        Task<EntityEntry<TEntity>> UpdateAsync(TEntity entity, bool? ignoreNullValues = null);
 
         /// <summary>
         /// 更新多条记录
@@ -69,16 +71,18 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录并立即提交
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        EntityEntry<TEntity> UpdateNow(TEntity entity);
+        EntityEntry<TEntity> UpdateNow(TEntity entity, bool? ignoreNullValues = null);
 
         /// <summary>
         /// 更新一条记录并立即提交
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        EntityEntry<TEntity> UpdateNow(TEntity entity, bool acceptAllChangesOnSuccess);
+        EntityEntry<TEntity> UpdateNow(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null);
 
         /// <summary>
         /// 更新多条记录并立即提交
@@ -111,17 +115,19 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="cancellationToken">取消异步令牌</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 更新一条记录并立即提交
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default);
+        Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 更新多条记录并立即提交

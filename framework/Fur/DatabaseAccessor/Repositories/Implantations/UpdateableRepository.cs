@@ -20,9 +20,13 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public virtual EntityEntry<TEntity> Update(TEntity entity)
+        public virtual EntityEntry<TEntity> Update(TEntity entity, bool? ignoreNullValues = null)
         {
+            // 忽略空值
+            IgnoreNullValues(ref entity, ignoreNullValues);
+
             return Entities.Update(entity);
         }
 
@@ -48,10 +52,11 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> UpdateAsync(TEntity entity)
+        public virtual Task<EntityEntry<TEntity>> UpdateAsync(TEntity entity, bool? ignoreNullValues = null)
         {
-            return Task.FromResult(Update(entity));
+            return Task.FromResult(Update(entity, ignoreNullValues));
         }
 
         /// <summary>
@@ -80,10 +85,11 @@ namespace Fur.DatabaseAccessor
         /// 更新一条记录并立即提交
         /// </summary>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> UpdateNow(TEntity entity)
+        public virtual EntityEntry<TEntity> UpdateNow(TEntity entity, bool? ignoreNullValues = null)
         {
-            var entityEntry = Update(entity);
+            var entityEntry = Update(entity, ignoreNullValues);
             SaveNow();
             return entityEntry;
         }
@@ -93,10 +99,11 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> UpdateNow(TEntity entity, bool acceptAllChangesOnSuccess)
+        public virtual EntityEntry<TEntity> UpdateNow(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
         {
-            var entityEntry = Update(entity);
+            var entityEntry = Update(entity, ignoreNullValues);
             SaveNow(acceptAllChangesOnSuccess);
             return entityEntry;
         }
@@ -148,10 +155,11 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="cancellationToken">取消异步令牌</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public virtual async Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
         {
-            var entityEntry = await UpdateAsync(entity);
+            var entityEntry = await UpdateAsync(entity, ignoreNullValues);
             await SaveNowAsync(cancellationToken);
             return entityEntry;
         }
@@ -161,11 +169,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        public virtual async Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public virtual async Task<EntityEntry<TEntity>> UpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
         {
-            var entityEntry = await UpdateAsync(entity);
+            var entityEntry = await UpdateAsync(entity, ignoreNullValues);
             await SaveNowAsync(acceptAllChangesOnSuccess, cancellationToken);
             return entityEntry;
         }

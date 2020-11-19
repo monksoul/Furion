@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.5.2</Version>
+    <Version>1.0.6</Version>
     <Authors>百小僧/MonkSoul</Authors>
     <Company>Baiqian Co.,Ltd.</Company>
     <Product>Fur</Product>

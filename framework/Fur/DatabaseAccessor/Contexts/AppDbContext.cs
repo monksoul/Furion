@@ -96,6 +96,11 @@ namespace Fur.DatabaseAccessor
         }
 
         /// <summary>
+        /// 新增或更新忽略空值（默认值）
+        /// </summary>
+        public virtual bool InsertOrUpdateIgnoreNullValues { get; protected set; } = false;
+
+        /// <summary>
         /// 获取租户信息
         /// </summary>
         public virtual Tenant Tenant

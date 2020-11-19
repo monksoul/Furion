@@ -1,4 +1,5 @@
 using Fur.DependencyInjection;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Http
 {
@@ -39,6 +40,38 @@ namespace Microsoft.AspNetCore.Http
         public static void SigninToSwagger(this IHttpContextAccessor httpContextAccessor, string accessToken)
         {
             httpContextAccessor.HttpContext.SigninToSwagger(accessToken);
+        }
+
+        /// <summary>
+        /// 获取客户端IP地址
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string GetClientIPAddress(this HttpContext context)
+        {
+            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = context.Connection.RemoteIpAddress.ToString();
+            }
+            return ip;
+        }
+
+        /// <summary>
+        /// 判断是否是 Ajax 请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public static bool IsAjaxRequest(this HttpRequest request)
+        {
+            var result = false;
+
+            if (request.Headers.ContainsKey("x-requested-with"))
+            {
+                result = request.Headers["x-requested-with"] == "XMLHttpRequest";
+            }
+
+            return result;
         }
     }
 }

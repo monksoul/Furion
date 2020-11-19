@@ -31,11 +31,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理的实体</returns>
-        public static EntityEntry<TEntity> Insert<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> Insert<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().Insert(entity);
+            return Db.GetRepository<TEntity>().Insert(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -43,12 +44,13 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">异步取消令牌</param>
         /// <returns>代理的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertAsync<TEntity>(this TEntity entity, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> InsertAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertAsync(entity, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -56,11 +58,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> InsertNow<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> InsertNow<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertNow(entity);
+            return Db.GetRepository<TEntity>().InsertNow(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -69,8 +72,9 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有提交更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> InsertNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess)
+        public static EntityEntry<TEntity> InsertNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
             return Db.GetRepository<TEntity>().InsertNow(entity, acceptAllChangesOnSuccess);
@@ -82,11 +86,12 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="cancellationToken">异步取消令牌</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertNowAsync<TEntity>(this TEntity entity, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> InsertNowAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertNowAsync(entity, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertNowAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -95,12 +100,13 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有提交更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">异步取消令牌</param>
         /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> InsertNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -108,11 +114,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public static EntityEntry<TEntity> Update<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> Update<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().Update(entity);
+            return Db.GetRepository<TEntity>().Update(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -120,11 +127,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public static Task<EntityEntry<TEntity>> UpdateAsync<TEntity>(this TEntity entity)
+        public static Task<EntityEntry<TEntity>> UpdateAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
              where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().UpdateAsync(entity);
+            return Db.GetRepository<TEntity>().UpdateAsync(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -132,11 +140,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> UpdateNow<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> UpdateNow<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().UpdateNow(entity);
+            return Db.GetRepository<TEntity>().UpdateNow(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -145,11 +154,12 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> UpdateNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess)
+        public static EntityEntry<TEntity> UpdateNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
              where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().UpdateNow(entity, acceptAllChangesOnSuccess);
+            return Db.GetRepository<TEntity>().UpdateNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
         }
 
         /// <summary>
@@ -157,12 +167,13 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> UpdateNowAsync<TEntity>(this TEntity entity, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> UpdateNowAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().UpdateNowAsync(entity, cancellationToken);
+            return Db.GetRepository<TEntity>().UpdateNowAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -171,12 +182,13 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> UpdateNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> UpdateNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().UpdateNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken);
+            return Db.GetRepository<TEntity>().UpdateNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -968,11 +980,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>代理中的实体</returns>
-        public static EntityEntry<TEntity> InsertOrUpdate<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> InsertOrUpdate<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertOrUpdate(entity);
+            return Db.GetRepository<TEntity>().InsertOrUpdate(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -980,12 +993,13 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>代理中的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertOrUpdateAsync<TEntity>(this TEntity entity, CancellationToken cancellationToken = default)
+        public static Task<EntityEntry<TEntity>> InsertOrUpdateAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertOrUpdateAsync(entity, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertOrUpdateAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -993,37 +1007,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> InsertOrUpdateNow<TEntity>(this TEntity entity)
+        public static EntityEntry<TEntity> InsertOrUpdateNow<TEntity>(this TEntity entity, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertOrUpdateNow(entity);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <typeparam name="TEntity">实体</typeparam>
-        /// <param name="entity">实体</param>
-        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
-        /// <returns>数据库中的实体</returns>
-        public static EntityEntry<TEntity> InsertOrUpdateNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess)
-            where TEntity : class, IPrivateEntity, new()
-        {
-            return Db.GetRepository<TEntity>().InsertOrUpdateNow(entity, acceptAllChangesOnSuccess);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <typeparam name="TEntity">实体</typeparam>
-        /// <param name="entity">实体</param>
-        /// <param name="cancellationToken">取消异步令牌</param>
-        /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync<TEntity>(this TEntity entity, CancellationToken cancellationToken = default)
-            where TEntity : class, IPrivateEntity, new()
-        {
-            return Db.GetRepository<TEntity>().InsertOrUpdateNowAsync(entity, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertOrUpdateNow(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -1032,12 +1021,41 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TEntity">实体</typeparam>
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
-        /// <param name="cancellationToken">取消异步令牌</param>
+        /// <param name="ignoreNullValues"></param>
         /// <returns>数据库中的实体</returns>
-        public static Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public static EntityEntry<TEntity> InsertOrUpdateNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertOrUpdateNowAsync(entity, acceptAllChangesOnSuccess, cancellationToken);
+            return Db.GetRepository<TEntity>().InsertOrUpdateNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <typeparam name="TEntity">实体</typeparam>
+        /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <param name="cancellationToken">取消异步令牌</param>
+        /// <returns>数据库中的实体</returns>
+        public static Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync<TEntity>(this TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
+            where TEntity : class, IPrivateEntity, new()
+        {
+            return Db.GetRepository<TEntity>().InsertOrUpdateNowAsync(entity, ignoreNullValues, cancellationToken);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <typeparam name="TEntity">实体</typeparam>
+        /// <param name="entity">实体</param>
+        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <param name="cancellationToken">取消异步令牌</param>
+        /// <returns>数据库中的实体</returns>
+        public static Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
+            where TEntity : class, IPrivateEntity, new()
+        {
+            return Db.GetRepository<TEntity>().InsertOrUpdateNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>

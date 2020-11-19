@@ -3,7 +3,7 @@
     /// <summary>
     /// HttpContext 拓展类
     /// </summary>
-    public static class HttpContextExtensions
+    public static class JwtHttpContextExtensions
     {
         /// <summary>
         /// 获取 JWT Token
