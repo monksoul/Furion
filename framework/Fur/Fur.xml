@@ -3439,35 +3439,38 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdate``1(``0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdate``1(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录
             </summary>
             <typeparam name="TEntity">实体</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateAsync``1(``0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateAsync``1(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录
             </summary>
             <typeparam name="TEntity">实体</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNow``1(``0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNow``1(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <typeparam name="TEntity">实体</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNow``1(``0,System.Boolean,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNow``1(``0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -3475,19 +3478,21 @@
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNowAsync``1(``0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNowAsync``1(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <typeparam name="TEntity">实体</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNowAsync``1(``0,System.Boolean,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityExtensions.InsertOrUpdateNowAsync``1(``0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -3495,6 +3500,7 @@
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
@@ -4846,7 +4852,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdate``2(``0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdate``2(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录
             </summary>
@@ -4854,9 +4860,10 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateAsync``2(``0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateAsync``2(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录
             </summary>
@@ -4864,10 +4871,11 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNow``2(``0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNow``2(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -4875,9 +4883,10 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNow``2(``0,System.Boolean,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNow``2(``0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -4886,9 +4895,10 @@
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNowAsync``2(``0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNowAsync``2(``0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -4896,10 +4906,11 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNowAsync``2(``0,System.Boolean,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IEntityWithDbContextLocatorExtensions.InsertOrUpdateNowAsync``2(``0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
@@ -4908,6 +4919,7 @@
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
@@ -8532,56 +8544,62 @@
             <typeparam name="TEntity">实体类型</typeparam>
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdate(`0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdate(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateAsync(`0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateAsync(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNow(`0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNow(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNow(`0,System.Boolean,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNow(`0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNowAsync(`0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNowAsync(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNowAsync(`0,System.Boolean,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IOperableRepository`2.InsertOrUpdateNowAsync(`0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
@@ -13673,56 +13691,62 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>Task</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdate(`0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdate(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateAsync(`0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateAsync(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>代理中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNow(`0,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNow(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNow(`0,System.Boolean,System.Nullable{System.Boolean})">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNow(`0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNowAsync(`0,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNowAsync(`0,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNowAsync(`0,System.Boolean,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.InsertOrUpdateNowAsync(`0,System.Boolean,System.Nullable{System.Boolean},System.Linq.Expressions.Expression{System.Func{`0,System.Object}},System.Threading.CancellationToken)">
             <summary>
             新增或更新一条记录并立即执行
             </summary>
             <param name="entity">实体</param>
             <param name="acceptAllChangesOnSuccess">接受所有更改</param>
             <param name="ignoreNullValues"></param>
+            <param name="checkProperty"></param>
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
@@ -14220,6 +14244,14 @@
             </summary>
             <param name="entity"></param>
             <param name="ignoreNullValues"></param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.IsPropertyValueSet(`0,System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            判断属性值是否设置
+            </summary>
+            <param name="entity"></param>
+            <param name="checkProperty"></param>
+            <returns></returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Find(System.Object)">
             <summary>

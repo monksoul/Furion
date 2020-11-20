@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Fur.LinqBuilder;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -19,10 +20,11 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
         /// <returns>代理中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdate(TEntity entity, bool? ignoreNullValues = null)
+        public virtual EntityEntry<TEntity> InsertOrUpdate(TEntity entity, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null)
         {
-            return IsKeySet(entity) ? Update(entity, ignoreNullValues) : Insert(entity, ignoreNullValues);
+            return IsPropertyValueSet(entity, checkProperty) ? Update(entity, ignoreNullValues) : Insert(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -30,11 +32,12 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>代理中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateAsync(TEntity entity, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateAsync(entity, ignoreNullValues) : InsertAsync(entity, ignoreNullValues, cancellationToken);
+            return IsPropertyValueSet(entity, checkProperty) ? UpdateAsync(entity, ignoreNullValues) : InsertAsync(entity, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -42,34 +45,11 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="entity">实体</param>
         /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
         /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool? ignoreNullValues = null)
+        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null)
         {
-            return IsKeySet(entity) ? UpdateNow(entity, ignoreNullValues) : InsertNow(entity, ignoreNullValues);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
-        /// <param name="ignoreNullValues"></param>
-        /// <returns>数据库中的实体</returns>
-        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
-        {
-            return IsKeySet(entity) ? UpdateNow(entity, acceptAllChangesOnSuccess, ignoreNullValues) : InsertNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
-        }
-
-        /// <summary>
-        /// 新增或更新一条记录并立即执行
-        /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="ignoreNullValues"></param>
-        /// <param name="cancellationToken">取消异步令牌</param>
-        /// <returns>数据库中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
-        {
-            return IsKeySet(entity) ? UpdateNowAsync(entity, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, ignoreNullValues, cancellationToken);
+            return IsPropertyValueSet(entity, checkProperty) ? UpdateNow(entity, ignoreNullValues) : InsertNow(entity, ignoreNullValues);
         }
 
         /// <summary>
@@ -78,11 +58,38 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity">实体</param>
         /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
         /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
+        /// <returns>数据库中的实体</returns>
+        public virtual EntityEntry<TEntity> InsertOrUpdateNow(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null)
+        {
+            return IsPropertyValueSet(entity, checkProperty) ? UpdateNow(entity, acceptAllChangesOnSuccess, ignoreNullValues) : InsertNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
         /// <param name="cancellationToken">取消异步令牌</param>
         /// <returns>数据库中的实体</returns>
-        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, CancellationToken cancellationToken = default)
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null, CancellationToken cancellationToken = default)
         {
-            return IsKeySet(entity) ? UpdateNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
+            return IsPropertyValueSet(entity, checkProperty) ? UpdateNowAsync(entity, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, ignoreNullValues, cancellationToken);
+        }
+
+        /// <summary>
+        /// 新增或更新一条记录并立即执行
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="acceptAllChangesOnSuccess">接受所有更改</param>
+        /// <param name="ignoreNullValues"></param>
+        /// <param name="checkProperty"></param>
+        /// <param name="cancellationToken">取消异步令牌</param>
+        /// <returns>数据库中的实体</returns>
+        public virtual Task<EntityEntry<TEntity>> InsertOrUpdateNowAsync(TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null, Expression<Func<TEntity, object>> checkProperty = null, CancellationToken cancellationToken = default)
+        {
+            return IsPropertyValueSet(entity, checkProperty) ? UpdateNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken) : InsertNowAsync(entity, acceptAllChangesOnSuccess, ignoreNullValues, cancellationToken);
         }
 
         /// <summary>
@@ -755,12 +762,29 @@ namespace Fur.DatabaseAccessor
             var properties = EntityType.GetProperties();
             foreach (var propety in properties)
             {
-                // 排除空值更新
-                if (propety.PropertyInfo.GetValue(entity) == null)
+                var entityProperty = EntityPropertyEntry(entity, propety.Name);
+                if (entityProperty.CurrentValue == null)
                 {
-                    EntityPropertyEntry(entity, propety.Name).IsModified = false;
+                    entityProperty.IsModified = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// 判断属性值是否设置
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="checkProperty"></param>
+        /// <returns></returns>
+        private bool IsPropertyValueSet(TEntity entity, Expression<Func<TEntity, object>> checkProperty = null)
+        {
+            if (checkProperty == null) return IsKeySet(entity);
+
+            // 获取属性信息
+            var entityProperty = EntityPropertyEntry(entity, checkProperty.GetExpressionPropertyName());
+            var propertyValue = entityProperty.CurrentValue;
+
+            return !(propertyValue == null || (entityProperty.Metadata.PropertyInfo.PropertyType.IsValueType && (propertyValue.Equals(0) || propertyValue.Equals(Guid.Empty))));
         }
     }
 }
