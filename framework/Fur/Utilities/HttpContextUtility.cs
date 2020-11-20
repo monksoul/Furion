@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading;
 
 // reference：https://www.cnblogs.com/artech/p/how-to-get-httpcontext.html
-namespace Fur.WebUtilities
+namespace Fur.Utilities
 {
     /// <summary>
     /// HttpContext 上下文实用类

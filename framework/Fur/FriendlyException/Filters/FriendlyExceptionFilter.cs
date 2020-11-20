@@ -5,6 +5,7 @@ using Fur.UnifyResult;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -67,7 +68,11 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
                 context.Result = new ContentResult
                 {
-                    Content = JsonSerializer.Serialize(errorMessage),
+                    Content = JsonSerializer.Serialize(errorMessage, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    }),
                     StatusCode = ErrorCode
                 };
             }

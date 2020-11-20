@@ -13,7 +13,7 @@ namespace Fur.FriendlyException
         /// <summary>
         /// 出异常的方法
         /// </summary>
-        public MethodInfo ErrorMethod { get; set; }
+        public MethodBase ErrorMethod { get; set; }
 
         /// <summary>
         /// 异常特性

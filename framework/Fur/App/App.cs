@@ -1,5 +1,5 @@
 ﻿using Fur.DependencyInjection;
-using Fur.WebUtilities;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

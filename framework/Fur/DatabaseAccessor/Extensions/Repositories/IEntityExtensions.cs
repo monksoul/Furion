@@ -77,7 +77,7 @@ namespace Fur.DatabaseAccessor
         public static EntityEntry<TEntity> InsertNow<TEntity>(this TEntity entity, bool acceptAllChangesOnSuccess, bool? ignoreNullValues = null)
             where TEntity : class, IPrivateEntity, new()
         {
-            return Db.GetRepository<TEntity>().InsertNow(entity, acceptAllChangesOnSuccess);
+            return Db.GetRepository<TEntity>().InsertNow(entity, acceptAllChangesOnSuccess, ignoreNullValues);
         }
 
         /// <summary>

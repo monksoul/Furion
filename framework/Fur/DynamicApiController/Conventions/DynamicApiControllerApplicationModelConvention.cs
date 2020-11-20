@@ -1,5 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Fur.UnifyResult;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;

@@ -1,5 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Fur.DynamicApiController;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
@@ -25,7 +26,7 @@ namespace Fur.FriendlyException
         /// <summary>
         /// 方法错误异常特性
         /// </summary>
-        private static readonly ConcurrentDictionary<MethodInfo, MethodIfException> ErrorMethods;
+        private static readonly ConcurrentDictionary<MethodBase, MethodIfException> ErrorMethods;
 
         /// <summary>
         /// 错误代码类型
@@ -47,7 +48,7 @@ namespace Fur.FriendlyException
         /// </summary>
         static Oops()
         {
-            ErrorMethods = new ConcurrentDictionary<MethodInfo, MethodIfException>();
+            ErrorMethods = new ConcurrentDictionary<MethodBase, MethodIfException>();
             _friendlyExceptionSettings = App.GetService<IOptions<FriendlyExceptionSettingsOptions>>().Value;
             ErrorCodeTypes = GetErrorCodeTypes();
             ErrorCodeMessages = GetErrorCodeMessages();
@@ -149,12 +150,10 @@ namespace Fur.FriendlyException
             errorCode = HandleEnumErrorCode(errorCode);
 
             // 获取出错的方法
-            var errorMethod = GetEndPointExceptionMethod();
-            // 修复忘记写 throw 抛异常bug
-            if (errorMethod == null) return default;
+            var methodIfException = GetEndPointExceptionMethod();
 
             // 获取异常特性
-            var ifExceptionAttribute = errorMethod.IfExceptionAttributes.FirstOrDefault(u => HandleEnumErrorCode(u.ErrorCode).ToString().Equals(errorCode.ToString()));
+            var ifExceptionAttribute = methodIfException.IfExceptionAttributes.FirstOrDefault(u => HandleEnumErrorCode(u.ErrorCode).ToString().Equals(errorCode.ToString()));
 
             // 获取错误码消息
             var errorCodeMessage = ifExceptionAttribute == null || string.IsNullOrEmpty(ifExceptionAttribute.ErrorMessage)
@@ -257,59 +256,33 @@ namespace Fur.FriendlyException
         /// <returns></returns>
         private static MethodIfException GetEndPointExceptionMethod()
         {
-            // 通过查找调用堆栈中错误的方法，该方法所在类型集成自 ControllerBase 类型或 IDynamicApiController接口
-            var stackFrames = new StackTrace().GetFrames();
-            var exceptionMethodFrame = stackFrames.FirstOrDefault(u => typeof(ControllerBase).IsAssignableFrom(u.GetMethod().ReflectedType) || typeof(IDynamicApiController).IsAssignableFrom(u.GetMethod().ReflectedType))
-                ?? stackFrames.FirstOrDefault(u => u.GetMethod().IsFinal);
+            // 获取调用堆栈信息
+            var stackTrace = EnhancedStackTrace.Current();
 
-            // 修复忘记写 throw 抛异常bug
-            if (exceptionMethodFrame == null) return default;
+            // 获取出错的堆栈信息
+            var stackFrame = stackTrace.FirstOrDefault(u => typeof(ControllerBase).IsAssignableFrom(u.MethodInfo.DeclaringType) || typeof(IDynamicApiController).IsAssignableFrom(u.MethodInfo.DeclaringType));
 
-            // 获取出错堆栈的方法对象
-            var errorMethod = exceptionMethodFrame.GetMethod() as MethodInfo;
+            // 获取出错的方法
+            var errorMethod = stackFrame.MethodInfo.MethodBase;
 
             // 判断是否已经缓存过该方法，避免重复解析
             var isCached = ErrorMethods.TryGetValue(errorMethod, out var methodIfException);
             if (isCached) return methodIfException;
 
+            // 获取堆栈中所有的 [IfException] 特性
+            var ifExceptionAttributes = stackTrace.SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true)).Where(u => u.ErrorCode != null);
+
             // 组装方法异常对象
             methodIfException = new MethodIfException
             {
                 ErrorMethod = errorMethod,
-                IfExceptionAttributes = GetIfExceptionAttributes(stackFrames)
+                IfExceptionAttributes = ifExceptionAttributes
             };
 
             // 存入缓存
             ErrorMethods.TryAdd(errorMethod, methodIfException);
 
             return methodIfException;
-        }
-
-        /// <summary>
-        /// 获取堆栈中所有的异常特性
-        /// </summary>
-        /// <param name="stackFrames"></param>
-        /// <returns></returns>
-        private static IEnumerable<IfExceptionAttribute> GetIfExceptionAttributes(StackFrame[] stackFrames)
-        {
-            var errorMethods = new List<MethodInfo>();
-
-            // 遍历所有异常堆栈
-            foreach (var stackFrame in stackFrames)
-            {
-                var method = stackFrame.GetMethod();
-                var methodReflectedType = method.ReflectedType;
-                if (methodReflectedType == typeof(Oops)) continue;
-
-                errorMethods.Add(method as MethodInfo);
-
-                // 判断是否是终点路由
-                if (typeof(ControllerBase).IsAssignableFrom(methodReflectedType) || typeof(IDynamicApiController).IsAssignableFrom(methodReflectedType)) break;
-            }
-
-            return errorMethods.Where(u => u.IsDefined(typeof(IfExceptionAttribute), true))
-                .SelectMany(u => u.GetCustomAttributes<IfExceptionAttribute>(true))
-                .Where(u => u.ErrorCode != null);
         }
 
         /// <summary>

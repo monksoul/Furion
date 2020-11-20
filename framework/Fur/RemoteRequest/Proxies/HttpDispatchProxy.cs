@@ -1,9 +1,11 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Utilities;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Fur.RemoteRequest
@@ -94,7 +96,8 @@ namespace Fur.RemoteRequest
                     var result = JsonSerializer.DeserializeAsync(responseStream
                         , returnType, new JsonSerializerOptions
                         {
-                            PropertyNameCaseInsensitive = true
+                            PropertyNameCaseInsensitive = true,
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                         }).GetAwaiter().GetResult();
 
                     return !targetMethod.IsAsync() ? result : result.ToTaskResult(returnType);

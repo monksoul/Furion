@@ -147,85 +147,6 @@
             排序
             </summary>
         </member>
-        <member name="T:Fur.ObjectExtensions">
-            <summary>
-            对象拓展类
-            </summary>
-        </member>
-        <member name="M:Fur.ObjectExtensions.IsRichPrimitive(System.Type)">
-            <summary>
-            判断是否是富基元类型
-            </summary>
-            <param name="type">类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.AddOrUpdate(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
-            <summary>
-            合并两个字典
-            </summary>
-            <param name="dic">字典</param>
-            <param name="newDic">新字典</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.IsValueTuple(System.Type)">
-            <summary>
-            判断是否是元组类型
-            </summary>
-            <param name="type">类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.IsAsync(System.Reflection.MethodInfo)">
-            <summary>
-            判断方法是否是异步
-            </summary>
-            <param name="method">方法</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.IsAsync(System.Type)">
-            <summary>
-            判断类型是否是异步类型
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.HasImplementedRawGeneric(System.Type,System.Type)">
-            <summary>
-            判断类型是否实现某个泛型
-            </summary>
-            <param name="type">类型</param>
-            <param name="generic">泛型类型</param>
-            <returns>bool</returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.IsAnonymous(System.Object)">
-            <summary>
-            判断是否是匿名类型
-            </summary>
-            <param name="obj">对象</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.GetMethodRealReturnType(System.Reflection.MethodInfo)">
-            <summary>
-            获取方法真实返回类型
-            </summary>
-            <param name="method"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.GetSimilarityWith(System.String,System.String)">
-            <summary>
-            获取两个字符串的相似度
-            </summary>
-            <param name="sourceString"></param>
-            <param name="str"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.ObjectExtensions.ToTaskResult(System.Object,System.Type)">
-            <summary>
-            返回异步类型
-            </summary>
-            <param name="obj"></param>
-            <param name="realType"></param>
-            <returns></returns>
-        </member>
         <member name="T:Fur.AppExtra">
             <summary>
             官方包定义
@@ -864,6 +785,11 @@
         <member name="P:Fur.DatabaseAccessor.AppDbContext`2.InsertOrUpdateIgnoreNullValues">
             <summary>
             新增或更新忽略空值（默认值）
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.AppDbContext`2.EnabledEntityStateTracked">
+            <summary>
+            启用实体跟踪（默认值）
             </summary>
         </member>
         <member name="P:Fur.DatabaseAccessor.AppDbContext`2.Tenant">
@@ -9239,14 +9165,14 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Single(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Single(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Single(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Single(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9254,14 +9180,14 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefault(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefault(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9269,7 +9195,7 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -9277,71 +9203,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">取消异步令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.First(System.Boolean)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.First(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefault(System.Boolean)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstAsync(System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">取消异步令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9350,7 +9212,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -9358,7 +9220,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.SingleOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9367,14 +9229,14 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Last(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.First(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Last(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.First(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9382,14 +9244,14 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefault(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefault(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9397,7 +9259,7 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -9405,7 +9267,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9414,7 +9276,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -9422,7 +9284,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -9431,7 +9293,71 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Last(System.Nullable{System.Boolean})">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Last(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefault(System.Nullable{System.Boolean})">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">取消异步令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">取消异步令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">异步取消令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.LastOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">异步取消令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询多条记录
             </summary>
@@ -9440,7 +9366,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询多条记录
             </summary>
@@ -9449,7 +9375,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9459,7 +9385,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9476,7 +9402,7 @@
             <param name="predicates">表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9492,7 +9418,7 @@
             <param name="predicates">表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9508,7 +9434,7 @@
             <param name="conditionPredicates">条件表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9524,7 +9450,7 @@
             <param name="conditionPredicates">条件表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -9533,7 +9459,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Include``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Include``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             加载关联数据
             </summary>
@@ -9542,7 +9468,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Include``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Include``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件加载关联数据
             </summary>
@@ -9552,7 +9478,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Any(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Any(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             判断记录是否存在
             </summary>
@@ -9560,7 +9486,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Any(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Any(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式判断记录是否存在
             </summary>
@@ -9569,7 +9495,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AnyAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AnyAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             判断记录是否存在
             </summary>
@@ -9578,7 +9504,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式判断记录是否存在
             </summary>
@@ -9588,7 +9514,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.All(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.All(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式判断记录是否全部满足条件
             </summary>
@@ -9597,7 +9523,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AllAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AllAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式判断记录是否全部满足条件
             </summary>
@@ -9607,7 +9533,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Count(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Count(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看记录条数
             </summary>
@@ -9615,7 +9541,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询记录条数
             </summary>
@@ -9624,7 +9550,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.CountAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.CountAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看记录条数
             </summary>
@@ -9633,7 +9559,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查询记录条数
             </summary>
@@ -9643,7 +9569,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Min(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Min(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看最小记录
             </summary>
@@ -9651,7 +9577,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Min``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Min``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -9661,7 +9587,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MinAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MinAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看最小记录
             </summary>
@@ -9670,7 +9596,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MinAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MinAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -9681,7 +9607,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Max(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Max(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看最大记录
             </summary>
@@ -9689,7 +9615,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Max``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.Max``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -9699,7 +9625,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MaxAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MaxAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看最大记录
             </summary>
@@ -9708,7 +9634,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MaxAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.MaxAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -9719,23 +9645,14 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Nullable{System.Boolean})">
             <summary>
             构建查询分析器
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>IQueryable{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
-            <summary>
-            构建查询分析器
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
-            <returns>IQueryable{TEntity}</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             构建查询分析器
             </summary>
@@ -9744,14 +9661,23 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>IQueryable{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
+            <summary>
+            构建查询分析器
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
+            <returns>IQueryable{TEntity}</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Nullable{System.Boolean})">
             <summary>
             直接返回数据库结果
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -9760,7 +9686,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -9769,7 +9695,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -9777,7 +9703,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -9787,7 +9713,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.IReadableRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -14369,14 +14295,14 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Single(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Single(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Single(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Single(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14384,14 +14310,14 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefault(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefault(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14399,7 +14325,7 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -14407,71 +14333,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">取消异步令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-            <param name="cancellationToken">异步取消令牌</param>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.First(System.Boolean)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.First(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefault(System.Boolean)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstAsync(System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            查询一条记录
-            </summary>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">取消异步令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14480,31 +14342,31 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+            <param name="cancellationToken">异步取消令牌</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.SingleOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
             <param name="tracking">是否跟踪实体</param>
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            根据表达式查询一条记录
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>数据库中的实体</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Last(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.First(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Last(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.First(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14512,14 +14374,14 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefault(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefault(System.Nullable{System.Boolean})">
             <summary>
             查询一条记录
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14527,7 +14389,7 @@
             <param name="tracking">是否跟踪实体</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -14535,7 +14397,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14544,7 +14406,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefaultAsync(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             查询一条记录
             </summary>
@@ -14552,7 +14414,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             根据表达式查询一条记录
             </summary>
@@ -14561,7 +14423,71 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>数据库中的实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Last(System.Nullable{System.Boolean})">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Last(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefault(System.Nullable{System.Boolean})">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefault(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean})">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">取消异步令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">取消异步令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefaultAsync(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            查询一条记录
+            </summary>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">异步取消令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.LastOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            根据表达式查询一条记录
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="cancellationToken">异步取消令牌</param>
+            <returns>数据库中的实体</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询多条记录
             </summary>
@@ -14570,7 +14496,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询多条记录
             </summary>
@@ -14579,7 +14505,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14589,7 +14515,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14606,7 +14532,7 @@
             <param name="predicates">表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14622,7 +14548,7 @@
             <param name="predicates">表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14638,7 +14564,7 @@
             <param name="conditionPredicates">条件表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14654,7 +14580,7 @@
             <param name="conditionPredicates">条件表达式集合</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}}[],System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Where(System.ValueTuple{System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}}}[],System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件执行表达式查询多条记录
             </summary>
@@ -14663,7 +14589,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Include``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Include``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             加载关联数据
             </summary>
@@ -14672,7 +14598,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Include``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Include``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据条件加载关联数据
             </summary>
@@ -14682,7 +14608,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>数据库中的多个实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Any(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Any(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             判断记录是否存在
             </summary>
@@ -14690,7 +14616,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Any(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Any(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式判断记录是否存在
             </summary>
@@ -14699,7 +14625,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AnyAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AnyAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             判断记录是否存在
             </summary>
@@ -14708,7 +14634,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式判断记录是否存在
             </summary>
@@ -14718,7 +14644,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.All(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.All(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式判断记录是否全部满足条件
             </summary>
@@ -14727,7 +14653,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AllAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AllAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式判断记录是否全部满足条件
             </summary>
@@ -14737,7 +14663,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>bool</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Count(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Count(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看记录条数
             </summary>
@@ -14745,7 +14671,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查询记录条数
             </summary>
@@ -14754,7 +14680,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.CountAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.CountAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看记录条数
             </summary>
@@ -14763,7 +14689,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查询记录条数
             </summary>
@@ -14773,7 +14699,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>int</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Min(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Min(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看最小记录
             </summary>
@@ -14781,7 +14707,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Min``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Min``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -14791,7 +14717,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MinAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MinAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看最小记录
             </summary>
@@ -14800,7 +14726,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MinAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MinAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -14811,7 +14737,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Max(System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Max(System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             查看最大记录
             </summary>
@@ -14819,7 +14745,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Max``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Max``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -14829,7 +14755,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MaxAsync(System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MaxAsync(System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             查看最大记录
             </summary>
@@ -14838,7 +14764,7 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>实体</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MaxAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.MaxAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             根据表达式查看最小值
             </summary>
@@ -14849,23 +14775,14 @@
             <param name="cancellationToken">取消异步令牌</param>
             <returns>TResult</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Nullable{System.Boolean})">
             <summary>
             构建查询分析器
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>IQueryable{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
-            <summary>
-            构建查询分析器
-            </summary>
-            <param name="predicate">表达式</param>
-            <param name="tracking">是否跟踪实体</param>
-            <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
-            <returns>IQueryable{TEntity}</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             构建查询分析器
             </summary>
@@ -14874,14 +14791,23 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>IQueryable{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
+            <summary>
+            构建查询分析器
+            </summary>
+            <param name="predicate">表达式</param>
+            <param name="tracking">是否跟踪实体</param>
+            <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
+            <returns>IQueryable{TEntity}</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Nullable{System.Boolean})">
             <summary>
             直接返回数据库结果
             </summary>
             <param name="tracking">是否跟踪实体</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -14890,7 +14816,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -14899,7 +14825,7 @@
             <param name="ignoreQueryFilters">是否忽略查询过滤器</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Nullable{System.Boolean},System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -14907,7 +14833,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -14917,7 +14843,7 @@
             <param name="cancellationToken">异步取消令牌</param>
             <returns>List{TEntity}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.AsAsyncEnumerable(System.Linq.Expressions.Expression{System.Func{`0,System.Int32,System.Boolean}},System.Nullable{System.Boolean},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             直接返回数据库结果
             </summary>
@@ -20147,13 +20073,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Fur.FriendlyException.Oops.GetIfExceptionAttributes(System.Diagnostics.StackFrame[])">
-            <summary>
-            获取堆栈中所有的异常特性
-            </summary>
-            <param name="stackFrames"></param>
-            <returns></returns>
-        </member>
         <member name="M:Fur.FriendlyException.Oops.GetErrorCodeItemMessage(System.Reflection.FieldInfo)">
             <summary>
             获取错误代码消息实体
@@ -21008,6 +20927,11 @@
             <param name="options"></param>
             <param name="configuration"></param>
         </member>
+        <member name="T:Fur.Startup">
+            <summary>
+            Fur 框架底层启动项配置
+            </summary>
+        </member>
         <member name="T:Fur.UnifyResult.UnifyModelAttribute">
             <summary>
             规范化模型特性
@@ -21249,6 +21173,126 @@
             </summary>
             <param name="context"></param>
             <param name="unifyResult"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Fur.Utilities.ObjectExtensions">
+            <summary>
+            对象拓展类
+            </summary>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.GetSimilarityWith(System.String,System.String)">
+            <summary>
+            获取两个字符串的相似度
+            </summary>
+            <param name="sourceString"></param>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.IsRichPrimitive(System.Type)">
+            <summary>
+            判断是否是富基元类型
+            </summary>
+            <param name="type">类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.AddOrUpdate(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            合并两个字典
+            </summary>
+            <param name="dic">字典</param>
+            <param name="newDic">新字典</param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.IsValueTuple(System.Type)">
+            <summary>
+            判断是否是元组类型
+            </summary>
+            <param name="type">类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.IsAsync(System.Reflection.MethodInfo)">
+            <summary>
+            判断方法是否是异步
+            </summary>
+            <param name="method">方法</param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.IsAsync(System.Type)">
+            <summary>
+            判断类型是否是异步类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.HasImplementedRawGeneric(System.Type,System.Type)">
+            <summary>
+            判断类型是否实现某个泛型
+            </summary>
+            <param name="type">类型</param>
+            <param name="generic">泛型类型</param>
+            <returns>bool</returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.IsAnonymous(System.Object)">
+            <summary>
+            判断是否是匿名类型
+            </summary>
+            <param name="obj">对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.GetMethodRealReturnType(System.Reflection.MethodInfo)">
+            <summary>
+            获取方法真实返回类型
+            </summary>
+            <param name="method"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.ObjectExtensions.ToTaskResult(System.Object,System.Type)">
+            <summary>
+            返回异步类型
+            </summary>
+            <param name="obj"></param>
+            <param name="realType"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Fur.Utilities.HttpContextUtility">
+            <summary>
+            HttpContext 上下文实用类
+            </summary>
+        </member>
+        <member name="M:Fur.Utilities.HttpContextUtility.GetCurrentHttpContext">
+            <summary>
+            获取当前 HttpContext 对象
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Fur.Utilities.LevenshteinDistance">
+            <summary>
+            编辑距离算法
+            </summary>
+        </member>
+        <member name="M:Fur.Utilities.LevenshteinDistance.LowerOfThree(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            取最小的一位数
+            </summary>
+            <param name="first"></param>
+            <param name="second"></param>
+            <param name="third"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.LevenshteinDistance.Levenshtein_Distance(System.String,System.String)">
+            <summary>
+            比较相似度内部代码
+            </summary>
+            <param name="str1"></param>
+            <param name="str2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Utilities.LevenshteinDistance.LevenshteinDistancePercent(System.String,System.String)">
+            <summary>
+            计算字符串相似度
+            </summary>
+            <param name="str1"></param>
+            <param name="str2"></param>
             <returns></returns>
         </member>
         <member name="T:Fur.ViewEngine.IViewEngineCompilationOptionsBuilder">
@@ -21990,17 +22034,6 @@
             </summary>
             <param name="content"></param>
             <param name="options"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Fur.WebUtilities.HttpContextUtility">
-            <summary>
-            HttpContext 上下文实用类
-            </summary>
-        </member>
-        <member name="M:Fur.WebUtilities.HttpContextUtility.GetCurrentHttpContext">
-            <summary>
-            获取当前 HttpContext 对象
-            </summary>
             <returns></returns>
         </member>
         <member name="T:Microsoft.AspNetCore.Builder.AppApplicationBuilderExtensions">

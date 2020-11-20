@@ -1,4 +1,5 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Concurrent;

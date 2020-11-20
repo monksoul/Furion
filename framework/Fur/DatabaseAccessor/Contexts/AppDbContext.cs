@@ -1,5 +1,5 @@
 using Fur.DependencyInjection;
-using Fur.WebUtilities;
+using Fur.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Caching.Memory;
@@ -99,6 +99,11 @@ namespace Fur.DatabaseAccessor
         /// 新增或更新忽略空值（默认值）
         /// </summary>
         public virtual bool InsertOrUpdateIgnoreNullValues { get; protected set; } = false;
+
+        /// <summary>
+        /// 启用实体跟踪（默认值）
+        /// </summary>
+        public virtual bool EnabledEntityStateTracked { get; protected set; } = true;
 
         /// <summary>
         /// 获取租户信息

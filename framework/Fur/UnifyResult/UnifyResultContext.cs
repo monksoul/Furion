@@ -1,6 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Fur.FriendlyException;
-using Fur.WebUtilities;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Fur.UnifyResult
@@ -52,7 +53,11 @@ namespace Fur.UnifyResult
             if (errorMessage.StartsWith(validationFlag))
             {
                 // 处理结果
-                errorObject = JsonSerializer.Deserialize<object>(errorMessage[validationFlag.Length..]);
+                errorObject = JsonSerializer.Deserialize<object>(errorMessage[validationFlag.Length..], new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
 
                 // 设置为400状态码
                 errorCode = StatusCodes.Status400BadRequest;

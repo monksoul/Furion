@@ -6,14 +6,25 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Fur
+namespace Fur.Utilities
 {
     /// <summary>
     /// 对象拓展类
     /// </summary>
     [SkipScan]
-    internal static class ObjectExtensions
+    public static class ObjectExtensions
     {
+        /// <summary>
+        /// 获取两个字符串的相似度
+        /// </summary>
+        /// <param name="sourceString"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static decimal GetSimilarityWith(this string sourceString, string str)
+        {
+            return new LevenshteinDistance().LevenshteinDistancePercent(sourceString, str);
+        }
+
         /// <summary>
         /// 判断是否是富基元类型
         /// </summary>
@@ -135,23 +146,6 @@ namespace Fur
             // 获取类型返回值并处理 Task 和 Task<T> 类型返回值
             var returnType = method.ReturnType;
             return isAsyncMethod ? (returnType.GenericTypeArguments.FirstOrDefault() ?? typeof(void)) : returnType;
-        }
-
-        /// <summary>
-        /// 获取两个字符串的相似度
-        /// </summary>
-        /// <param name="sourceString"></param>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        internal static decimal GetSimilarityWith(this string sourceString, string str)
-        {
-            decimal Kq = 2, Kr = 1, Ks = 1;
-            char[] ss = sourceString.ToCharArray(), st = str.ToCharArray();
-
-            //获取交集数量
-            int q = ss.Intersect(st).Count(), s = ss.Length - q, r = st.Length - q;
-
-            return Kq * q / (Kq * q + Kr * r + Ks * s);
         }
 
         /// <summary>
