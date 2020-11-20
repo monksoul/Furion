@@ -21297,6 +21297,16 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Fur.Utilities.JsonSerializerUtility">
+            <summary>
+            Json序列化静态工具类
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.JsonSerializerUtility.EnabledPascalPropertyNaming">
+            <summary>
+            是否启用属性大写操作
+            </summary>
+        </member>
         <member name="T:Fur.Utilities.LevenshteinDistance">
             <summary>
             编辑距离算法

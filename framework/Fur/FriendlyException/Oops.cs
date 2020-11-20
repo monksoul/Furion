@@ -270,7 +270,9 @@ namespace Fur.FriendlyException
             if (isCached) return methodIfException;
 
             // 获取堆栈中所有的 [IfException] 特性
-            var ifExceptionAttributes = stackTrace.SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true)).Where(u => u.ErrorCode != null);
+            var ifExceptionAttributes = stackTrace
+                .Where(u => u.MethodInfo.MethodBase.IsDefined(typeof(IfExceptionAttribute), true))
+                .SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true)).Where(u => u.ErrorCode != null);
 
             // 组装方法异常对象
             methodIfException = new MethodIfException

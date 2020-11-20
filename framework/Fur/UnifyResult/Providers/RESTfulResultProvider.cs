@@ -1,9 +1,11 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Fur.UnifyResult
@@ -97,6 +99,9 @@ namespace Fur.UnifyResult
                         Data = null,
                         Errors = "401 Unauthorized",
                         Extras = UnifyResultContext.Take()
+                    }, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonSerializerUtility.EnabledPascalPropertyNaming ? null : JsonNamingPolicy.CamelCase
                     });
                     break;
                 // 处理 403 状态码
@@ -108,6 +113,9 @@ namespace Fur.UnifyResult
                         Data = null,
                         Errors = "403 Forbidden",
                         Extras = UnifyResultContext.Take()
+                    }, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonSerializerUtility.EnabledPascalPropertyNaming ? null : JsonNamingPolicy.CamelCase
                     });
                     break;
 

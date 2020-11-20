@@ -1,5 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Fur.JsonConverters;
+using Fur.Utilities;
 using System.Text.Encodings.Web;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -35,6 +36,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>Mvc构建器</returns>
         public static IMvcBuilder AddJsonSerializerPascalPropertyNaming(this IMvcBuilder mvcBuilder)
         {
+            // 存储是否启动大写序列化
+            JsonSerializerUtility.EnabledPascalPropertyNaming = true;
+
             mvcBuilder.AddJsonOptions(options =>
              {
                  options.JsonSerializerOptions.PropertyNamingPolicy = null;
