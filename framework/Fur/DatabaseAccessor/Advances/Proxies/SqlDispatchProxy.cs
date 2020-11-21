@@ -1,5 +1,5 @@
 ﻿using Fur.DependencyInjection;
-using Fur.Utilities;
+using Fur.Extensions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

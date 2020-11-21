@@ -1,4 +1,5 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Fur.Utilities
+namespace Fur.Extensions
 {
     /// <summary>
     /// 对象拓展类

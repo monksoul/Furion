@@ -345,12 +345,16 @@
             请求上下文访问器
             </summary>
         </member>
-        <member name="M:Fur.Core.AuthorizationManager.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Options.IOptions{Fur.Authorization.JWTSettingsOptions},Fur.DatabaseAccessor.IRepository{Fur.Core.User})">
+        <member name="F:Fur.Core.AuthorizationManager._userRepository">
+            <summary>
+            数据库仓储
+            </summary>
+        </member>
+        <member name="M:Fur.Core.AuthorizationManager.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Fur.DatabaseAccessor.IRepository{Fur.Core.User})">
             <summary>
             构造函数
             </summary>
             <param name="httpContextAccessor"></param>
-            <param name="options"></param>
             <param name="userRepository"></param>
         </member>
         <member name="M:Fur.Core.AuthorizationManager.GetUserId">
@@ -359,24 +363,11 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Fur.Core.AuthorizationManager.GetUserId``1">
-            <summary>
-            获取用户Id
-            </summary>
-            <typeparam name="T"></typeparam>
-            <returns></returns>
-        </member>
         <member name="M:Fur.Core.AuthorizationManager.CheckSecurity(System.String)">
             <summary>
             检查权限
             </summary>
             <param name="resourceId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.Core.AuthorizationManager.ReadToken">
-            <summary>
-            解析 Token
-            </summary>
             <returns></returns>
         </member>
         <member name="T:Fur.Core.IAuthorizationManager">
@@ -388,13 +379,6 @@
             <summary>
             获取用户 Id
             </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.Core.IAuthorizationManager.GetUserId``1">
-            <summary>
-            获取用户 Id
-            </summary>
-            <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
         <member name="M:Fur.Core.IAuthorizationManager.CheckSecurity(System.String)">

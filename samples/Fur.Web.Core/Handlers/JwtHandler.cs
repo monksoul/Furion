@@ -12,16 +12,13 @@ namespace Fur.Web.Core
     public class JwtHandler : AppAuthorizeHandler
     {
         /// <summary>
-        /// 请求管道
+        /// 验证管道
         /// </summary>
         /// <param name="context"></param>
         /// <param name="httpContext"></param>
         /// <returns></returns>
         public override bool Pipeline(AuthorizationHandlerContext context, DefaultHttpContext httpContext)
         {
-            var isValid = context.ValidateJwtBearer(httpContext, out _);
-            if (!isValid) return false;
-
             // 检查权限
             return CheckAuthorzie(httpContext);
         }
@@ -37,7 +34,11 @@ namespace Fur.Web.Core
             var securityDefineAttribute = httpContext.GetMetadata<SecurityDefineAttribute>();
             if (securityDefineAttribute == null) return true;
 
-            return httpContext.RequestServices.GetService<IAuthorizationManager>().CheckSecurity(securityDefineAttribute.ResourceId);
+            // 解析服务
+            var authorizationManager = httpContext.RequestServices.GetService<IAuthorizationManager>();
+
+            // 检查授权
+            return authorizationManager.CheckSecurity(securityDefineAttribute.ResourceId);
         }
     }
 }

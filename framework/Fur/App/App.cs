@@ -101,6 +101,27 @@ namespace Fur
         }
 
         /// <summary>
+        /// 获取请求生命周期的服务
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public static TService GetRequiredService<TService>()
+            where TService : class
+        {
+            return GetRequiredService(typeof(TService)) as TService;
+        }
+
+        /// <summary>
+        /// 获取请求生命周期的服务
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static object GetRequiredService(Type type)
+        {
+            return HttpContextUtility.GetCurrentHttpContext()?.RequestServices?.GetRequiredService(type);
+        }
+
+        /// <summary>
         /// 获取选项
         /// </summary>
         /// <typeparam name="TOptions">强类型选项类</typeparam>

@@ -10,7 +10,7 @@
     <RepositoryUrl>https://gitee.com/monksoul/Fur</RepositoryUrl>
     <RepositoryType>Gitee</RepositoryType>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.6.3</Version>
+    <Version>1.0.8</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
@@ -37,15 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SpecificationDocument\Assets\index-mini-profiler.html" />
-  </ItemGroup>
-
-  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fur.Extras.DependencyModel.CodeAnalysis" Version="1.0.6.2" />
+    <PackageReference Include="Fur.Extras.DependencyModel.CodeAnalysis" Version="1.0.8" />
     <PackageReference Include="Mapster" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0" />

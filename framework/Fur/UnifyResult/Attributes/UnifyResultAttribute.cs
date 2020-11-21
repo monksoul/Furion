@@ -1,6 +1,6 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Extensions;
 using Fur.UnifyResult;
-using Fur.Utilities;
 using Microsoft.AspNetCore.Http;
 using System;
 

@@ -32,39 +32,6 @@
             </summary>
             <param name="services"></param>
         </member>
-        <member name="T:Microsoft.AspNetCore.Authorization.JWTExtensions">
-            <summary>
-            Jwt 授权拓展
-            </summary>
-        </member>
-        <member name="M:Microsoft.AspNetCore.Authorization.JWTExtensions.ValidateJwtBearer(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext,Microsoft.AspNetCore.Http.HttpContext,Microsoft.IdentityModel.JsonWebTokens.JsonWebToken@)">
-            <summary>
-            验证 Jwt 授权
-            </summary>
-            <param name="context"></param>
-            <param name="httpContext"></param>
-            <param name="token"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Microsoft.AspNetCore.Http.JwtHttpContextExtensions">
-            <summary>
-            HttpContext 拓展类
-            </summary>
-        </member>
-        <member name="M:Microsoft.AspNetCore.Http.JwtHttpContextExtensions.GetJwtToken(Microsoft.AspNetCore.Http.HttpContext)">
-            <summary>
-            获取 JWT Token
-            </summary>
-            <param name="httpContext"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.AspNetCore.Http.JwtHttpContextExtensions.GetJwtToken(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
-            <summary>
-            获取 JWT Token
-            </summary>
-            <param name="httpContextAccessor"></param>
-            <returns></returns>
-        </member>
         <member name="T:Fur.DataEncryption.JWTEncryption">
             <summary>
             JWT 加解密

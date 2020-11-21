@@ -9,14 +9,7 @@
         /// 获取用户 Id
         /// </summary>
         /// <returns></returns>
-        object GetUserId();
-
-        /// <summary>
-        /// 获取用户 Id
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        T GetUserId<T>();
+        int GetUserId();
 
         /// <summary>
         /// 检查授权

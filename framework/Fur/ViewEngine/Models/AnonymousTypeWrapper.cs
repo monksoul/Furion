@@ -1,5 +1,5 @@
 ﻿using Fur.DependencyInjection;
-using Fur.Utilities;
+using Fur.Extensions;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;

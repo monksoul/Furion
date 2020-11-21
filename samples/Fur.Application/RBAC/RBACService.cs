@@ -90,7 +90,7 @@ namespace Fur.Application
         public List<RoleDto> ViewRoles()
         {
             // 获取用户Id
-            var userId = _authorizationManager.GetUserId<int>();
+            var userId = _authorizationManager.GetUserId();
 
             var roles = _userRepository
                 .DetachedEntities
@@ -110,7 +110,7 @@ namespace Fur.Application
         public List<SecurityDto> ViewSecuries()
         {
             // 获取用户Id
-            var userId = _authorizationManager.GetUserId<int>();
+            var userId = _authorizationManager.GetUserId();
 
             var securities = _userRepository
                 .Include(u => u.Roles, false)
@@ -148,7 +148,7 @@ namespace Fur.Application
         public void GiveUserRole(int[] roleIds)
         {
             // 获取用户Id
-            var userId = _authorizationManager.GetUserId<int>();
+            var userId = _authorizationManager.GetUserId();
 
             roleIds ??= Array.Empty<int>();
             _userRoleRepository.Delete(_userRoleRepository.Where(u => u.UserId == userId, false).ToList());

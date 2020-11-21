@@ -11,7 +11,7 @@
         </member>
         <member name="M:Fur.Web.Core.JwtHandler.Pipeline(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext,Microsoft.AspNetCore.Http.DefaultHttpContext)">
             <summary>
-            请求管道
+            验证管道
             </summary>
             <param name="context"></param>
             <param name="httpContext"></param>

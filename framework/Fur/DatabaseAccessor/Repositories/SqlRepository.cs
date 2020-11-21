@@ -76,6 +76,7 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         public virtual TService GetService<TService>()
+            where TService : class
         {
             return _serviceProvider.GetService<TService>();
         }
@@ -86,6 +87,7 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         public virtual TService GetRequiredService<TService>()
+            where TService : class
         {
             return _serviceProvider.GetRequiredService<TService>();
         }
