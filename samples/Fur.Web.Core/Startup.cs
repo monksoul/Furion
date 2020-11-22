@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 namespace Fur.Web.Core
 {
     [AppStartup(700)]
-    public sealed class FurWebCoreStartup : AppStartup
+    public sealed class Startup : AppStartup
     {
         public void ConfigureServices(IServiceCollection services)
         {
@@ -15,7 +15,8 @@ namespace Fur.Web.Core
 
             services.AddCorsAccessor();
 
-            services.AddControllersWithViews().AddInjectWithUnifyResult();
+            services.AddControllersWithViews()
+                    .AddInjectWithUnifyResult();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

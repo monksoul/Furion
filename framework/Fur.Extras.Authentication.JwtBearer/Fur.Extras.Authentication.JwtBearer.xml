@@ -62,6 +62,21 @@
             <param name="jwtSettings"></param>
             <returns></returns>
         </member>
+        <member name="M:Fur.DataEncryption.JWTEncryption.ValidateJwtBearerToken(Microsoft.AspNetCore.Http.DefaultHttpContext,Microsoft.IdentityModel.JsonWebTokens.JsonWebToken@)">
+            <summary>
+            验证 Token
+            </summary>
+            <param name="httpContext"></param>
+            <param name="token"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DataEncryption.JWTEncryption.GetJwtBearerToken(Microsoft.AspNetCore.Http.DefaultHttpContext)">
+            <summary>
+            获取 JWT Bearer Token
+            </summary>
+            <param name="httpContext"></param>
+            <returns></returns>
+        </member>
         <member name="M:Fur.DataEncryption.JWTEncryption.CreateTokenValidationParameters(Fur.Authorization.JWTSettingsOptions)">
             <summary>
             生成Token验证参数

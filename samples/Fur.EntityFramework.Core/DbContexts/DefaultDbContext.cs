@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Fur.EntityFramework.Core
 {
     [AppDbContext("Sqlite3ConnectionString")]
-    public class FurDbContext : AppDbContext<FurDbContext>
+    public class DefaultDbContext : AppDbContext<DefaultDbContext>
     {
-        public FurDbContext(DbContextOptions<FurDbContext> options) : base(options)
+        public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options)
         {
         }
     }

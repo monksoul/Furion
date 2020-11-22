@@ -1,4 +1,7 @@
 ﻿using Fur.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -69,6 +72,46 @@ namespace Fur.DataEncryption
             {
                 return (false, default);
             }
+        }
+
+        /// <summary>
+        /// 验证 Token
+        /// </summary>
+        /// <param name="httpContext"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool ValidateJwtBearerToken(DefaultHttpContext httpContext, out JsonWebToken token)
+        {
+            // 获取 token
+            var accessToken = GetJwtBearerToken(httpContext);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                token = null;
+                return false;
+            }
+
+            // 读取 Jwt 配置
+            var jwtSettings = httpContext.RequestServices.GetService<IOptions<JWTSettingsOptions>>().Value;
+
+            // 验证token
+            var (IsValid, Token) = Validate(accessToken, jwtSettings);
+            token = IsValid ? Token : null;
+
+            return IsValid;
+        }
+
+        /// <summary>
+        /// 获取 JWT Bearer Token
+        /// </summary>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
+        public static string GetJwtBearerToken(DefaultHttpContext httpContext)
+        {
+            // 判断请求报文头中是否有 "Authorization" 报文头
+            var bearerToken = httpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(bearerToken)) return default;
+
+            return bearerToken[7..];
         }
 
         /// <summary>

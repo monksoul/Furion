@@ -20289,11 +20289,6 @@
             错误代码定义类型
             </summary>
         </member>
-        <member name="T:Fur.FurStartup">
-            <summary>
-            Fur 框架底层启动项配置
-            </summary>
-        </member>
         <member name="T:Fur.JsonConverters.DateTimeJsonConverter">
             <summary>
             DateTime 类型序列化
@@ -21085,6 +21080,11 @@
             </summary>
             <param name="options"></param>
             <param name="configuration"></param>
+        </member>
+        <member name="T:Fur.Startup">
+            <summary>
+            Fur 框架底层启动项配置
+            </summary>
         </member>
         <member name="T:Fur.UnifyResult.UnifyModelAttribute">
             <summary>
@@ -22217,6 +22217,18 @@
             <summary>
             资源Id，必须是唯一的
             </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Authorization.AuthorizationHandlerContextExtensions">
+            <summary>
+            授权处理上下文拓展类
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Authorization.AuthorizationHandlerContextExtensions.GetCurrentHttpContext(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext)">
+            <summary>
+            获取当前 HttpContext 上下文
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
         </member>
         <member name="T:Microsoft.AspNetCore.Mvc.NonValidationAttribute">
             <summary>

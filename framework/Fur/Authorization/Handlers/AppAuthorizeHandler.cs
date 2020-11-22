@@ -1,7 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
 using System.Threading.Tasks;
 
 namespace Fur.Authorization
@@ -17,7 +16,7 @@ namespace Fur.Authorization
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public Task HandleAsync(AuthorizationHandlerContext context)
+        public virtual Task HandleAsync(AuthorizationHandlerContext context)
         {
             // 判断是否授权
             var isAuthenticated = context.User.Identity.IsAuthenticated;
@@ -26,12 +25,8 @@ namespace Fur.Authorization
                 // 获取所有未成功验证的需求
                 var pendingRequirements = context.PendingRequirements;
 
-                DefaultHttpContext httpContext;
-
-                // 获取 httpContext 对象
-                if (context.Resource is AuthorizationFilterContext filterContext) httpContext = (DefaultHttpContext)filterContext.HttpContext;
-                else if (context.Resource is DefaultHttpContext defaultHttpContext) httpContext = defaultHttpContext;
-                else httpContext = null;
+                // 获取 HttpContext 上下文
+                var httpContext = context.GetCurrentHttpContext();
 
                 // 调用子类管道
                 var pipeline = Pipeline(context, httpContext);

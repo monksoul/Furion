@@ -4,13 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Fur.EntityFramework.Core
 {
     [AppStartup(600)]
-    public sealed class FurEntityFrameworkCoreStartup : AppStartup
+    public sealed class Startup : AppStartup
     {
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDatabaseAccessor(options =>
             {
-                options.AddDbPool<FurDbContext>(DbProvider.Sqlite);
+                options.AddDbPool<DefaultDbContext>(DbProvider.Sqlite);
             });
         }
     }
