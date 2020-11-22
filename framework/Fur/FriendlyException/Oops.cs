@@ -271,7 +271,7 @@ namespace Fur.FriendlyException
 
             // 获取堆栈中所有的 [IfException] 特性
             var ifExceptionAttributes = stackTrace
-                .Where(u => u.MethodInfo.MethodBase.IsDefined(typeof(IfExceptionAttribute), true))
+                .Where(u => u.MethodInfo.MethodBase != null && u.MethodInfo.MethodBase.IsDefined(typeof(IfExceptionAttribute), true))
                 .SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true)).Where(u => u.ErrorCode != null);
 
             // 组装方法异常对象

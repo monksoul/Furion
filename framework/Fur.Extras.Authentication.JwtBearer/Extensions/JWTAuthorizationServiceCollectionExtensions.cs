@@ -2,6 +2,8 @@
 using Fur.DataEncryption;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,8 +21,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="authenticationBuilder"></param>
         /// <param name="tokenValidationParameters">token 验证参数</param>
+        /// <param name="enableGlobalAuthorize">启动全局授权</param>
         /// <returns></returns>
-        public static AuthenticationBuilder AddJwt(this AuthenticationBuilder authenticationBuilder, object tokenValidationParameters = default)
+        public static AuthenticationBuilder AddJwt(this AuthenticationBuilder authenticationBuilder, object tokenValidationParameters = default, bool enableGlobalAuthorize = false)
         {
             var services = authenticationBuilder.Services;
 
@@ -33,6 +36,15 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 options.TokenValidationParameters = (tokenValidationParameters as TokenValidationParameters) ?? JWTEncryption.CreateTokenValidationParameters(jwtSettings);
             });
+
+            //启用全局授权
+            if (enableGlobalAuthorize)
+            {
+                services.Configure<MvcOptions>(options =>
+                {
+                    options.Filters.Add(new AuthorizeFilter());
+                });
+            }
 
             return authenticationBuilder;
         }
@@ -53,17 +65,17 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // 添加默认授权
             return services.AddAuthentication(options =>
-            {
-                if (configureOptions == null)
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                }
-                else configureOptions.Invoke(options);
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = (tokenValidationParameters as TokenValidationParameters) ?? JWTEncryption.CreateTokenValidationParameters(jwtSettings);
-            });
+             {
+                 if (configureOptions == null)
+                 {
+                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                 }
+                 else configureOptions.Invoke(options);
+             }).AddJwtBearer(options =>
+             {
+                 options.TokenValidationParameters = (tokenValidationParameters as TokenValidationParameters) ?? JWTEncryption.CreateTokenValidationParameters(jwtSettings);
+             });
         }
 
         /// <summary>

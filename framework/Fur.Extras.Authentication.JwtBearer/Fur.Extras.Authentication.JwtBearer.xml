@@ -9,12 +9,13 @@
             JWT 授权服务拓展类
             </summary>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.JWTAuthorizationServiceCollectionExtensions.AddJwt(Microsoft.AspNetCore.Authentication.AuthenticationBuilder,System.Object)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.JWTAuthorizationServiceCollectionExtensions.AddJwt(Microsoft.AspNetCore.Authentication.AuthenticationBuilder,System.Object,System.Boolean)">
             <summary>
             添加 JWT 授权
             </summary>
             <param name="authenticationBuilder"></param>
             <param name="tokenValidationParameters">token 验证参数</param>
+            <param name="enableGlobalAuthorize">启动全局授权</param>
             <returns></returns>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.JWTAuthorizationServiceCollectionExtensions.AddJwt(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.AspNetCore.Authentication.AuthenticationOptions},System.Object)">
