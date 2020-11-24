@@ -32,8 +32,14 @@ namespace Fur
         /// <param name="env"></param>
         internal static void AddConfigureFiles(IConfigurationBuilder config, IHostEnvironment env)
         {
-            AutoAddJsonFiles(config, env);
-            AutoAddXmlFiles(config, env);
+            // 读取忽略的配置文件
+            var ignoreConfigurationFiles = config.Build()
+                .GetSection("IgnoreConfigurationFiles").Get<string[]>()
+                ?? Array.Empty<string>();
+
+            // 加载配置
+            AutoAddJsonFiles(config, env, ignoreConfigurationFiles);
+            AutoAddXmlFiles(config, env, ignoreConfigurationFiles);
 
             // 存储配置
             ConfigurationBuilder = config;
@@ -44,14 +50,15 @@ namespace Fur
         /// </summary>
         /// <param name="config"></param>
         /// <param name="env"></param>
-        private static void AutoAddJsonFiles(IConfigurationBuilder config, IHostEnvironment env)
+        /// <param name="ignoreConfigurationFiles"></param>
+        private static void AutoAddJsonFiles(IConfigurationBuilder config, IHostEnvironment env, string[] ignoreConfigurationFiles)
         {
             // 获取程序目录下的所有配置文件
             var jsonFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.json", SearchOption.TopDirectoryOnly)
                 .Union(
                     Directory.GetFiles(Directory.GetCurrentDirectory(), "*.json", SearchOption.TopDirectoryOnly)
                 )
-                .Where(u => !excludeJsons.Contains(Path.GetFileName(u)) && !runtimeJsonSuffixs.Any(j => u.EndsWith(j)));
+                .Where(u => !excludeJsons.Contains(Path.GetFileName(u)) && !ignoreConfigurationFiles.Contains(Path.GetFileName(u)) && !runtimeJsonSuffixs.Any(j => u.EndsWith(j)));
 
             if (!jsonFiles.Any()) return;
 
@@ -81,14 +88,15 @@ namespace Fur
         /// </summary>
         /// <param name="config"></param>
         /// <param name="env"></param>
-        private static void AutoAddXmlFiles(IConfigurationBuilder config, IHostEnvironment env)
+        /// <param name="ignoreConfigurationFiles"></param>
+        private static void AutoAddXmlFiles(IConfigurationBuilder config, IHostEnvironment env, string[] ignoreConfigurationFiles)
         {
             // 获取程序目录下的所有配置文件，必须以 .config.xml 结尾
             var xmlFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly)
                 .Union(
                     Directory.GetFiles(Directory.GetCurrentDirectory(), "*.xml", SearchOption.TopDirectoryOnly)
                 )
-                .Where(u => u.EndsWith(".config.xml", StringComparison.OrdinalIgnoreCase));
+                .Where(u => !ignoreConfigurationFiles.Contains(Path.GetFileName(u)) && u.EndsWith(".config.xml", StringComparison.OrdinalIgnoreCase));
 
             if (!xmlFiles.Any()) return;
 

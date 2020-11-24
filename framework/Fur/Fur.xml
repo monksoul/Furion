@@ -229,19 +229,21 @@
             <param name="config"></param>
             <param name="env"></param>
         </member>
-        <member name="M:Fur.InternalApp.AutoAddJsonFiles(Microsoft.Extensions.Configuration.IConfigurationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment)">
+        <member name="M:Fur.InternalApp.AutoAddJsonFiles(Microsoft.Extensions.Configuration.IConfigurationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment,System.String[])">
             <summary>
             自动加载自定义 .json 配置文件
             </summary>
             <param name="config"></param>
             <param name="env"></param>
+            <param name="ignoreConfigurationFiles"></param>
         </member>
-        <member name="M:Fur.InternalApp.AutoAddXmlFiles(Microsoft.Extensions.Configuration.IConfigurationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment)">
+        <member name="M:Fur.InternalApp.AutoAddXmlFiles(Microsoft.Extensions.Configuration.IConfigurationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment,System.String[])">
             <summary>
             自动加载自定义 .xml 配置文件
             </summary>
             <param name="config"></param>
             <param name="env"></param>
+            <param name="ignoreConfigurationFiles"></param>
         </member>
         <member name="F:Fur.InternalApp.excludeJsons">
             <summary>
