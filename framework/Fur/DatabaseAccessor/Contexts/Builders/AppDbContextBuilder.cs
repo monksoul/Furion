@@ -138,14 +138,24 @@ namespace Fur.DatabaseAccessor
         /// <param name="dbContextType">数据库上下文类型</param>
         private static void AddTableAffixes(Type type, AppDbContextAttribute appDbContextAttribute, EntityTypeBuilder entityTypeBuilder, DbContext dbContext, Type dbContextType)
         {
+            // 排除无键实体或已经贴了 [Table] 特性的类型
             if (typeof(IPrivateEntityNotKey).IsAssignableFrom(type) || !string.IsNullOrEmpty(type.GetCustomAttribute<TableAttribute>(true)?.Schema)) return;
 
-            // 获取 多租户 Schema
+            // 判断是否是启用了多租户模式，如果是，则获取 Schema
             var dynamicSchema = !typeof(IMultiTenantOnSchema).IsAssignableFrom(dbContextType)
                 ? default
                 : dbContextType.GetMethod(nameof(IMultiTenantOnSchema.GetSchemaName)).Invoke(dbContext, null).ToString();
 
-            if (appDbContextAttribute == null) entityTypeBuilder.ToTable($"{type.Name}", dynamicSchema);
+            // 获取类型前缀 [TablePrefix] 特性
+            var tablePrefixAttribute = !type.IsDefined(typeof(TablePrefixAttribute), true)
+                ? default
+                : type.GetCustomAttribute<TablePrefixAttribute>(true);
+
+            // 判断是否启用全局表前后缀支持或个别表自定义了前缀
+            if (tablePrefixAttribute != null || appDbContextAttribute == null)
+            {
+                entityTypeBuilder.ToTable($"{tablePrefixAttribute?.Prefix}{type.Name}", dynamicSchema);
+            }
             else
             {
                 // 添加表统一前后缀，排除视图

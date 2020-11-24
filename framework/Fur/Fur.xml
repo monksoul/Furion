@@ -23471,50 +23471,20 @@
             <param name="expression">新的集合对象表达式</param>
             <returns></returns>
         </member>
-        <member name="T:System.Collections.Generic.PagedList`1">
+        <member name="T:System.ComponentModel.DataAnnotations.Schema.TablePrefixAttribute">
             <summary>
-            分页泛型集合
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-        </member>
-        <member name="P:System.Collections.Generic.PagedList`1.PageIndex">
-            <summary>
-            页码
+            配置表名称前缀
             </summary>
         </member>
-        <member name="P:System.Collections.Generic.PagedList`1.PageSize">
+        <member name="M:System.ComponentModel.DataAnnotations.Schema.TablePrefixAttribute.#ctor(System.String)">
             <summary>
-            页容量
+            构造函数
             </summary>
+            <param name="prefix"></param>
         </member>
-        <member name="P:System.Collections.Generic.PagedList`1.TotalCount">
+        <member name="P:System.ComponentModel.DataAnnotations.Schema.TablePrefixAttribute.Prefix">
             <summary>
-            总条数
-            </summary>
-        </member>
-        <member name="P:System.Collections.Generic.PagedList`1.TotalPages">
-            <summary>
-            总页数
-            </summary>
-        </member>
-        <member name="P:System.Collections.Generic.PagedList`1.Items">
-            <summary>
-            当前页集合
-            </summary>
-        </member>
-        <member name="P:System.Collections.Generic.PagedList`1.HasPrevPages">
-            <summary>
-            是否有上一页
-            </summary>
-        </member>
-        <member name="P:System.Collections.Generic.PagedList`1.HasNextPages">
-            <summary>
-            是否有下一页
-            </summary>
-        </member>
-        <member name="T:System.Collections.Generic.PagedList">
-            <summary>
-            分页集合
+            前缀
             </summary>
         </member>
         <member name="T:System.ComponentModel.DataAnnotations.DataValidationAttribute">
@@ -23566,6 +23536,52 @@
         <member name="F:System.ComponentModel.DataAnnotations.ValidationPattern.AtLeastOne">
             <summary>
             至少一个验证通过
+            </summary>
+        </member>
+        <member name="T:System.Collections.Generic.PagedList`1">
+            <summary>
+            分页泛型集合
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.PageIndex">
+            <summary>
+            页码
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.PageSize">
+            <summary>
+            页容量
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.TotalCount">
+            <summary>
+            总条数
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.TotalPages">
+            <summary>
+            总页数
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.Items">
+            <summary>
+            当前页集合
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.HasPrevPages">
+            <summary>
+            是否有上一页
+            </summary>
+        </member>
+        <member name="P:System.Collections.Generic.PagedList`1.HasNextPages">
+            <summary>
+            是否有下一页
+            </summary>
+        </member>
+        <member name="T:System.Collections.Generic.PagedList">
+            <summary>
+            分页集合
             </summary>
         </member>
         <member name="T:System.Linq.SystemLinqExtensions">
