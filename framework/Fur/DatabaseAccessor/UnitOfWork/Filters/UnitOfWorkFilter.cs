@@ -83,7 +83,7 @@ namespace Fur.DatabaseAccessor
                 // 创建临时数据库上下文
                 else
                 {
-                    var newDbContext = Db.GetRequestDbContext(Penetrates.DbContextWithLocatorCached.Keys.First());
+                    var newDbContext = Db.GetDbContext(Penetrates.DbContextWithLocatorCached.Keys.First());
 
                     // 开启事务
                     dbContextTransaction = newDbContext.Database.BeginTransaction();

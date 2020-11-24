@@ -30,20 +30,14 @@ namespace Fur.Authorization
 
                 // 调用子类管道
                 var pipeline = Pipeline(context, httpContext);
-                if (!pipeline) context.Fail();
-                else
+                if (pipeline)
                 {
                     // 通过授权验证
                     foreach (var requirement in pendingRequirements)
                     {
-                        if (requirement is AppAuthorizeRequirement authorizeRequirement)
-                        {
-                            // 验证策略管道
-                            var policyPipeline = PolicyPipeline(context, httpContext, authorizeRequirement);
-
-                            if (!policyPipeline) context.Fail();
-                            else context.Succeed(requirement);
-                        }
+                        // 验证策略管道
+                        var policyPipeline = PolicyPipeline(context, httpContext, requirement);
+                        if (policyPipeline) context.Succeed(requirement);
                     }
                 }
             }
@@ -69,7 +63,7 @@ namespace Fur.Authorization
         /// <param name="httpContext"></param>
         /// <param name="requirement"></param>
         /// <returns></returns>
-        public virtual bool PolicyPipeline(AuthorizationHandlerContext context, DefaultHttpContext httpContext, AppAuthorizeRequirement requirement)
+        public virtual bool PolicyPipeline(AuthorizationHandlerContext context, DefaultHttpContext httpContext, IAuthorizationRequirement requirement)
         {
             return true;
         }

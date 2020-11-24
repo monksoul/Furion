@@ -100,27 +100,12 @@ namespace Fur.DatabaseAccessor
         }
 
         /// <summary>
-        /// 获取瞬时数据库上下文
+        /// 获取作用域数据库上下文
         /// </summary>
         /// <returns></returns>
-        public static DbContext GetDbContext(Type dbContextLocator)
+        public static DbContext GetDbContext()
         {
-            // 判断是否注册了数据库上下文
-            if (!Penetrates.DbContextWithLocatorCached.ContainsKey(dbContextLocator)) return default;
-
-            var dbContextResolve = App.GetService<Func<Type, ITransient, DbContext>>();
-            return dbContextResolve(dbContextLocator, default);
-        }
-
-        /// <summary>
-        /// 获取瞬时数据库上下文
-        /// </summary>
-        /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
-        /// <returns></returns>
-        public static DbContext GetDbContext<TDbContextLocator>()
-            where TDbContextLocator : class, IDbContextLocator
-        {
-            return GetDbContext(typeof(TDbContextLocator));
+            return GetDbContext(typeof(MasterDbContextLocator));
         }
 
         /// <summary>
@@ -128,7 +113,7 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="dbContextLocator">数据库上下文定位器</param>
         /// <returns></returns>
-        public static DbContext GetRequestDbContext(Type dbContextLocator)
+        public static DbContext GetDbContext(Type dbContextLocator)
         {
             // 判断是否注册了数据库上下文
             if (!Penetrates.DbContextWithLocatorCached.ContainsKey(dbContextLocator)) return default;
@@ -142,10 +127,43 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
         /// <returns></returns>
-        public static DbContext GetRequestDbContext<TDbContextLocator>()
+        public static DbContext GetDbContext<TDbContextLocator>()
             where TDbContextLocator : class, IDbContextLocator
         {
-            return GetRequestDbContext(typeof(TDbContextLocator));
+            return GetDbContext(typeof(TDbContextLocator));
+        }
+
+        /// <summary>
+        /// 获取瞬时数据库上下文
+        /// </summary>
+        /// <returns></returns>
+        public static DbContext GetDuplicateDbContext()
+        {
+            return GetDuplicateDbContext(typeof(MasterDbContextLocator));
+        }
+
+        /// <summary>
+        /// 获取瞬时数据库上下文
+        /// </summary>
+        /// <returns></returns>
+        public static DbContext GetDuplicateDbContext(Type dbContextLocator)
+        {
+            // 判断是否注册了数据库上下文
+            if (!Penetrates.DbContextWithLocatorCached.ContainsKey(dbContextLocator)) return default;
+
+            var dbContextResolve = App.GetService<Func<Type, ITransient, DbContext>>();
+            return dbContextResolve(dbContextLocator, default);
+        }
+
+        /// <summary>
+        /// 获取瞬时数据库上下文
+        /// </summary>
+        /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
+        /// <returns></returns>
+        public static DbContext GetDuplicateDbContext<TDbContextLocator>()
+            where TDbContextLocator : class, IDbContextLocator
+        {
+            return GetDuplicateDbContext(typeof(TDbContextLocator));
         }
     }
 }

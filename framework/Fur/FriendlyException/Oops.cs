@@ -260,7 +260,7 @@ namespace Fur.FriendlyException
             var stackTrace = EnhancedStackTrace.Current();
 
             // 获取出错的堆栈信息
-            var stackFrame = stackTrace.FirstOrDefault(u => typeof(ControllerBase).IsAssignableFrom(u.MethodInfo.DeclaringType) || typeof(IDynamicApiController).IsAssignableFrom(u.MethodInfo.DeclaringType));
+            var stackFrame = stackTrace.FirstOrDefault(u => typeof(ControllerBase).IsAssignableFrom(u.MethodInfo.DeclaringType) || typeof(IDynamicApiController).IsAssignableFrom(u.MethodInfo.DeclaringType) || u.StackFrame.GetMethod().IsFinal);
 
             // 获取出错的方法
             var errorMethod = stackFrame.MethodInfo.MethodBase;
@@ -272,7 +272,8 @@ namespace Fur.FriendlyException
             // 获取堆栈中所有的 [IfException] 特性
             var ifExceptionAttributes = stackTrace
                 .Where(u => u.MethodInfo.MethodBase != null && u.MethodInfo.MethodBase.IsDefined(typeof(IfExceptionAttribute), true))
-                .SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true)).Where(u => u.ErrorCode != null);
+                .SelectMany(u => u.MethodInfo.MethodBase.GetCustomAttributes<IfExceptionAttribute>(true))
+                .Where(u => u.ErrorCode != null);
 
             // 组装方法异常对象
             methodIfException = new MethodIfException
