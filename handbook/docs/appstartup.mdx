@@ -233,7 +233,7 @@ namespace Fur.Web.Core
                        .AddDynamicApiControllers()
                        .AddDataValidation()
                        .AddFriendlyException()
-                       .AddUnifyResult<RESTfulResult, RESTfulResultProvider>();
+                       .AddUnifyResult<RESTfulResultProvider>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
