@@ -21392,6 +21392,136 @@
             <param name="str2"></param>
             <returns></returns>
         </member>
+        <member name="T:Fur.Utilities.AtomicLongArray">
+            <summary>
+            线程安全的长整形数组
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.AtomicLongArray._value">
+            <summary>
+            长整形数组
+            </summary>
+        </member>
+        <member name="P:Fur.Utilities.AtomicLongArray.Value">
+            <summary>
+            获取一个只读的长整形数组集合
+            </summary>
+        </member>
+        <member name="P:Fur.Utilities.AtomicLongArray.Item(System.Int32)">
+            <summary>
+            获取数组下标的值
+            </summary>
+            <param name="index">数组下标</param>
+            <returns>数组下标的值</returns>
+        </member>
+        <member name="M:Fur.Utilities.AtomicLongArray.#ctor(System.Int32)">
+            <summary>
+            实例化一个线程安全的长整形数组
+            </summary>
+            <param name="capacity">数组的容量</param>
+        </member>
+        <member name="M:Fur.Utilities.AtomicLongArray.CompareAndSet(System.Int32,System.Int64,System.Int64)">
+            <summary>
+            替换数组中指定下标的值，如果下标的当前值与期望的值相等，则替换成功；不相等说明发生了并发冲突，则替换失败
+            </summary>
+            <param name="index">数组下标</param>
+            <param name="currentValue">期望的值</param>
+            <param name="newValue">新的值</param>
+            <returns>是否替换成功</returns>
+        </member>
+        <member name="T:Fur.Utilities.Snowflake">
+            <summary>
+            雪花算法
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.DATACENTER_ID_BITS">
+            <summary>
+            机房标识位
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.WORKER_ID_BITS">
+            <summary>
+            机器标识位
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.SEQUENCE_BITS">
+            <summary>
+            序列号标识位
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.MAX_DATACENTER_ID">
+            <summary>
+            最大机房ID = 32
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.MAX_WORKER_ID">
+            <summary>
+            最大机器ID = 32
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.SEQUENCE_MASK">
+            <summary>
+            最大序列号 = 4096（单节点每毫秒可产生的最大ID数）
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.WORKER_ID_SHIFT_COUNT">
+            <summary>
+            机器ID左位移长度 = 12
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.DATACENTER_ID_SHIFT_COUNT">
+            <summary>
+            机房ID左位移长度 = 17
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.TIMESTAMP_SHIFT_COUNT">
+            <summary>
+            时间戳左位移长度 = 22
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.CAPACITY">
+            <summary>
+            历史ID存储数组长度
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake._idCycle">
+            <summary>
+            历史ID存储数组，该数组为解决时钟回拨而设计，如果历史ID反推出的时间戳大于当前时间戳，说明发生了时钟回拨，此时采用历史ID+1的方式生成新ID，直到时间追赶至回拨前的时间点
+            </summary>
+        </member>
+        <member name="F:Fur.Utilities.Snowflake.START_TIME">
+            <summary>
+            基准时间
+            </summary>
+        </member>
+        <member name="P:Fur.Utilities.Snowflake.DataCenterId">
+            <summary>
+            机房ID
+            </summary>
+        </member>
+        <member name="P:Fur.Utilities.Snowflake.WorkerId">
+            <summary>
+            机器ID
+            </summary>
+        </member>
+        <member name="P:Fur.Utilities.Snowflake.CurrentTimestamp">
+            <summary>
+            当前时间戳 = 当前时间 - 基础时间
+            </summary>
+        </member>
+        <member name="M:Fur.Utilities.Snowflake.#ctor(System.Int64,System.Int64)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="dataCenterId"></param>
+            <param name="workerId"></param>
+        </member>
+        <member name="M:Fur.Utilities.Snowflake.GetId">
+            <summary>
+            获取雪花Id
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Fur.ViewEngine.IViewEngineCompilationOptionsBuilder">
             <summary>
             视图编译构建器

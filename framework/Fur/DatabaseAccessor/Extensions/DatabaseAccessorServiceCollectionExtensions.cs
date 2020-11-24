@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     var dbContextPool = App.GetService<IDbContextPool>();
 
                     // 添加数据库上下文到池中
-                    dbContextPool.AddToPool(dbContext);
+                    dbContextPool?.AddToPool(dbContext);
 
                     return dbContext;
                 }
@@ -90,7 +90,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     var dbContextPool = App.GetService<IDbContextPool>();
 
                     // 添加数据库上下文到池中
-                    dbContextPool.AddToPool(dbContext);
+                    dbContextPool?.AddToPool(dbContext);
 
                     return dbContext;
                 }
