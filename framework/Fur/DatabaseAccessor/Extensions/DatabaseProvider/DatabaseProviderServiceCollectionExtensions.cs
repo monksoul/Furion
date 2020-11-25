@@ -354,7 +354,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // 读取数据库版本，针对MySql
             // https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/commit/83c699f5b747253dc1b6fa9c470f469467d77686
-            string providerVersion = providerNameAndVersion.Length > 1 ? providerNameAndVersion[1] : default;
+            string providerVersion = providerNameAndVersion.Length > 1 ? providerNameAndVersion[1] : "8.0.22";
             return (providerName, providerVersion);
         }
     }

@@ -248,7 +248,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual EntityEntry<TEntity> UpdateInclude(TEntity entity, params string[] propertyNames)
         {
-            var entityEntry = ChangeEntityState(entity, EntityState.Unchanged);
+            var entityEntry = ChangeEntityState(entity, EntityState.Detached);
             foreach (var propertyName in propertyNames)
             {
                 EntityPropertyEntry(entity, propertyName).IsModified = true;
@@ -264,7 +264,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual EntityEntry<TEntity> UpdateInclude(TEntity entity, params Expression<Func<TEntity, object>>[] propertyPredicates)
         {
-            var entityEntry = ChangeEntityState(entity, EntityState.Unchanged);
+            var entityEntry = ChangeEntityState(entity, EntityState.Detached);
             foreach (var propertyPredicate in propertyPredicates)
             {
                 EntityPropertyEntry(entity, propertyPredicate).IsModified = true;
