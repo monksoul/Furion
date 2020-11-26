@@ -784,7 +784,10 @@ namespace Fur.DatabaseAccessor
             var entityProperty = EntityPropertyEntry(entity, checkProperty.GetExpressionPropertyName());
             var propertyValue = entityProperty.CurrentValue;
 
-            return !(propertyValue == null || (entityProperty.Metadata.PropertyInfo.PropertyType.IsValueType && (propertyValue.Equals(0) || propertyValue.Equals(Guid.Empty))));
+            return !(propertyValue == null
+                || (entityProperty.Metadata.PropertyInfo.PropertyType == typeof(string) && propertyValue.Equals(string.Empty))
+                || (entityProperty.Metadata.PropertyInfo.PropertyType.IsValueType && (propertyValue.Equals(0)
+                || propertyValue.Equals(Guid.Empty))));
         }
     }
 }

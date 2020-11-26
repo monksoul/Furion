@@ -39,6 +39,9 @@ namespace System.ComponentModel.DataAnnotations
         /// <returns></returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
+            // 如果值等于默认值，则跳过验证
+            if (value == default || (IgnoreEmptyString && value.Equals(string.Empty))) return ValidationResult.Success;
+
             // 执行值验证
             var dataValidationResult = value.TryValidate(ValidationPattern, ValidationTypes);
             dataValidationResult.MemberOrValue = validationContext.MemberName;
@@ -62,5 +65,10 @@ namespace System.ComponentModel.DataAnnotations
         /// 验证逻辑
         /// </summary>
         public ValidationPattern ValidationPattern { get; set; }
+
+        /// <summary>
+        /// 忽略空字符串（也就是空字符串和Null都是通过的）
+        /// </summary>
+        public bool IgnoreEmptyString { get; set; } = true;
     }
 }

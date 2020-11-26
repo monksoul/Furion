@@ -23525,6 +23525,11 @@
             验证逻辑
             </summary>
         </member>
+        <member name="P:System.ComponentModel.DataAnnotations.DataValidationAttribute.IgnoreEmptyString">
+            <summary>
+            忽略空字符串（也就是空字符串和Null都是通过的）
+            </summary>
+        </member>
         <member name="T:System.ComponentModel.DataAnnotations.ValidationPattern">
             <summary>
             验证逻辑

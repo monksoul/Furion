@@ -264,12 +264,21 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual EntityEntry<TEntity> UpdateInclude(TEntity entity, params Expression<Func<TEntity, object>>[] propertyPredicates)
         {
-            var entityEntry = ChangeEntityState(entity, EntityState.Detached);
-            foreach (var propertyPredicate in propertyPredicates)
+            // 判断是非参数只有一个，且是一个匿名类型
+            if (propertyPredicates?.Length == 1 && propertyPredicates[0].Body is NewExpression newExpression)
             {
-                EntityPropertyEntry(entity, propertyPredicate).IsModified = true;
+                var propertyNames = newExpression.Members.Select(u => u.Name);
+                return UpdateInclude(entity, propertyNames);
             }
-            return entityEntry;
+            else
+            {
+                var entityEntry = ChangeEntityState(entity, EntityState.Detached);
+                foreach (var propertyPredicate in propertyPredicates)
+                {
+                    EntityPropertyEntry(entity, propertyPredicate).IsModified = true;
+                }
+                return entityEntry;
+            }
         }
 
         /// <summary>
@@ -612,12 +621,21 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual EntityEntry<TEntity> UpdateExclude(TEntity entity, params Expression<Func<TEntity, object>>[] propertyPredicates)
         {
-            var entityEntry = ChangeEntityState(entity, EntityState.Modified);
-            foreach (var propertyPredicate in propertyPredicates)
+            // 判断是非参数只有一个，且是一个匿名类型
+            if (propertyPredicates?.Length == 1 && propertyPredicates[0].Body is NewExpression newExpression)
             {
-                EntityPropertyEntry(entity, propertyPredicate).IsModified = false;
+                var propertyNames = newExpression.Members.Select(u => u.Name);
+                return UpdateExclude(entity, propertyNames);
             }
-            return entityEntry;
+            else
+            {
+                var entityEntry = ChangeEntityState(entity, EntityState.Modified);
+                foreach (var propertyPredicate in propertyPredicates)
+                {
+                    EntityPropertyEntry(entity, propertyPredicate).IsModified = false;
+                }
+                return entityEntry;
+            }
         }
 
         /// <summary>
