@@ -442,7 +442,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity">实体</param>
         public virtual void Detach(object entity)
         {
-            ChangeEntityState(entity, EntityState.Deleted);
+            ChangeEntityState(entity, EntityState.Detached);
         }
 
         /// <summary>
@@ -451,7 +451,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity">实体</param>
         public virtual void Detach(TEntity entity)
         {
-            ChangeEntityState(entity, EntityState.Deleted);
+            ChangeEntityState(entity, EntityState.Detached);
         }
 
         /// <summary>
@@ -460,7 +460,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="entityEntry">实体条目</param>
         public virtual void Detach(EntityEntry entityEntry)
         {
-            ChangeEntityState(entityEntry, EntityState.Deleted);
+            ChangeEntityState(entityEntry, EntityState.Detached);
         }
 
         /// <summary>
@@ -469,7 +469,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="entityEntry">实体条目</param>
         public virtual void Detach(EntityEntry<TEntity> entityEntry)
         {
-            ChangeEntityState(entityEntry, EntityState.Deleted);
+            ChangeEntityState(entityEntry, EntityState.Detached);
         }
 
         /// <summary>
