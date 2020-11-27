@@ -17,6 +17,24 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DependencyInjectionServiceCollectionExtensions
     {
         /// <summary>
+        /// 全局服务代理类型
+        /// </summary>
+        private static Type GlobalServiceProxyType;
+
+        /// <summary>
+        /// 添加服务代理
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddServiceProxy<TServiceProxy>(this IServiceCollection services)
+            where TServiceProxy : DispatchProxy, IDispatchProxy
+        {
+            GlobalServiceProxyType = typeof(TServiceProxy);
+
+            return services;
+        }
+
+        /// <summary>
         /// 添加依赖注入接口
         /// </summary>
         /// <param name="services">服务集合</param>
@@ -261,7 +279,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="hasTarget">是否有实现类</param>
         private static void AddTransientDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
-            if (proxyType == null) return;
+            proxyType ??= GlobalServiceProxyType;
+            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
 
             RegisterDispatchProxy(services, typeof(ITransient), proxyType);
             services.AddTransient(inter, provider =>
@@ -287,7 +306,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="hasTarget">是否有实例</param>
         private static void AddScopedDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
-            if (proxyType == null) return;
+            proxyType ??= GlobalServiceProxyType;
+            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
 
             RegisterDispatchProxy(services, typeof(IScoped), proxyType);
             services.AddScoped(inter, provider =>
@@ -313,7 +333,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="hasTarget">是否有实例</param>
         private static void AddSingletonDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
-            if (proxyType == null) return;
+            proxyType ??= GlobalServiceProxyType;
+            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
 
             RegisterDispatchProxy(services, typeof(ISingleton), proxyType);
             services.AddSingleton(inter, provider =>

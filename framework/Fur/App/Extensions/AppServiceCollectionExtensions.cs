@@ -26,10 +26,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IMvcBuilder AddInject(this IMvcBuilder mvcBuilder)
         {
             mvcBuilder.AddSpecificationDocuments()
-                              .AddDynamicApiControllers()
-                              .AddDataValidation()
-                              .AddFriendlyException()
-                              .AddBaseJsonOptions();
+                      .AddDynamicApiControllers()
+                      .AddDataValidation()
+                      .AddFriendlyException()
+                      .AddBaseJsonOptions();
 
             return mvcBuilder;
         }
@@ -42,9 +42,9 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddInject(this IServiceCollection services)
         {
             services.AddSpecificationDocuments()
-                        .AddDynamicApiControllers()
-                        .AddDataValidation()
-                        .AddFriendlyException();
+                    .AddDynamicApiControllers()
+                    .AddDataValidation()
+                    .AddFriendlyException();
 
             return services;
         }
@@ -60,8 +60,8 @@ namespace Microsoft.Extensions.DependencyInjection
             if (includeDynamicApiController) mvcBuilder.AddDynamicApiControllers();
 
             mvcBuilder.AddDataValidation()
-                              .AddFriendlyException()
-                              .AddBaseJsonOptions();
+                      .AddFriendlyException()
+                      .AddBaseJsonOptions();
 
             return mvcBuilder;
         }
@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
             if (includeDynamicApiController) services.AddDynamicApiControllers();
 
             services.AddDataValidation()
-                        .AddFriendlyException();
+                    .AddFriendlyException();
 
             return services;
         }
@@ -90,7 +90,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IMvcBuilder AddInjectWithUnifyResult(this IMvcBuilder mvcBuilder)
         {
             mvcBuilder.AddInject()
-                              .AddUnifyResult();
+                      .AddUnifyResult();
 
             return mvcBuilder;
         }
@@ -103,7 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddInjectWithUnifyResult(this IServiceCollection services)
         {
             services.AddInject()
-                        .AddUnifyResult();
+                    .AddUnifyResult();
 
             return services;
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Extensions.DependencyInjection
             where TUnifyResultProvider : class, IUnifyResultProvider
         {
             mvcBuilder.AddInject()
-                              .AddUnifyResult<TUnifyResultProvider>();
+                      .AddUnifyResult<TUnifyResultProvider>();
 
             return mvcBuilder;
         }
@@ -133,23 +133,7 @@ namespace Microsoft.Extensions.DependencyInjection
             where TUnifyResultProvider : class, IUnifyResultProvider
         {
             services.AddInject()
-                        .AddUnifyResult<TUnifyResultProvider>();
-
-            return services;
-        }
-
-        /// <summary>
-        /// 非 Web 主机注入基础配置
-        /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddHostInject(this IServiceCollection services)
-        {
-            // 添加全局配置和存储服务提供器
-            InternalApp.InternalServices = services;
-
-            // 初始化应用服务
-            services.AddApp();
+                    .AddUnifyResult<TUnifyResultProvider>();
 
             return services;
         }
@@ -165,12 +149,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // 注册全局配置选项
             services.AddConfigurableOptions<AppSettingsOptions>();
 
-            // 判断是否是Web主机
-            //if (App.WebHostEnvironment != null)
-            //{
-            // 注册 IHttpContextAccessor
+            // 添加 HttContext 访问器
             services.AddHttpContextAccessor();
-            //}
 
             // 注册分布式内存缓存
             services.AddDistributedMemoryCache();
@@ -190,11 +170,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 }).AddEntityFramework();
             }
 
-            // 自定义服务
-            configure?.Invoke(services);
-
             // 注册全局依赖注入
             services.AddDependencyInjection();
+
+            // 自定义服务
+            configure?.Invoke(services);
 
             return services;
         }

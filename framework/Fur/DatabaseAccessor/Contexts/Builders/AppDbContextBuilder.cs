@@ -4,6 +4,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -44,6 +45,8 @@ namespace Fur.DatabaseAccessor
 
             if (EntityCorrelationTypes.Count > 0)
             {
+                DbContextLocatorCorrelationTypes = new ConcurrentDictionary<Type, DbContextCorrelationType>();
+
                 // 获取模型构建器 Entity<T> 方法
                 ModelBuildEntityMethod = typeof(ModelBuilder).GetMethods(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(u => u.Name == nameof(ModelBuilder.Entity) && u.GetParameters().Length == 0);
             }
@@ -365,6 +368,11 @@ namespace Fur.DatabaseAccessor
         }
 
         /// <summary>
+        /// 数据库上下文定位器关联类型集合
+        /// </summary>
+        internal static ConcurrentDictionary<Type, DbContextCorrelationType> DbContextLocatorCorrelationTypes;
+
+        /// <summary>
         /// 获取当前数据库上下文关联类型
         /// </summary>
         /// <param name="dbContext">数据库上下文</param>
@@ -372,53 +380,66 @@ namespace Fur.DatabaseAccessor
         /// <returns>DbContextCorrelationType</returns>
         private static DbContextCorrelationType GetDbContextCorrelationType(DbContext dbContext, Type dbContextLocator)
         {
-            var result = new DbContextCorrelationType { DbContextLocator = dbContextLocator };
+            // 读取缓存
+            return DbContextLocatorCorrelationTypes.GetOrAdd(dbContextLocator, Function(dbContext, dbContextLocator));
 
-            // 获取当前数据库上下文关联类型
-            var dbContextEntityCorrelationTypes = EntityCorrelationTypes.Where(u => IsInThisDbContext(dbContextLocator, u));
-
-            // 组装对象
-            foreach (var entityCorrelationType in dbContextEntityCorrelationTypes)
+            // 本地静态方法
+            static DbContextCorrelationType Function(DbContext dbContext, Type dbContextLocator)
             {
-                // 只要继承 IEntityDependency 接口，都是实体
-                if (typeof(IPrivateEntity).IsAssignableFrom(entityCorrelationType))
-                {
-                    // 添加实体
-                    result.EntityTypes.Add(entityCorrelationType);
+                var result = new DbContextCorrelationType { DbContextLocator = dbContextLocator };
 
-                    // 添加无键实体
-                    if (typeof(IPrivateEntityNotKey).IsAssignableFrom(entityCorrelationType))
+                // 获取当前数据库上下文关联类型
+                var dbContextEntityCorrelationTypes = EntityCorrelationTypes.Where(u => IsInThisDbContext(dbContextLocator, u));
+
+                // 组装对象
+                foreach (var entityCorrelationType in dbContextEntityCorrelationTypes)
+                {
+                    // 只要继承 IEntityDependency 接口，都是实体
+                    if (typeof(IPrivateEntity).IsAssignableFrom(entityCorrelationType))
                     {
-                        result.EntityNoKeyTypes.Add(entityCorrelationType);
+                        // 添加实体
+                        result.EntityTypes.Add(entityCorrelationType);
+
+                        // 添加无键实体
+                        if (typeof(IPrivateEntityNotKey).IsAssignableFrom(entityCorrelationType))
+                        {
+                            result.EntityNoKeyTypes.Add(entityCorrelationType);
+                        }
+                    }
+
+                    if (typeof(IPrivateModelBuilder).IsAssignableFrom(entityCorrelationType))
+                    {
+                        // 添加模型构建器
+                        if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntityTypeBuilder<>)))
+                        {
+                            result.EntityTypeBuilderTypes.Add(entityCorrelationType);
+                        }
+
+                        // 添加全局筛选器
+                        if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateModelBuilderFilter)))
+                        {
+                            result.ModelBuilderFilterTypes.Add(entityCorrelationType);
+
+                            // 支持 DbContext 继承全局过滤接口
+                            result.ModelBuilderFilterInstances.Add((entityCorrelationType == dbContext.GetType() ? dbContext : Activator.CreateInstance(entityCorrelationType)) as IPrivateModelBuilderFilter);
+                        }
+
+                        // 添加种子数据
+                        if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntitySeedData<>)))
+                        {
+                            result.EntitySeedDataTypes.Add(entityCorrelationType);
+                        }
+
+                        // 添加实体数据改变监听
+                        if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntityChangedListener<>)))
+                        {
+                            result.EntityChangedTypes.Add(entityCorrelationType);
+                        }
                     }
                 }
 
-                if (typeof(IPrivateModelBuilder).IsAssignableFrom(entityCorrelationType))
-                {
-                    // 添加模型构建器
-                    if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntityTypeBuilder<>)))
-                    {
-                        result.EntityTypeBuilderTypes.Add(entityCorrelationType);
-                    }
-
-                    // 添加全局筛选器
-                    if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateModelBuilderFilter)))
-                    {
-                        result.ModelBuilderFilterTypes.Add(entityCorrelationType);
-
-                        // 支持 DbContext 继承全局过滤接口
-                        result.ModelBuilderFilterInstances.Add((entityCorrelationType == dbContext.GetType() ? dbContext : Activator.CreateInstance(entityCorrelationType)) as IPrivateModelBuilderFilter);
-                    }
-
-                    // 添加种子数据
-                    if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntitySeedData<>)))
-                    {
-                        result.EntitySeedDataTypes.Add(entityCorrelationType);
-                    }
-                }
+                return result;
             }
-
-            return result;
         }
     }
 }

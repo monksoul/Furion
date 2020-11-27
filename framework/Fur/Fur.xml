@@ -817,6 +817,11 @@
             启用实体跟踪（默认值）
             </summary>
         </member>
+        <member name="P:Fur.DatabaseAccessor.AppDbContext`2.EnabledEntityChangedListener">
+            <summary>
+            启用实体数据更改监听
+            </summary>
+        </member>
         <member name="P:Fur.DatabaseAccessor.AppDbContext`2.Tenant">
             <summary>
             获取租户信息
@@ -830,6 +835,40 @@
             <param name="dbContext">数据库上下文</param>
             <param name="onTableTenantId">多租户Id属性名</param>
             <returns>表达式</returns>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.AppDbContext`2.ChangeTrackerEntities">
+            <summary>
+            正在更改并跟踪的数据
+            </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavingChangesEventInner(System.Object,Microsoft.EntityFrameworkCore.SavingChangesEventArgs)">
+            <summary>
+            内部数据库上下文提交更改之前执行事件
+            </summary>
+            <param name="sender">事件对象</param>
+            <param name="e">事件参数</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavedChangesEventInner(System.Object,Microsoft.EntityFrameworkCore.SavedChangesEventArgs)">
+            <summary>
+            内部数据库上下文提交更改成功执行事件
+            </summary>
+            <param name="sender">事件对象</param>
+            <param name="e">事件参数</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SaveChangesFailedEventInner(System.Object,Microsoft.EntityFrameworkCore.SaveChangesFailedEventArgs)">
+            <summary>
+            内部数据库上下文提交更改失败执行事件
+            </summary>
+            <param name="sender">事件对象</param>
+            <param name="e">事件参数</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.AttachEntityChangedListener(System.Object,System.String,System.Collections.Generic.IEnumerable{Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry})">
+            <summary>
+            附加实体改变监听
+            </summary>
+            <param name="sender"></param>
+            <param name="triggerMethodName"></param>
+            <param name="changeTrackerEntities"></param>
         </member>
         <member name="T:Fur.DatabaseAccessor.AppDbContextAttribute">
             <summary>
@@ -983,6 +1022,11 @@
             <param name="method">标识为数据库的函数</param>
             <returns>bool</returns>
         </member>
+        <member name="F:Fur.DatabaseAccessor.AppDbContextBuilder.DbContextLocatorCorrelationTypes">
+            <summary>
+            数据库上下文定位器关联类型集合
+            </summary>
+        </member>
         <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.GetDbContextCorrelationType(Microsoft.EntityFrameworkCore.DbContext,System.Type)">
             <summary>
             获取当前数据库上下文关联类型
@@ -1029,6 +1073,11 @@
         <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.EntitySeedDataTypes">
             <summary>
             种子数据类型集合
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.EntityChangedTypes">
+            <summary>
+            实体数据改变类型
             </summary>
         </member>
         <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.ModelBuilderFilterTypes">
@@ -1350,6 +1399,126 @@
             <summary>
             数据库上下文定位器
             </summary>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`1">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`2">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`3">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`4">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`5">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`6">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`7">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`8">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityChangedListener`9">
+            <summary>
+            实体数据改变监听依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator8">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1">
+            <summary>
+            实体数据改变监听依赖接口（禁止外部继承）
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanging(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+            <summary>
+            监听数据改变之前（仅支持EFCore操作）
+            </summary>
+            <param name="entity"></param>
+            <param name="dbContext"></param>
+            <param name="dbContextLocator"></param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanged(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+            <summary>
+            监听数据改变之后（仅支持EFCore操作）
+            </summary>
+            <param name="entity"></param>
+            <param name="dbContext"></param>
+            <param name="dbContextLocator"></param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChangeFailed(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+            <summary>
+            监听数据改变失败（仅支持EFCore操作）
+            </summary>
+            <param name="entity"></param>
+            <param name="dbContext"></param>
+            <param name="dbContextLocator"></param>
         </member>
         <member name="T:Fur.DatabaseAccessor.IEntitySeedData`1">
             <summary>
@@ -19495,6 +19664,11 @@
             代理类型，必须继承 DispatchProxy、IDispatchProxy
             </summary>
         </member>
+        <member name="T:Fur.DependencyInjection.SkipProxyAttribute">
+            <summary>
+            跳过全局代理
+            </summary>
+        </member>
         <member name="T:Fur.DependencyInjection.SkipScanAttribute">
             <summary>
             不被扫描和发现的特性
@@ -22695,13 +22869,6 @@
             <param name="services"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.AppServiceCollectionExtensions.AddHostInject(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
-            <summary>
-            非 Web 主机注入基础配置
-            </summary>
-            <param name="services"></param>
-            <returns></returns>
-        </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.AppServiceCollectionExtensions.AddApp(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.Extensions.DependencyInjection.IServiceCollection})">
             <summary>
             添加应用配置
@@ -23020,6 +23187,18 @@
             <summary>
             依赖注入拓展类
             </summary>
+        </member>
+        <member name="F:Microsoft.Extensions.DependencyInjection.DependencyInjectionServiceCollectionExtensions.GlobalServiceProxyType">
+            <summary>
+            全局服务代理类型
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.DependencyInjectionServiceCollectionExtensions.AddServiceProxy``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            添加服务代理
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.DependencyInjectionServiceCollectionExtensions.AddDependencyInjection(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
