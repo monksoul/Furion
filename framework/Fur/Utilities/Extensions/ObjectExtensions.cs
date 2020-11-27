@@ -1,5 +1,4 @@
 ﻿using Fur.DependencyInjection;
-using Fur.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,19 +12,8 @@ namespace Fur.Extensions
     /// 对象拓展类
     /// </summary>
     [SkipScan]
-    public static class ObjectExtensions
+    internal static class ObjectExtensions
     {
-        /// <summary>
-        /// 获取两个字符串的相似度
-        /// </summary>
-        /// <param name="sourceString"></param>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static decimal GetSimilarityWith(this string sourceString, string str)
-        {
-            return new LevenshteinDistance().LevenshteinDistancePercent(sourceString, str);
-        }
-
         /// <summary>
         /// 判断是否是富基元类型
         /// </summary>

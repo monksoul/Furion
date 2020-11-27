@@ -86,6 +86,25 @@ namespace Fur.DatabaseAccessor
         }
 
         /// <summary>
+        /// 获取 Sql 操作仓储
+        /// </summary>
+        /// <returns>ISqlRepository</returns>
+        public virtual ISqlRepository Sql()
+        {
+            return _serviceProvider.GetService<ISqlRepository>();
+        }
+
+        /// <summary>
+        /// 获取多数据库上下文 Sql 操作仓储
+        /// </summary>
+        /// <returns>ISqlRepository{TDbContextLocator}</returns>
+        public virtual ISqlRepository<TDbContextLocator> Sql<TDbContextLocator>()
+             where TDbContextLocator : class, IDbContextLocator
+        {
+            return _serviceProvider.GetService<ISqlRepository<TDbContextLocator>>();
+        }
+
+        /// <summary>
         /// 解析服务
         /// </summary>
         /// <typeparam name="TService"></typeparam>
@@ -103,25 +122,6 @@ namespace Fur.DatabaseAccessor
         public virtual TService GetRequiredService<TService>()
         {
             return _serviceProvider.GetRequiredService<TService>();
-        }
-
-        /// <summary>
-        /// 获取 Sql 操作仓储
-        /// </summary>
-        /// <returns>ISqlRepository</returns>
-        public virtual ISqlRepository Sql()
-        {
-            return _serviceProvider.GetService<ISqlRepository>();
-        }
-
-        /// <summary>
-        /// 获取多数据库上下文 Sql 操作仓储
-        /// </summary>
-        /// <returns>ISqlRepository{TDbContextLocator}</returns>
-        public virtual ISqlRepository<TDbContextLocator> Sql<TDbContextLocator>()
-             where TDbContextLocator : class, IDbContextLocator
-        {
-            return _serviceProvider.GetService<ISqlRepository<TDbContextLocator>>();
         }
     }
 

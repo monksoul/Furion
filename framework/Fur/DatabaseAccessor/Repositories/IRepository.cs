@@ -49,6 +49,19 @@ namespace Fur.DatabaseAccessor
             where TDbContextLocator : class, IDbContextLocator;
 
         /// <summary>
+        /// 获取 Sql 操作仓储
+        /// </summary>
+        /// <returns>ISqlRepository</returns>
+        ISqlRepository Sql();
+
+        /// <summary>
+        /// 获取多数据库上下文 Sql 操作仓储
+        /// </summary>
+        /// <returns>ISqlRepository{TDbContextLocator}</returns>
+        ISqlRepository<TDbContextLocator> Sql<TDbContextLocator>()
+             where TDbContextLocator : class, IDbContextLocator;
+
+        /// <summary>
         /// 解析服务
         /// </summary>
         /// <typeparam name="TService"></typeparam>
@@ -61,19 +74,6 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
         TService GetRequiredService<TService>();
-
-        /// <summary>
-        /// 获取 Sql 操作仓储
-        /// </summary>
-        /// <returns>ISqlRepository</returns>
-        ISqlRepository Sql();
-
-        /// <summary>
-        /// 获取多数据库上下文 Sql 操作仓储
-        /// </summary>
-        /// <returns>ISqlRepository{TDbContextLocator}</returns>
-        ISqlRepository<TDbContextLocator> Sql<TDbContextLocator>()
-             where TDbContextLocator : class, IDbContextLocator;
     }
 
     /// <summary>

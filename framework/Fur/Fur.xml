@@ -8076,6 +8076,50 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Fur.DatabaseAccessor.DbRepository`1">
+            <summary>
+            多数据库仓储
+            </summary>
+            <typeparam name="TDbContextLocator"></typeparam>
+        </member>
+        <member name="F:Fur.DatabaseAccessor.DbRepository`1._serviceProvider">
+            <summary>
+            服务提供器
+            </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbRepository`1.#ctor(System.IServiceProvider)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="serviceProvider">服务提供器</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbRepository`1.Change``1">
+            <summary>
+            切换实体
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbRepository`1.Sql">
+            <summary>
+            获取 Sql 操作仓储
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbRepository`1.GetService``1">
+            <summary>
+            解析服务
+            </summary>
+            <typeparam name="TService"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbRepository`1.GetRequiredService``1">
+            <summary>
+            解析服务
+            </summary>
+            <typeparam name="TService"></typeparam>
+            <returns></returns>
+        </member>
         <member name="T:Fur.DatabaseAccessor.IDeletableRepository`1">
             <summary>
             可删除仓储接口
@@ -12829,6 +12873,18 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <returns>仓储</returns>
         </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.Sql">
+            <summary>
+            获取 Sql 操作仓储
+            </summary>
+            <returns>ISqlRepository</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.Sql``1">
+            <summary>
+            获取多数据库上下文 Sql 操作仓储
+            </summary>
+            <returns>ISqlRepository{TDbContextLocator}</returns>
+        </member>
         <member name="M:Fur.DatabaseAccessor.EFCoreRepository.GetService``1">
             <summary>
             解析服务
@@ -12842,18 +12898,6 @@
             </summary>
             <typeparam name="TService"></typeparam>
             <returns></returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.Sql">
-            <summary>
-            获取 Sql 操作仓储
-            </summary>
-            <returns>ISqlRepository</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.Sql``1">
-            <summary>
-            获取多数据库上下文 Sql 操作仓储
-            </summary>
-            <returns>ISqlRepository{TDbContextLocator}</returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.EFCoreRepository`2">
             <summary>
@@ -16107,6 +16151,39 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Fur.DatabaseAccessor.IDbRepository`1">
+            <summary>
+            多数据库仓储
+            </summary>
+            <typeparam name="TDbContextLocator"></typeparam>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IDbRepository`1.Change``1">
+            <summary>
+            切换仓储
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IDbRepository`1.Sql">
+            <summary>
+            获取 Sql 操作仓储
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IDbRepository`1.GetService``1">
+            <summary>
+            解析服务
+            </summary>
+            <typeparam name="TService"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IDbRepository`1.GetRequiredService``1">
+            <summary>
+            解析服务
+            </summary>
+            <typeparam name="TService"></typeparam>
+            <returns></returns>
+        </member>
         <member name="T:Fur.DatabaseAccessor.SqlRepository`1">
             <summary>
             Sql 执行仓储分部类
@@ -18100,6 +18177,18 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <returns>仓储</returns>
         </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository.Sql">
+            <summary>
+            获取 Sql 操作仓储
+            </summary>
+            <returns>ISqlRepository</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository.Sql``1">
+            <summary>
+            获取多数据库上下文 Sql 操作仓储
+            </summary>
+            <returns>ISqlRepository{TDbContextLocator}</returns>
+        </member>
         <member name="M:Fur.DatabaseAccessor.IRepository.GetService``1">
             <summary>
             解析服务
@@ -18113,18 +18202,6 @@
             </summary>
             <typeparam name="TService"></typeparam>
             <returns></returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IRepository.Sql">
-            <summary>
-            获取 Sql 操作仓储
-            </summary>
-            <returns>ISqlRepository</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IRepository.Sql``1">
-            <summary>
-            获取多数据库上下文 Sql 操作仓储
-            </summary>
-            <returns>ISqlRepository{TDbContextLocator}</returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.IRepository`2">
             <summary>
@@ -19596,14 +19673,6 @@
             <summary>
             对象拓展类
             </summary>
-        </member>
-        <member name="M:Fur.Extensions.ObjectExtensions.GetSimilarityWith(System.String,System.String)">
-            <summary>
-            获取两个字符串的相似度
-            </summary>
-            <param name="sourceString"></param>
-            <param name="str"></param>
-            <returns></returns>
         </member>
         <member name="M:Fur.Extensions.ObjectExtensions.IsRichPrimitive(System.Type)">
             <summary>
@@ -21363,36 +21432,6 @@
             <summary>
             是否启用属性大写操作
             </summary>
-        </member>
-        <member name="T:Fur.Utilities.LevenshteinDistance">
-            <summary>
-            编辑距离算法
-            </summary>
-        </member>
-        <member name="M:Fur.Utilities.LevenshteinDistance.LowerOfThree(System.Int32,System.Int32,System.Int32)">
-            <summary>
-            取最小的一位数
-            </summary>
-            <param name="first"></param>
-            <param name="second"></param>
-            <param name="third"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.Utilities.LevenshteinDistance.Levenshtein_Distance(System.String,System.String)">
-            <summary>
-            比较相似度内部代码
-            </summary>
-            <param name="str1"></param>
-            <param name="str2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.Utilities.LevenshteinDistance.LevenshteinDistancePercent(System.String,System.String)">
-            <summary>
-            计算字符串相似度
-            </summary>
-            <param name="str1"></param>
-            <param name="str2"></param>
-            <returns></returns>
         </member>
         <member name="T:Fur.Utilities.AtomicLongArray">
             <summary>
