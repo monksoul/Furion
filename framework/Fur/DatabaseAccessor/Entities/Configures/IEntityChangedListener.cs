@@ -169,7 +169,8 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity"></param>
         /// <param name="dbContext"></param>
         /// <param name="dbContextLocator"></param>
-        void OnChanging(TEntity entity, DbContext dbContext, Type dbContextLocator) { }
+        /// <param name="state"></param>
+        void OnChanging(TEntity entity, DbContext dbContext, Type dbContextLocator, EntityState state) { }
 
         /// <summary>
         /// 监听数据改变之后（仅支持EFCore操作）
@@ -177,7 +178,8 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity"></param>
         /// <param name="dbContext"></param>
         /// <param name="dbContextLocator"></param>
-        void OnChanged(TEntity entity, DbContext dbContext, Type dbContextLocator);
+        /// <param name="state"></param>
+        void OnChanged(TEntity entity, DbContext dbContext, Type dbContextLocator, EntityState state);
 
         /// <summary>
         /// 监听数据改变失败（仅支持EFCore操作）
@@ -185,6 +187,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="entity"></param>
         /// <param name="dbContext"></param>
         /// <param name="dbContextLocator"></param>
-        void OnChangeFailed(TEntity entity, DbContext dbContext, Type dbContextLocator) { }
+        /// <param name="state"></param>
+        void OnChangeFailed(TEntity entity, DbContext dbContext, Type dbContextLocator, EntityState state) { }
     }
 }

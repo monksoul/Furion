@@ -1496,29 +1496,32 @@
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanging(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanging(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type,Microsoft.EntityFrameworkCore.EntityState)">
             <summary>
             监听数据改变之前（仅支持EFCore操作）
             </summary>
             <param name="entity"></param>
             <param name="dbContext"></param>
             <param name="dbContextLocator"></param>
+            <param name="state"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanged(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChanged(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type,Microsoft.EntityFrameworkCore.EntityState)">
             <summary>
             监听数据改变之后（仅支持EFCore操作）
             </summary>
             <param name="entity"></param>
             <param name="dbContext"></param>
             <param name="dbContextLocator"></param>
+            <param name="state"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChangeFailed(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityChangedListener`1.OnChangeFailed(`0,Microsoft.EntityFrameworkCore.DbContext,System.Type,Microsoft.EntityFrameworkCore.EntityState)">
             <summary>
             监听数据改变失败（仅支持EFCore操作）
             </summary>
             <param name="entity"></param>
             <param name="dbContext"></param>
             <param name="dbContextLocator"></param>
+            <param name="state"></param>
         </member>
         <member name="T:Fur.DatabaseAccessor.IEntitySeedData`1">
             <summary>
