@@ -280,7 +280,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void AddTransientDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
             proxyType ??= GlobalServiceProxyType;
-            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
+            if (proxyType == null || (type != null && type.IsDefined(typeof(SkipProxyAttribute), true))) return;
 
             RegisterDispatchProxy(services, typeof(ITransient), proxyType);
             services.AddTransient(inter, provider =>
@@ -307,7 +307,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void AddScopedDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
             proxyType ??= GlobalServiceProxyType;
-            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
+            if (proxyType == null || (type != null && type.IsDefined(typeof(SkipProxyAttribute), true))) return;
 
             RegisterDispatchProxy(services, typeof(IScoped), proxyType);
             services.AddScoped(inter, provider =>
@@ -334,7 +334,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void AddSingletonDispatchProxy(IServiceCollection services, Type type, Type proxyType, Type inter, bool hasTarget = true)
         {
             proxyType ??= GlobalServiceProxyType;
-            if (proxyType == null || type.IsDefined(typeof(SkipProxyAttribute), true)) return;
+            if (proxyType == null || (type != null && type.IsDefined(typeof(SkipProxyAttribute), true))) return;
 
             RegisterDispatchProxy(services, typeof(ISingleton), proxyType);
             services.AddSingleton(inter, provider =>
