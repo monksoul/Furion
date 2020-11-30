@@ -2,6 +2,7 @@ using Fur.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -112,6 +113,8 @@ namespace Fur.DatabaseAccessor
                 Sqlite,
                 InMemoryDatabase
             };
+
+            DbContextAppDbContextAttributes = new ConcurrentDictionary<Type, AppDbContextAttribute>();
         }
 
         /// <summary>
@@ -120,17 +123,16 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TDbContext"></typeparam>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public static string GetDbContextConnectionString<TDbContext>(string connectionString = default)
+        public static string GetConnectionString<TDbContext>(string connectionString = default)
             where TDbContext : DbContext
         {
             if (!string.IsNullOrEmpty(connectionString)) return connectionString;
 
             // 如果没有配置数据库连接字符串，那么查找特性
-            var dbContextType = typeof(TDbContext);
-            if (!dbContextType.IsDefined(typeof(AppDbContextAttribute), true)) return default;
+            var dbContextAttribute = GetAppDbContextAttribute<TDbContext>();
+            if (dbContextAttribute == null) return default;
 
-            // 获取配置特性
-            var dbContextAttribute = dbContextType.GetCustomAttribute<AppDbContextAttribute>(true);
+            // 获取特性连接字符串
             var connStr = dbContextAttribute.ConnectionString;
 
             if (string.IsNullOrEmpty(connStr)) return default;
@@ -148,6 +150,32 @@ namespace Fur.DatabaseAccessor
                     var connStrValue = configuration.GetConnectionString(connStr);
                     return !string.IsNullOrEmpty(connStrValue) ? connStrValue : configuration[connStr];
                 }
+            }
+        }
+
+        /// <summary>
+        /// 数据库上下文 [AppDbContext] 特性缓存
+        /// </summary>
+        private static readonly ConcurrentDictionary<Type, AppDbContextAttribute> DbContextAppDbContextAttributes;
+
+        /// <summary>
+        /// 获取数据库上下文 [AppDbContext] 特性
+        /// </summary>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <returns></returns>
+        internal static AppDbContextAttribute GetAppDbContextAttribute<TDbContext>()
+            where TDbContext : DbContext
+        {
+            return DbContextAppDbContextAttributes.GetOrAdd(typeof(TDbContext), Function);
+
+            // 本地静态函数
+            static AppDbContextAttribute Function(Type dbContextType)
+            {
+                if (!dbContextType.IsDefined(typeof(AppDbContextAttribute), true)) return default;
+
+                var appDbContextAttribute = dbContextType.GetCustomAttribute<AppDbContextAttribute>(true);
+
+                return appDbContextAttribute;
             }
         }
 

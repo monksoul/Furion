@@ -2,7 +2,6 @@
 using Fur.FriendlyException;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -28,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mvcBuilder.AddFriendlyException(enabledGlobalExceptionFilter);
 
             // 单例注册异常状态码提供器
-            services.TryAddSingleton<IErrorCodeTypeProvider, TErrorCodeTypeProvider>();
+            services.AddSingleton<IErrorCodeTypeProvider, TErrorCodeTypeProvider>();
 
             return mvcBuilder;
         }
@@ -47,7 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddFriendlyException(enabledGlobalExceptionFilter);
 
             // 单例注册异常状态码提供器
-            services.TryAddSingleton<IErrorCodeTypeProvider, TErrorCodeTypeProvider>();
+            services.AddSingleton<IErrorCodeTypeProvider, TErrorCodeTypeProvider>();
 
             return services;
         }

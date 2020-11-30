@@ -177,7 +177,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>Task{DataSet}</returns>
         public virtual Task<DataSet> SqlQueriesAsync(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            return Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            return Database.DataAdapterFillAsync(sql, parameters);
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>Task{DataSet}</returns>
         public virtual async Task<DataSet> SqlQueriesAsync(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataSet, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataSet, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataSet;
         }
 
@@ -464,7 +464,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>Task{List{T1}}</returns>
         public virtual async Task<List<T1>> SqlQueriesAsync<T1>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1>();
         }
 
@@ -493,7 +493,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2)> SqlQueriesAsync<T1, T2>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2>();
         }
 
@@ -524,7 +524,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3)> SqlQueriesAsync<T1, T2, T3>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3>();
         }
 
@@ -557,7 +557,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4)> SqlQueriesAsync<T1, T2, T3, T4>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3, T4>();
         }
 
@@ -592,7 +592,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5)> SqlQueriesAsync<T1, T2, T3, T4, T5>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3, T4, T5>();
         }
 
@@ -629,7 +629,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3, T4, T5, T6>();
         }
 
@@ -668,7 +668,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6, T7>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3, T4, T5, T6, T7>();
         }
 
@@ -709,7 +709,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7, List<T8> list8)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6, T7, T8>(string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
-            var dataset = await Database.DataAdapterFillAsync(sql, parameters, cancellationToken: cancellationToken);
+            var dataset = await Database.DataAdapterFillAsync(sql, parameters);
             return dataset.ToList<T1, T2, T3, T4, T5, T6, T7, T8>();
         }
 
@@ -723,7 +723,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>List{T1}</returns>
         public virtual async Task<List<T1>> SqlQueriesAsync<T1>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1>();
         }
 
@@ -738,7 +738,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2)> SqlQueriesAsync<T1, T2>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2>();
         }
 
@@ -754,7 +754,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3)> SqlQueriesAsync<T1, T2, T3>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3>();
         }
 
@@ -771,7 +771,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4)> SqlQueriesAsync<T1, T2, T3, T4>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3, T4>();
         }
 
@@ -789,7 +789,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5)> SqlQueriesAsync<T1, T2, T3, T4, T5>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3, T4, T5>();
         }
 
@@ -808,7 +808,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3, T4, T5, T6>();
         }
 
@@ -828,7 +828,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6, T7>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3, T4, T5, T6, T7>();
         }
 
@@ -849,7 +849,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public virtual async Task<(List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7, List<T8> list8)> SqlQueriesAsync<T1, T2, T3, T4, T5, T6, T7, T8>(string sql, object model, CancellationToken cancellationToken = default)
         {
-            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model, cancellationToken: cancellationToken);
+            var (dataset, _) = await Database.DataAdapterFillAsync(sql, model);
             return dataset.ToList<T1, T2, T3, T4, T5, T6, T7, T8>();
         }
     }

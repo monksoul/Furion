@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-// reference：https://github.com/adoconnection/RazorEngineCore
 namespace Fur.ViewEngine
 {
     /// <summary>

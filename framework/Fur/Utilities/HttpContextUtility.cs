@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 
-// reference：https://www.cnblogs.com/artech/p/how-to-get-httpcontext.html
 namespace Fur.Utilities
 {
     /// <summary>

@@ -1,7 +1,6 @@
 ﻿using Fur.DataValidation;
 using Fur.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -28,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mvcBuilder.AddDataValidation(enabledGlobalDataValidationFilter, suppressImplicitRequiredAttributeForNonNullableReferenceTypes);
 
             // 单例注册验证消息提供器
-            services.TryAddSingleton<IValidationMessageTypeProvider, TValidationMessageTypeProvider>();
+            services.AddSingleton<IValidationMessageTypeProvider, TValidationMessageTypeProvider>();
 
             return mvcBuilder;
         }
@@ -48,7 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddDataValidation(enabledGlobalDataValidationFilter, suppressImplicitRequiredAttributeForNonNullableReferenceTypes);
 
             // 单例注册验证消息提供器
-            services.TryAddSingleton<IValidationMessageTypeProvider, TValidationMessageTypeProvider>();
+            services.AddSingleton<IValidationMessageTypeProvider, TValidationMessageTypeProvider>();
 
             return services;
         }

@@ -2,7 +2,6 @@
 using System;
 using System.Runtime.Serialization;
 
-// reference：https://github.com/adoconnection/RazorEngineCore
 namespace Fur.ViewEngine
 {
     /// <summary>

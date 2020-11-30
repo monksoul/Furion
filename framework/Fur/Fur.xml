@@ -881,9 +881,21 @@
             </summary>
             <param name="connectionString"></param>
         </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContextAttribute.#ctor(System.String,System.String)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="connectionString"></param>
+            <param name="providerName"></param>
+        </member>
         <member name="P:Fur.DatabaseAccessor.AppDbContextAttribute.ConnectionString">
             <summary>
             数据库连接字符串
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.AppDbContextAttribute.ProviderName">
+            <summary>
+            数据库提供器名称
             </summary>
         </member>
         <member name="P:Fur.DatabaseAccessor.AppDbContextAttribute.TablePrefix">
@@ -2569,16 +2581,6 @@
             DatabaseFacade 拓展类
             </summary>
         </member>
-        <member name="F:Fur.DatabaseAccessor.DbObjectExtensions.MiniProfilerCategory">
-            <summary>
-            MiniProfiler 分类名
-            </summary>
-        </member>
-        <member name="F:Fur.DatabaseAccessor.DbObjectExtensions.IsDevelopment">
-            <summary>
-            是否是开发环境
-            </summary>
-        </member>
         <member name="F:Fur.DatabaseAccessor.DbObjectExtensions.InjectMiniProfiler">
             <summary>
             MiniProfiler 组件状态
@@ -2609,28 +2611,6 @@
             <param name="commandType">命令类型</param>
             <returns>(DbConnection dbConnection, DbCommand dbCommand, DbParameter[] dbParameters)</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrepareDbCommandAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.Common.DbParameter[],System.Data.CommandType,System.Threading.CancellationToken)">
-            <summary>
-            初始化数据库命令对象
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>(DbConnection dbConnection, DbCommand dbCommand)</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrepareDbCommandAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Object,System.Data.CommandType,System.Threading.CancellationToken)">
-            <summary>
-            初始化数据库命令对象
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="sql">sql 语句</param>
-            <param name="model">命令模型</param>
-            <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>(DbConnection dbConnection, DbCommand dbCommand, DbParameter[] dbParameters)</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrepareDbDbDataAdapter(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.Common.DbParameter[],System.Data.CommandType)">
             <summary>
             初始化数据库适配器对象
@@ -2651,28 +2631,6 @@
             <param name="commandType">命令类型</param>
             <returns>(DbConnection dbConnection, DbCommand dbCommand, DbDataAdapter dbDataAdapter, DbParameter[] dbParameters)</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrepareDbDbDataAdapterAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.Common.DbParameter[],System.Data.CommandType,System.Threading.CancellationToken)">
-            <summary>
-            初始化数据库适配器对象
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>(DbConnection dbConnection, DbCommand dbCommand, DbDataAdapter dbDataAdapter)</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrepareDbDbDataAdapterAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Object,System.Data.CommandType,System.Threading.CancellationToken)">
-            <summary>
-            初始化数据库适配器对象
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="sql">sql 语句</param>
-            <param name="model">参数模型</param>
-            <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>(DbConnection dbConnection, DbCommand dbCommand, DbDataAdapter dbDataAdapter, DbParameter[] dbParameters)</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.CreateDbCommand(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.CommandType)">
             <summary>
             创建数据库命令对象
@@ -2691,22 +2649,6 @@
             <param name="commandType">命令类型</param>
             <returns>(DbConnection dbConnection, DbCommand dbCommand, DbDataAdapter dbDataAdapter)</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.OpenConnection(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Data.Common.DbConnection)">
-            <summary>
-            打开数据库连接
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="dbConnection">数据库连接对象</param>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.OpenConnectionAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Data.Common.DbConnection,System.Threading.CancellationToken)">
-            <summary>
-            打开数据库连接
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="dbConnection">数据库连接对象</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns></returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.SetDbParameters(System.Data.Common.DbCommand@,System.Data.Common.DbParameter[])">
             <summary>
             设置数据库命令对象参数
@@ -2721,13 +2663,6 @@
             <param name="dbCommand">数据库命令对象</param>
             <param name="model">参数模型</param>
             <param name="dbParameters">命令参数</param>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DbObjectExtensions.PrintConnectionToMiniProfiler(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.Data.Common.DbConnection)">
-            <summary>
-            打印数据库连接信息到 MiniProfiler
-            </summary>
-            <param name="databaseFacade">ADO.NET 数据库对象</param>
-            <param name="dbConnection">数据库连接对象</param>
         </member>
         <member name="T:Fur.DatabaseAccessor.SqlAdoNetExtensions">
             <summary>
@@ -2884,7 +2819,7 @@
             <param name="commandType">命令类型</param>
             <returns>(DataSet dataSet, DbParameter[] dbParameters)</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlAdoNetExtensions.DataAdapterFillAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.Common.DbParameter[],System.Data.CommandType,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlAdoNetExtensions.DataAdapterFillAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Data.Common.DbParameter[],System.Data.CommandType)">
             <summary>
             执行 Sql 返回 DataSet
             </summary>
@@ -2892,10 +2827,9 @@
             <param name="sql">sql 语句</param>
             <param name="parameters">命令参数</param>
             <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns></returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlAdoNetExtensions.DataAdapterFillAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Object,System.Data.CommandType,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlAdoNetExtensions.DataAdapterFillAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Object,System.Data.CommandType)">
             <summary>
             执行 Sql 返回 DataSet
             </summary>
@@ -2903,7 +2837,6 @@
             <param name="sql">sql 语句</param>
             <param name="model">命令模型</param>
             <param name="commandType">命令类型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>(DataSet dbSet, DbParameter[] dbParameters)</returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.Penetrates">
@@ -5916,22 +5849,12 @@
             <param name="parameters">命令参数</param>
             <returns>Task{DataSet}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-             Sql 查询返回 DataSet
-            </summary>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>Task{DataSet}</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync(System.String,System.Object)">
             <summary>
              Sql 查询返回 DataSet
             </summary>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>Task{DataSet}</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueries``1(System.String,System.Data.Common.DbParameter[])">
@@ -6143,16 +6066,6 @@
             <param name="parameters">命令参数</param>
             <returns>Task{List{T1}}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``1(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-             Sql 查询返回 List 集合
-            </summary>
-            <typeparam name="T1">返回类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>Task{List{T1}}</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``2(System.String,System.Data.Common.DbParameter[])">
             <summary>
             Sql 查询返回 元组 集合
@@ -6161,17 +6074,6 @@
             <typeparam name="T2">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``2(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``3(System.String,System.Data.Common.DbParameter[])">
@@ -6183,18 +6085,6 @@
             <typeparam name="T3">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``3(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``4(System.String,System.Data.Common.DbParameter[])">
@@ -6209,19 +6099,6 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``4(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``5(System.String,System.Data.Common.DbParameter[])">
             <summary>
             Sql 查询返回 元组 集合
@@ -6233,20 +6110,6 @@
             <typeparam name="T5">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``5(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``6(System.String,System.Data.Common.DbParameter[])">
@@ -6263,21 +6126,6 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``6(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``7(System.String,System.Data.Common.DbParameter[])">
             <summary>
             Sql 查询返回 元组 集合
@@ -6291,22 +6139,6 @@
             <typeparam name="T7">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``7(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <typeparam name="T7">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``8(System.String,System.Data.Common.DbParameter[])">
@@ -6325,34 +6157,16 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``8(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            Sql 查询返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <typeparam name="T7">元组元素类型</typeparam>
-            <typeparam name="T8">元组元素类型</typeparam>
-            <param name="sql">sql 语句</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``1(System.String,System.Object)">
             <summary>
              Sql 查询返回 List 集合
             </summary>
             <typeparam name="T1">返回类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>List{T1}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``2(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``2(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6360,10 +6174,9 @@
             <typeparam name="T2">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``3(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``3(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6372,10 +6185,9 @@
             <typeparam name="T3">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``4(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``4(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6385,10 +6197,9 @@
             <typeparam name="T4">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``5(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``5(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6399,10 +6210,9 @@
             <typeparam name="T5">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``6(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``6(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6414,10 +6224,9 @@
             <typeparam name="T6">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``7(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``7(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6430,10 +6239,9 @@
             <typeparam name="T7">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``8(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlQueriesAsync``8(System.String,System.Object)">
             <summary>
             Sql 查询返回 元组 集合
             </summary>
@@ -6447,7 +6255,6 @@
             <typeparam name="T8">元组元素类型</typeparam>
             <param name="sql">sql 语句</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQuery(System.String,System.Data.Common.DbParameter[])">
@@ -6558,22 +6365,12 @@
             <param name="parameters">命令参数</param>
             <returns>DataSet</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 DataSet
-            </summary>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>DataSet</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync(System.String,System.Object)">
             <summary>
             执行存储过程返回 DataSet
             </summary>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>DataSet</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueries``1(System.String,System.Data.Common.DbParameter[])">
@@ -6785,16 +6582,6 @@
             <param name="parameters">命令参数</param>
             <returns>Task{List{T1}}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``1(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-             执行存储过程返回 List 集合
-            </summary>
-            <typeparam name="T1">返回类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>Task{List{T1}}</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``2(System.String,System.Data.Common.DbParameter[])">
             <summary>
             执行存储过程返回 元组 集合
@@ -6803,17 +6590,6 @@
             <typeparam name="T2">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``2(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``3(System.String,System.Data.Common.DbParameter[])">
@@ -6825,18 +6601,6 @@
             <typeparam name="T3">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``3(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``4(System.String,System.Data.Common.DbParameter[])">
@@ -6851,19 +6615,6 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``4(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``5(System.String,System.Data.Common.DbParameter[])">
             <summary>
             执行存储过程返回 元组 集合
@@ -6875,20 +6626,6 @@
             <typeparam name="T5">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``5(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``6(System.String,System.Data.Common.DbParameter[])">
@@ -6905,21 +6642,6 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``6(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``7(System.String,System.Data.Common.DbParameter[])">
             <summary>
             执行存储过程返回 元组 集合
@@ -6933,22 +6655,6 @@
             <typeparam name="T7">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``7(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <typeparam name="T7">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``8(System.String,System.Data.Common.DbParameter[])">
@@ -6967,34 +6673,16 @@
             <param name="parameters">命令参数</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``8(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
-            <summary>
-            执行存储过程返回 元组 集合
-            </summary>
-            <typeparam name="T1">元组元素类型</typeparam>
-            <typeparam name="T2">元组元素类型</typeparam>
-            <typeparam name="T3">元组元素类型</typeparam>
-            <typeparam name="T4">元组元素类型</typeparam>
-            <typeparam name="T5">元组元素类型</typeparam>
-            <typeparam name="T6">元组元素类型</typeparam>
-            <typeparam name="T7">元组元素类型</typeparam>
-            <typeparam name="T8">元组元素类型</typeparam>
-            <param name="procName">存储过程名</param>
-            <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
-            <returns>元组类型</returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``1(System.String,System.Object)">
             <summary>
              执行存储过程返回 List 集合
             </summary>
             <typeparam name="T1">返回类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>List{T1}</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``2(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``2(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7002,10 +6690,9 @@
             <typeparam name="T2">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``3(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``3(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7014,10 +6701,9 @@
             <typeparam name="T3">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``4(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``4(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7027,10 +6713,9 @@
             <typeparam name="T4">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``5(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``5(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7041,10 +6726,9 @@
             <typeparam name="T5">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``6(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``6(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7056,10 +6740,9 @@
             <typeparam name="T6">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``7(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``7(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7072,10 +6755,9 @@
             <typeparam name="T7">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``8(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureQueriesAsync``8(System.String,System.Object)">
             <summary>
             执行存储过程返回 元组 集合
             </summary>
@@ -7089,7 +6771,6 @@
             <typeparam name="T8">元组元素类型</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">参数模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>元组类型</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureScalar(System.String,System.Data.Common.DbParameter[])">
@@ -7352,13 +7033,12 @@
             <param name="parameters">命令参数</param>
             <returns>ProcedureOutput</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync(System.String,System.Data.Common.DbParameter[])">
             <summary>
             执行存储过程返回OUPUT、RETURN、结果集
             </summary>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>ProcedureOutput</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutput(System.String,System.Object)">
@@ -7369,13 +7049,12 @@
             <param name="model">命令模型</param>
             <returns>ProcedureOutput</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync(System.String,System.Object)">
             <summary>
             执行存储过程返回OUPUT、RETURN、结果集
             </summary>
             <param name="procName">存储过程名</param>
             <param name="model">命令模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>ProcedureOutput</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutput``1(System.String,System.Data.Common.DbParameter[])">
@@ -7387,14 +7066,13 @@
             <param name="parameters">命令参数</param>
             <returns>ProcedureOutput</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync``1(System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync``1(System.String,System.Data.Common.DbParameter[])">
             <summary>
             执行存储过程返回OUPUT、RETURN、结果集
             </summary>
             <typeparam name="TResult">数据集结果</typeparam>
             <param name="procName">存储过程名</param>
             <param name="parameters">命令参数</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>ProcedureOutput</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutput``1(System.String,System.Object)">
@@ -7406,14 +7084,13 @@
             <param name="model">命令模型</param>
             <returns>ProcedureOutput</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
+        <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlProcedureOutputAsync``1(System.String,System.Object)">
             <summary>
             执行存储过程返回OUPUT、RETURN、结果集
             </summary>
             <typeparam name="TResult">数据集结果</typeparam>
             <param name="procName">存储过程名</param>
             <param name="model">命令模型</param>
-            <param name="cancellationToken">异步取消令牌</param>
             <returns>ProcedureOutput</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.SqlExtensions.SqlFunctionScalar(System.String,System.Data.Common.DbParameter[])">
@@ -7860,12 +7537,24 @@
             构造函数
             </summary>
         </member>
-        <member name="M:Fur.DatabaseAccessor.DbProvider.GetDbContextConnectionString``1(System.String)">
+        <member name="M:Fur.DatabaseAccessor.DbProvider.GetConnectionString``1(System.String)">
             <summary>
             获取数据库上下文连接字符串
             </summary>
             <typeparam name="TDbContext"></typeparam>
             <param name="connectionString"></param>
+            <returns></returns>
+        </member>
+        <member name="F:Fur.DatabaseAccessor.DbProvider.DbContextAppDbContextAttributes">
+            <summary>
+            数据库上下文 [AppDbContext] 特性缓存
+            </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbProvider.GetAppDbContextAttribute``1">
+            <summary>
+            获取数据库上下文 [AppDbContext] 特性
+            </summary>
+            <typeparam name="TDbContext"></typeparam>
             <returns></returns>
         </member>
         <member name="F:Fur.DatabaseAccessor.DbProvider.NotSupportException">
@@ -23093,10 +22782,11 @@
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.ConfigureDatabase(System.String,System.String,Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Boolean)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.ConfigureDatabase``1(System.String,System.String,Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Boolean)">
             <summary>
             配置数据库
             </summary>
+            <typeparam name="TDbContext"></typeparam>
             <param name="providerName">数据库提供器</param>
             <param name="connectionString">数据库连接字符串</param>
             <param name="options">数据库上下文选项构建器</param>

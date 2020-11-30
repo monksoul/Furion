@@ -13,7 +13,7 @@ namespace Fur.Utilities
         /// <summary>
         /// 长整形数组
         /// </summary>
-        private volatile long[] _value;
+        private readonly long[] _value;
 
         /// <summary>
         /// 获取一个只读的长整形数组集合

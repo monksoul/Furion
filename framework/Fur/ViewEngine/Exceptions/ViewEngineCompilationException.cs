@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-// reference：https://github.com/adoconnection/RazorEngineCore
 namespace Fur.ViewEngine
 {
     /// <summary>
