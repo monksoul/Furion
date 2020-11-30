@@ -156,7 +156,7 @@ namespace Fur.DatabaseAccessor
         /// <summary>
         /// 数据库上下文 [AppDbContext] 特性缓存
         /// </summary>
-        private static readonly ConcurrentDictionary<Type, AppDbContextAttribute> DbContextAppDbContextAttributes;
+        private static ConcurrentDictionary<Type, AppDbContextAttribute> DbContextAppDbContextAttributes;
 
         /// <summary>
         /// 获取数据库上下文 [AppDbContext] 特性

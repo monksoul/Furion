@@ -541,7 +541,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="connectionString">连接字符串</param>
         public virtual void ChangeDatabase(string connectionString)
         {
-            if (DbConnection.State.HasFlag(ConnectionState.Open)) DbConnection.ChangeDatabase(connectionString);
+            if (DbConnection.State == ConnectionState.Open) DbConnection.ChangeDatabase(connectionString);
             else DbConnection.ConnectionString = connectionString;
         }
 
@@ -552,7 +552,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="cancellationToken">异步取消令牌</param>
         public virtual async Task ChangeDatabaseAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            if (DbConnection.State.HasFlag(ConnectionState.Open))
+            if (DbConnection.State == ConnectionState.Open)
             {
                 await DbConnection.ChangeDatabaseAsync(connectionString, cancellationToken);
             }
