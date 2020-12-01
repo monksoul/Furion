@@ -73,5 +73,10 @@ namespace Fur.DatabaseAccessor
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task ShareTransactionAsync(int skipCount, DbTransaction transaction, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 关闭所有数据库链接
+        /// </summary>
+        void CloseAll();
     }
 }

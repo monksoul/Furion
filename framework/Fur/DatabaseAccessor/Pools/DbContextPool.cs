@@ -1,7 +1,10 @@
 ﻿using Fur.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Profiling;
+using StackExchange.Profiling.Data;
 using System;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
@@ -16,10 +19,17 @@ namespace Fur.DatabaseAccessor
     public class DbContextPool : IDbContextPool
     {
         /// <summary>
+        /// MiniProfiler 组件状态
+        /// </summary>
+        private readonly bool InjectMiniProfiler;
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public DbContextPool()
         {
+            InjectMiniProfiler = App.Settings.InjectMiniProfiler.Value;
+
             dbContexts = new ConcurrentBag<DbContext>();
         }
 
@@ -151,6 +161,22 @@ namespace Fur.DatabaseAccessor
                 .Select(u => u.Database.UseTransactionAsync(transaction, cancellationToken));
 
             await Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// 关闭所有数据库链接
+        /// </summary>
+        public void CloseAll()
+        {
+            foreach (var dbContext in dbContexts)
+            {
+                var conn = dbContext.Database.GetDbConnection();
+                if (conn.State == ConnectionState.Open)
+                {
+                    var wrapConn = InjectMiniProfiler ? new ProfiledDbConnection(conn, MiniProfiler.Current) : conn;
+                    wrapConn.Close();
+                }
+            }
         }
     }
 }

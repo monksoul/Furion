@@ -12,8 +12,23 @@ namespace Fur.Extensions
     /// 对象拓展类
     /// </summary>
     [SkipScan]
-    internal static class ObjectExtensions
+    public static class ObjectExtensions
     {
+        /// <summary>
+        /// 将 DateTimeOffset 转换成 DateTime
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime ConvertToDateTime(this DateTimeOffset dateTime)
+        {
+            if (dateTime.Offset.Equals(TimeSpan.Zero))
+                return dateTime.UtcDateTime;
+            else if (dateTime.Offset.Equals(TimeZoneInfo.Local.GetUtcOffset(dateTime.DateTime)))
+                return DateTime.SpecifyKind(dateTime.DateTime, DateTimeKind.Local);
+            else
+                return dateTime.DateTime;
+        }
+
         /// <summary>
         /// 判断是否是富基元类型
         /// </summary>

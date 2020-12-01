@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -26,7 +27,9 @@ namespace Fur.SpecificationDocument
         public void Apply(OpenApiSchema model, SchemaFilterContext context)
         {
             var type = context.Type;
-            if (type.IsEnum)
+
+            // 排除其他程序集的枚举
+            if (type.IsEnum && App.Assemblies.Contains(type.Assembly))
             {
                 model.Enum.Clear();
                 var stringBuilder = new StringBuilder();
