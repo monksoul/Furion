@@ -55,22 +55,22 @@ namespace Fur.DynamicApiController
                 ["patch"] = "PATCH"
             };
 
-            IsControllerCached = new ConcurrentDictionary<Type, bool>();
+            IsApiControllerCached = new ConcurrentDictionary<Type, bool>();
         }
 
         /// <summary>
-        /// <see cref="IsController(Type)"/> 缓存集合
+        /// <see cref="IsApiController(Type)"/> 缓存集合
         /// </summary>
-        private static readonly ConcurrentDictionary<Type, bool> IsControllerCached;
+        private static readonly ConcurrentDictionary<Type, bool> IsApiControllerCached;
 
         /// <summary>
-        /// 是否是控制器
+        /// 是否是Api控制器
         /// </summary>
         /// <param name="type">type</param>
         /// <returns></returns>
-        internal static bool IsController(Type type)
+        internal static bool IsApiController(Type type)
         {
-            return IsControllerCached.GetOrAdd(type, Function);
+            return IsApiControllerCached.GetOrAdd(type, Function);
 
             // 本地静态方法
             static bool Function(Type type)
@@ -79,7 +79,7 @@ namespace Fur.DynamicApiController
                 if (!type.IsPublic || type.IsPrimitive || type.IsValueType || type.IsAbstract || type.IsInterface || type.IsGenericType) return false;
 
                 // 继承 ControllerBase 或 实现 IDynamicApiController 的类型 或 贴了 [DynamicApiController] 特性
-                if ((type.BaseType != typeof(Controller) && typeof(ControllerBase).IsAssignableFrom(type)) || typeof(IDynamicApiController).IsAssignableFrom(type) || type.IsDefined(typeof(DynamicApiControllerAttribute), true))
+                if ((!typeof(Controller).IsAssignableFrom(type) && typeof(ControllerBase).IsAssignableFrom(type)) || typeof(IDynamicApiController).IsAssignableFrom(type) || type.IsDefined(typeof(DynamicApiControllerAttribute), true))
                 {
                     // 不是能被导出忽略的接口
                     if (type.IsDefined(typeof(ApiExplorerSettingsAttribute), true) && type.GetCustomAttribute<ApiExplorerSettingsAttribute>(true).IgnoreApi) return false;

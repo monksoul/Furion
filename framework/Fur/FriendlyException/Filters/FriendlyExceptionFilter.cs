@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
             // 排除 Mvc 视图
             var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-            if (actionDescriptor.ControllerTypeInfo.BaseType == typeof(Controller)) return;
+            if (typeof(Controller).IsAssignableFrom(actionDescriptor.ControllerTypeInfo)) return;
 
             // 标识异常已经被处理
             context.ExceptionHandled = true;

@@ -20245,14 +20245,14 @@
             构造函数
             </summary>
         </member>
-        <member name="F:Fur.DynamicApiController.Penetrates.IsControllerCached">
+        <member name="F:Fur.DynamicApiController.Penetrates.IsApiControllerCached">
             <summary>
-            <see cref="M:Fur.DynamicApiController.Penetrates.IsController(System.Type)"/> 缓存集合
+            <see cref="M:Fur.DynamicApiController.Penetrates.IsApiController(System.Type)"/> 缓存集合
             </summary>
         </member>
-        <member name="M:Fur.DynamicApiController.Penetrates.IsController(System.Type)">
+        <member name="M:Fur.DynamicApiController.Penetrates.IsApiController(System.Type)">
             <summary>
-            是否是控制器
+            是否是Api控制器
             </summary>
             <param name="type">type</param>
             <returns></returns>

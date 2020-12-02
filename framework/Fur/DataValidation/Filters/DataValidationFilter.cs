@@ -44,7 +44,7 @@ namespace Fur.DataValidation
         {
             // 排除 Mvc 视图
             var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-            if (actionDescriptor.ControllerTypeInfo.BaseType == typeof(Controller)) return;
+            if (typeof(Controller).IsAssignableFrom(actionDescriptor.ControllerTypeInfo)) return;
 
             var method = actionDescriptor.MethodInfo;
             var modelState = context.ModelState;

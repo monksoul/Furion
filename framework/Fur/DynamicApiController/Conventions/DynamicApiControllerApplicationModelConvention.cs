@@ -50,7 +50,7 @@ namespace Fur.DynamicApiController
         /// <param name="application">引用模型</param>
         public void Apply(ApplicationModel application)
         {
-            var controllers = application.Controllers;
+            var controllers = application.Controllers.Where(u => !typeof(Controller).IsAssignableFrom(u.ControllerType));
             foreach (var controller in controllers)
             {
                 // 判断是否处理 Mvc控制器
