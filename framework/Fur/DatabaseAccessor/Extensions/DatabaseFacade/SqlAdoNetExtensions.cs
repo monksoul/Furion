@@ -1,5 +1,6 @@
 ﻿using Fur.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using System;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -259,7 +260,7 @@ namespace Fur.DatabaseAccessor
             // 清空命令参数
             dbCommand.Parameters.Clear();
 
-            return result;
+            return result != DBNull.Value ? result : default;
         }
 
         /// <summary>
@@ -284,7 +285,7 @@ namespace Fur.DatabaseAccessor
             // 清空命令参数
             dbCommand.Parameters.Clear();
 
-            return (result, dbParameters);
+            return (result != DBNull.Value ? result : default, dbParameters);
         }
 
         /// <summary>
@@ -310,7 +311,7 @@ namespace Fur.DatabaseAccessor
             // 清空命令参数
             dbCommand.Parameters.Clear();
 
-            return result;
+            return result != DBNull.Value ? result : default;
         }
 
         /// <summary>
@@ -336,7 +337,7 @@ namespace Fur.DatabaseAccessor
             // 清空命令参数
             dbCommand.Parameters.Clear();
 
-            return (result, dbParameters);
+            return (result != DBNull.Value ? result : default, dbParameters);
         }
 
         /// <summary>
