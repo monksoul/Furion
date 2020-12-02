@@ -171,7 +171,7 @@ namespace Fur.SpecificationDocument
         {
             swaggerGenOptions.DocInclusionPredicate((currentGroup, apiDescription) =>
             {
-                if (!apiDescription.TryGetMethodInfo(out var method)) return false;
+                if (!apiDescription.TryGetMethodInfo(out var method) || typeof(Controller).IsAssignableFrom(method.ReflectedType)) return false;
 
                 return GetActionGroups(method).Any(u => u.Group == currentGroup);
             });
@@ -328,7 +328,7 @@ namespace Fur.SpecificationDocument
         {
             // 获取所有的控制器和动作方法
             var controllers = App.CanBeScanTypes.Where(u => Penetrates.IsApiController(u));
-            var actions = controllers.SelectMany(c => c.GetMethods().Where(u => IsAction(u, c)));
+            var actions = controllers.SelectMany(c => c.GetMethods().Where(u => IsApiAction(u, c)));
 
             // 合并所有分组
             var groupOrders = controllers.SelectMany(u => GetControllerGroups(u))
@@ -485,13 +485,13 @@ namespace Fur.SpecificationDocument
         /// <param name="method">方法</param>
         /// <param name="ReflectedType">声明类型</param>
         /// <returns></returns>
-        private static bool IsAction(MethodInfo method, Type ReflectedType)
+        private static bool IsApiAction(MethodInfo method, Type ReflectedType)
         {
             // 不是非公开、抽象、静态、泛型方法
             if (!method.IsPublic || method.IsAbstract || method.IsStatic || method.IsGenericMethod) return false;
 
             // 如果所在类型不是控制器，则该行为也被忽略
-            if (method.ReflectedType != ReflectedType) return false;
+            if (method.ReflectedType != ReflectedType || method.DeclaringType == typeof(object)) return false;
 
             // 不是能被导出忽略的接方法
             if (method.IsDefined(typeof(ApiExplorerSettingsAttribute), true) && method.GetCustomAttribute<ApiExplorerSettingsAttribute>(true).IgnoreApi) return false;

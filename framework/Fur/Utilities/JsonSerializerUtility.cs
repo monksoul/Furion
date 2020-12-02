@@ -40,15 +40,21 @@ namespace Fur.Utilities
         /// 获取默认 JSON 序列化选项
         /// </summary>
         /// <returns></returns>
-        private static JsonSerializerOptions GetDefaultJsonSerializerOptions()
+        internal static JsonSerializerOptions GetDefaultJsonSerializerOptions()
         {
-            return new JsonSerializerOptions
+            var jsonSerializerOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 WriteIndented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                PropertyNamingPolicy = EnabledPascalPropertyNaming ? null : JsonNamingPolicy.CamelCase
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
+
+            if (EnabledPascalPropertyNaming)
+            {
+                jsonSerializerOptions.PropertyNamingPolicy = null;
+            }
+
+            return jsonSerializerOptions;
         }
     }
 }

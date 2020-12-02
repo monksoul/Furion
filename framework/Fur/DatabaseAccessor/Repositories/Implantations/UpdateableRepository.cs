@@ -24,10 +24,12 @@ namespace Fur.DatabaseAccessor
         /// <returns>代理中的实体</returns>
         public virtual EntityEntry<TEntity> Update(TEntity entity, bool? ignoreNullValues = null)
         {
+            var entityEntry = Entities.Update(entity);
+
             // 忽略空值
             IgnoreNullValues(ref entity, ignoreNullValues);
 
-            return Entities.Update(entity);
+            return entityEntry;
         }
 
         /// <summary>

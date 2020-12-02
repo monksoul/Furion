@@ -1,4 +1,5 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Extensions;
 using Fur.UnifyResult;
 using Fur.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -87,7 +88,8 @@ namespace Fur.DataValidation
         private static void SetValidateFailedResult(ActionExecutingContext context, ModelStateDictionary modelState, ControllerActionDescriptor actionDescriptor)
         {
             // 将验证错误信息转换成字典并序列化成 Json
-            var validationResults = modelState.ToDictionary(u => u.Key, u => modelState[u.Key].Errors.Select(c => c.ErrorMessage));
+            var validationResults = modelState.ToDictionary(u => !JsonSerializerUtility.EnabledPascalPropertyNaming ? u.Key.ToTitlePascal() : u.Key
+                                                                , u => modelState[u.Key].Errors.Select(c => c.ErrorMessage));
             var validateFaildMessage = JsonSerializerUtility.Serialize(validationResults);
 
             // 判断是否跳过规范化结果

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fur.Extensions
@@ -161,6 +162,33 @@ namespace Fur.Extensions
         internal static object ToTaskResult(this object obj, Type realType)
         {
             return typeof(Task).GetMethod(nameof(Task.FromResult)).MakeGenericMethod(realType).Invoke(null, new object[] { obj });
+        }
+
+        /// <summary>
+        /// 首字母大写
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        internal static string ToTitleCase(this string str)
+        {
+            return Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(str);
+        }
+
+        /// <summary>
+        /// 首字母小写
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        internal static string ToTitlePascal(this string str)
+        {
+            if (str == null) return string.Empty;
+
+            int iLen = str.Length;
+            return iLen == 0
+                ? string.Empty
+                : iLen == 1
+                    ? str.ToLower()
+                    : str[0].ToString().ToLower() + str.Substring(1);
         }
     }
 }

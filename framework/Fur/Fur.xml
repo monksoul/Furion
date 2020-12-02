@@ -19963,6 +19963,20 @@
             <param name="realType"></param>
             <returns></returns>
         </member>
+        <member name="M:Fur.Extensions.ObjectExtensions.ToTitleCase(System.String)">
+            <summary>
+            首字母大写
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Extensions.ObjectExtensions.ToTitlePascal(System.String)">
+            <summary>
+            首字母小写
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
         <member name="T:Fur.DynamicApiController.DynamicApiControllerAttribute">
             <summary>
             动态 WebApi特性接口
@@ -21205,7 +21219,7 @@
             <param name="apiDescription">接口描述器</param>
             <returns></returns>
         </member>
-        <member name="M:Fur.SpecificationDocument.SpecificationDocumentBuilder.IsAction(System.Reflection.MethodInfo,System.Type)">
+        <member name="M:Fur.SpecificationDocument.SpecificationDocumentBuilder.IsApiAction(System.Reflection.MethodInfo,System.Type)">
             <summary>
             是否是动作方法
             </summary>

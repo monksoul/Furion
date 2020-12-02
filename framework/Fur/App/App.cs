@@ -1,4 +1,5 @@
 ﻿using Fur.DependencyInjection;
+using Fur.Extensions;
 using Fur.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Threading;
 
 namespace Fur
 {
@@ -179,8 +179,7 @@ namespace Fur
             if (Settings.InjectMiniProfiler != true) return;
 
             // 打印消息
-            var caseCategory = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(category);
-            var customTiming = MiniProfiler.Current.CustomTiming(category, string.IsNullOrEmpty(message) ? $"{caseCategory} {state}" : message, state);
+            var customTiming = MiniProfiler.Current.CustomTiming(category, string.IsNullOrEmpty(message) ? $"{category.ToTitleCase()} {state}" : message, state);
 
             // 判断是否是警告消息
             if (isError) customTiming.Errored = true;
