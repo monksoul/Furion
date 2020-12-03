@@ -1,4 +1,4 @@
-﻿using Fur.DependencyInjection;
+using Fur.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
@@ -40,6 +40,7 @@ namespace Fur.Authorization
                         if (policyPipeline) context.Succeed(requirement);
                     }
                 }
+                else context.Fail();
             }
 
             return Task.CompletedTask;
