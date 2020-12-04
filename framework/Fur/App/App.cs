@@ -167,6 +167,28 @@ namespace Fur
         }
 
         /// <summary>
+        /// 获取服务副本
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public static TService GetDuplicateService<TService>()
+            where TService : class
+        {
+            return ServiceProvider.GetService<TService>();
+        }
+
+        /// <summary>
+        /// 获取选项副本
+        /// </summary>
+        /// <typeparam name="TOptions"></typeparam>
+        /// <returns></returns>
+        public static TOptions GetDuplicateOptions<TOptions>()
+            where TOptions : class, new()
+        {
+            return GetDuplicateService<IOptions<TOptions>>().Value;
+        }
+
+        /// <summary>
         /// 打印验证信息到 MiniProfiler
         /// </summary>
         /// <param name="category">分类</param>
@@ -203,28 +225,6 @@ namespace Fur
         /// 应用所有启动配置对象
         /// </summary>
         internal static ConcurrentBag<AppStartup> AppStartups;
-
-        /// <summary>
-        /// 获取服务副本
-        /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        internal static TService GetDuplicateService<TService>()
-            where TService : class
-        {
-            return ServiceProvider.GetService<TService>();
-        }
-
-        /// <summary>
-        /// 获取选项副本
-        /// </summary>
-        /// <typeparam name="TOptions"></typeparam>
-        /// <returns></returns>
-        internal static TOptions GetDuplicateOptions<TOptions>()
-            where TOptions : class, new()
-        {
-            return GetDuplicateService<IOptions<TOptions>>().Value;
-        }
 
         /// <summary>
         /// 获取应用有效程序集

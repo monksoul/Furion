@@ -1,4 +1,4 @@
-﻿using Fur.DependencyInjection;
+using Fur.DependencyInjection;
 using Fur.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -65,9 +65,9 @@ namespace Fur.UnifyResult
         /// <param name="context"></param>
         /// <param name="modelStates"></param>
         /// <param name="validationResults"></param>
-        /// <param name="validateFaildMessage"></param>
+        /// <param name="validateFailedMessage"></param>
         /// <returns></returns>
-        public IActionResult OnValidateFailed(ActionExecutingContext context, ModelStateDictionary modelStates, Dictionary<string, IEnumerable<string>> validationResults, string validateFaildMessage)
+        public IActionResult OnValidateFailed(ActionExecutingContext context, ModelStateDictionary modelStates, Dictionary<string, IEnumerable<string>> validationResults, string validateFailedMessage)
         {
             return new JsonResult(new RESTfulResult<object>
             {

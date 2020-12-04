@@ -1,5 +1,8 @@
 ﻿using Fur;
 using Fur.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 
 namespace Microsoft.AspNetCore.Builder
@@ -14,11 +17,21 @@ namespace Microsoft.AspNetCore.Builder
         /// 注入基础中间件（带Swagger）
         /// </summary>
         /// <param name="app"></param>
-        /// <param name="routePrefix"></param>
+        /// <param name="routePrefix">空字符串将为首页</param>
+        /// <param name="hideInProductionEnvironment">是否生产环境自动隐藏</param>
         /// <returns></returns>
-        public static IApplicationBuilder UseInject(this IApplicationBuilder app, string routePrefix = default)
+        public static IApplicationBuilder UseInject(this IApplicationBuilder app, string routePrefix = default, bool hideInProductionEnvironment = false)
         {
-            app.UseSpecificationDocuments(routePrefix);
+            // 是否在生产环境中隐藏
+            if (hideInProductionEnvironment)
+            {
+                var env = app.ApplicationServices.GetService<IWebHostEnvironment>();
+
+                if (env.IsProduction()) return app;
+                else app.UseSpecificationDocuments(routePrefix);
+            }
+            else app.UseSpecificationDocuments(routePrefix);
+
             return app;
         }
 

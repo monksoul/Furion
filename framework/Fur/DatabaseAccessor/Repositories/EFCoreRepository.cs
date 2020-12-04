@@ -527,6 +527,7 @@ namespace Fur.DatabaseAccessor
         /// 动态改变表名
         /// </summary>
         /// <param name="tableName">表名</param>
+        [Obsolete("该方法已过时，调用将抛出空异常")]
         public virtual void ChangeTable(string tableName)
         {
             if (EntityType is IConventionEntityType convention)

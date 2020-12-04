@@ -106,6 +106,20 @@
             <typeparam name="TOptions">强类型选项类</typeparam>
             <returns>TOptions</returns>
         </member>
+        <member name="M:Fur.App.GetDuplicateService``1">
+            <summary>
+            获取服务副本
+            </summary>
+            <typeparam name="TService"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.App.GetDuplicateOptions``1">
+            <summary>
+            获取选项副本
+            </summary>
+            <typeparam name="TOptions"></typeparam>
+            <returns></returns>
+        </member>
         <member name="M:Fur.App.PrintToMiniProfiler(System.String,System.String,System.String,System.Boolean)">
             <summary>
             打印验证信息到 MiniProfiler
@@ -124,20 +138,6 @@
             <summary>
             应用所有启动配置对象
             </summary>
-        </member>
-        <member name="M:Fur.App.GetDuplicateService``1">
-            <summary>
-            获取服务副本
-            </summary>
-            <typeparam name="TService"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.App.GetDuplicateOptions``1">
-            <summary>
-            获取选项副本
-            </summary>
-            <typeparam name="TOptions"></typeparam>
-            <returns></returns>
         </member>
         <member name="M:Fur.App.GetAssemblies">
             <summary>
@@ -21604,7 +21604,7 @@
             <param name="context"></param>
             <param name="modelStates"></param>
             <param name="validationResults"></param>
-            <param name="validateFaildMessage"></param>
+            <param name="validateFailedMessage"></param>
             <returns></returns>
         </member>
         <member name="M:Fur.UnifyResult.IUnifyResultProvider.OnResponseStatusCodes(Microsoft.AspNetCore.Http.HttpContext,System.Int32)">
@@ -21641,7 +21641,7 @@
             <param name="context"></param>
             <param name="modelStates"></param>
             <param name="validationResults"></param>
-            <param name="validateFaildMessage"></param>
+            <param name="validateFailedMessage"></param>
             <returns></returns>
         </member>
         <member name="M:Fur.UnifyResult.RESTfulResultProvider.OnResponseStatusCodes(Microsoft.AspNetCore.Http.HttpContext,System.Int32)">
@@ -22648,12 +22648,13 @@
             应用中间件拓展类（由框架内部调用）
             </summary>
         </member>
-        <member name="M:Microsoft.AspNetCore.Builder.AppApplicationBuilderExtensions.UseInject(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.String)">
+        <member name="M:Microsoft.AspNetCore.Builder.AppApplicationBuilderExtensions.UseInject(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.String,System.Boolean)">
             <summary>
             注入基础中间件（带Swagger）
             </summary>
             <param name="app"></param>
-            <param name="routePrefix"></param>
+            <param name="routePrefix">空字符串将为首页</param>
+            <param name="hideInProductionEnvironment">是否生产环境自动隐藏</param>
             <returns></returns>
         </member>
         <member name="M:Microsoft.AspNetCore.Builder.AppApplicationBuilderExtensions.UseInjectBase(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
