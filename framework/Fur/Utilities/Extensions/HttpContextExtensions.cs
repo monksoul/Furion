@@ -1,5 +1,4 @@
 using Fur.DependencyInjection;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Http
 {
@@ -43,18 +42,43 @@ namespace Microsoft.AspNetCore.Http
         }
 
         /// <summary>
-        /// 获取客户端IP地址
+        /// 获取本机 IPv4地址
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static string GetClientIPAddress(this HttpContext context)
+        public static string GetLocalIpAddressToIPv4(this HttpContext context)
         {
-            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = context.Connection.RemoteIpAddress.ToString();
-            }
-            return ip;
+            return context.Connection.LocalIpAddress?.MapToIPv4()?.ToString();
+        }
+
+        /// <summary>
+        /// 获取本机 IPv6地址
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string GetLocalIpAddressToIPv6(this HttpContext context)
+        {
+            return context.Connection.LocalIpAddress?.MapToIPv4()?.ToString();
+        }
+
+        /// <summary>
+        /// 获取远程 IPv4地址
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string GetRemoteIpAddressToIPv4(this HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.MapToIPv4()?.ToString();
+        }
+
+        /// <summary>
+        /// 获取远程 IPv6地址
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string GetRemoteIpAddressToIPv6(this HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.MapToIPv6()?.ToString();
         }
 
         /// <summary>
