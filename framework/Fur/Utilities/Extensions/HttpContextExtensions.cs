@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Http
         /// <returns></returns>
         public static string GetLocalIpAddressToIPv6(this HttpContext context)
         {
-            return context.Connection.LocalIpAddress?.MapToIPv4()?.ToString();
+            return context.Connection.LocalIpAddress?.MapToIPv6()?.ToString();
         }
 
         /// <summary>
