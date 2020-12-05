@@ -329,14 +329,11 @@ namespace Fur.DatabaseAccessor
             // 默认数据库上下文情况
             if (dbContextLocator == typeof(MasterDbContextLocator))
             {
-                // 父类继承 IPrivateEntity 类型且不是泛型
-                if (typeof(IPrivateEntity).IsAssignableFrom(baseType) && !baseType.IsGenericType) return true;
+                // 父类等于 Entity/Entity<> 或等于 EntityBase/EntityBase<> 或等于 EntityNotKey
+                if (baseType == typeof(Entity) || baseType == typeof(EntityBase) || baseType.HasImplementedRawGeneric(typeof(Entity<>)) || baseType.HasImplementedRawGeneric(typeof(EntityBase<>)) || baseType == typeof(EntityNotKey)) return true;
 
-                // 接口等于 IEntityDependency 或 IModelBuilderFilter 类型
+                // 接口等于 IEntity 或 IModelBuilderFilter 类型
                 if (interfaces.Any(u => u == typeof(IEntity) || u == typeof(IModelBuilderFilter))) return true;
-
-                // 解决继承内部 Entity和 EntityBase 问题
-                if (baseType.HasImplementedRawGeneric(typeof(PrivateEntityBase<>)) && !baseType.IsGenericType) return true;
             }
 
             // 父类是泛型且泛型参数包含数据库上下文定位器

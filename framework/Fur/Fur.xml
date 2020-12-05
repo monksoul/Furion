@@ -7618,6 +7618,83 @@
             静态构造函数
             </summary>
         </member>
+        <member name="T:Fur.DatabaseAccessor.TemporalExtensions">
+            <summary>
+            时态查询拓展
+            </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporalAll``1(Microsoft.EntityFrameworkCore.DbSet{``0})">
+            <summary>
+            返回属于当前表和历史记录表的行的联合
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporalAsOf``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.DateTime)">
+            <summary>
+            返回一个包含实际值（当前）的行的表。
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <param name="date"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporalFrom``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.DateTime,System.DateTime)">
+            <summary>
+            返回一个表，其中具有在指定的时间范围，无论它们是否在
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <param name="startDate"></param>
+            <param name="endDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporalBetween``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.DateTime,System.DateTime)">
+            <summary>
+            返回一个表，其中具有在指定的时间范围，无论它们是否在，但是结束时间有边界值
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <param name="startDate"></param>
+            <param name="endDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporalContained``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.DateTime,System.DateTime)">
+            <summary>
+            返回一个表，该表包含已打开和关闭的所有行版本的值
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <param name="startDate"></param>
+            <param name="endDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.AsTemporal``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.String,System.Object[])">
+            <summary>
+            创建时态表
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbSet"></param>
+            <param name="temporalCriteria"></param>
+            <param name="arguments"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.GetTableName``1(Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext)">
+            <summary>
+            获取表名
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dbContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.TemporalExtensions.GetSqlSafeName(System.String)">
+            <summary>
+            获取 Sql 安全名
+            </summary>
+            <param name="sqlName"></param>
+            <returns></returns>
+        </member>
         <member name="M:Fur.DatabaseAccessor.DbHelpers.ConvertToDbParameters(System.Object,System.Data.Common.DbCommand)">
             <summary>
             将模型转为 DbParameter 集合
