@@ -279,7 +279,7 @@ namespace Fur.SpecificationDocument
             {
                 var groupOpenApiInfo = GetGroupOpenApiInfo(group);
 
-                swaggerUIOptions.SwaggerEndpoint($"/swagger/{HttpUtility.UrlEncode(group)}/swagger.json", groupOpenApiInfo?.Title ?? group);
+                swaggerUIOptions.SwaggerEndpoint($"{_specificationDocumentSettings.VirtualPath}/swagger/{HttpUtility.UrlEncode(group)}/swagger.json", groupOpenApiInfo?.Title ?? group);
             }
         }
 

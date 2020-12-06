@@ -38,6 +38,11 @@ namespace Fur.SpecificationDocument
         public string RoutePrefix { get; set; }
 
         /// <summary>
+        /// 配置虚拟目录
+        /// </summary>
+        public string VirtualPath { get; set; }
+
+        /// <summary>
         /// 文档展开设置
         /// </summary>
         public DocExpansion? DocExpansionState { get; set; }

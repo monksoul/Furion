@@ -21520,6 +21520,11 @@
             配置规范化文档地址
             </summary>
         </member>
+        <member name="P:Fur.SpecificationDocument.SpecificationDocumentSettingsOptions.VirtualPath">
+            <summary>
+            配置虚拟目录
+            </summary>
+        </member>
         <member name="P:Fur.SpecificationDocument.SpecificationDocumentSettingsOptions.DocExpansionState">
             <summary>
             文档展开设置
