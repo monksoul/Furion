@@ -10,7 +10,7 @@
     <RepositoryUrl>https://gitee.com/monksoul/Fur</RepositoryUrl>
     <RepositoryType>Gitee</RepositoryType>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.3.4</Version>
+    <Version>1.3.5</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
@@ -28,10 +28,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>Fur.xml</DocumentationFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="SpecificationDocument\Assets\index-mini-profiler.html" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="SpecificationDocument\Assets\index-mini-profiler.html" />

@@ -86,7 +86,7 @@ namespace Fur.SpecificationDocument
                 {
                     // 默认 Server
                     var servers = new List<OpenApiServer> {
-                        new OpenApiServer { Url = $"{request.Scheme}://{request.Host.Value}",Description="Default" }
+                        new OpenApiServer { Url = $"{request.Scheme}://{request.Host.Value}{_specificationDocumentSettings.VirtualPath}",Description="Default" }
                     };
                     servers.AddRange(_specificationDocumentSettings.Servers);
 
