@@ -20104,6 +20104,13 @@
             <param name="obj">对象</param>
             <returns></returns>
         </member>
+        <member name="M:Fur.Extensions.ObjectExtensions.GetAncestorTypes(System.Type)">
+            <summary>
+            获取所有祖先类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
         <member name="M:Fur.Extensions.ObjectExtensions.GetMethodRealReturnType(System.Reflection.MethodInfo)">
             <summary>
             获取方法真实返回类型

@@ -322,22 +322,13 @@ namespace Fur.DatabaseAccessor
             // 处理自定义多租户的情况
             if (dbContextLocator == typeof(MultiTenantDbContextLocator) && Db.CustomizeMultiTenants && entityCorrelationType == typeof(Tenant)) return false;
 
-            // 获取类型父类型及接口
-            var baseType = entityCorrelationType.BaseType;
+            // 获取所有祖先类型
+            var ancestorTypes = entityCorrelationType.GetAncestorTypes();
+            // 获取所有接口
             var interfaces = entityCorrelationType.GetInterfaces().Where(u => typeof(IPrivateEntity).IsAssignableFrom(u) || typeof(IPrivateModelBuilder).IsAssignableFrom(u));
 
-            // 默认数据库上下文情况
-            if (dbContextLocator == typeof(MasterDbContextLocator))
-            {
-                // 父类等于 Entity/Entity<> 或等于 EntityBase/EntityBase<> 或等于 EntityNotKey
-                if (baseType == typeof(Entity) || baseType == typeof(EntityBase) || baseType.HasImplementedRawGeneric(typeof(Entity<>)) || baseType.HasImplementedRawGeneric(typeof(EntityBase<>)) || baseType == typeof(EntityNotKey)) return true;
-
-                // 接口等于 IEntity 或 IModelBuilderFilter 类型
-                if (interfaces.Any(u => u == typeof(IEntity) || u == typeof(IModelBuilderFilter))) return true;
-            }
-
-            // 父类是泛型且泛型参数包含数据库上下文定位器
-            if (baseType.IsGenericType && baseType.GenericTypeArguments.Contains(dbContextLocator)) return true;
+            // 祖先是泛型且泛型参数包含数据库上下文定位器
+            if (ancestorTypes.Any(u => u.IsGenericType && u.GenericTypeArguments.Contains(dbContextLocator))) return true;
 
             // 接口是泛型且泛型参数包含数据库上下文定位器
             if (interfaces.Any(u => u.IsGenericType && u.GenericTypeArguments.Contains(dbContextLocator))) return true;

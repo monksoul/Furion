@@ -139,6 +139,30 @@ namespace Fur.Extensions
         }
 
         /// <summary>
+        /// 获取所有祖先类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal static IEnumerable<Type> GetAncestorTypes(this Type type)
+        {
+            var ancestorTypes = new List<Type>();
+            while (type != null && type != typeof(object))
+            {
+                if (IsNoObjectBaseType(type))
+                {
+                    var baseType = type.BaseType;
+                    ancestorTypes.Add(baseType);
+                    type = baseType;
+                }
+                else break;
+            }
+
+            return ancestorTypes;
+
+            static bool IsNoObjectBaseType(Type type) => type.BaseType != typeof(object);
+        }
+
+        /// <summary>
         /// 获取方法真实返回类型
         /// </summary>
         /// <param name="method"></param>
