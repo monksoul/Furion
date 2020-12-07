@@ -6,21 +6,21 @@ using System.Reflection;
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图编译选项
+    /// 视图引擎编译选项
     /// </summary>
     [SkipScan]
-    public class ViewEngineCompilationOptions
+    public class ViewEngineOptions
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        public ViewEngineCompilationOptions()
+        public ViewEngineOptions()
         {
             ReferencedAssemblies = new HashSet<Assembly>()
             {
                 typeof(object).Assembly,
+                typeof(ViewEngineModel).Assembly,
                 Assembly.Load(new AssemblyName("Microsoft.CSharp")),
-                typeof(ViewEngineTemplate).Assembly,
                 Assembly.Load(new AssemblyName("System.Runtime")),
                 Assembly.Load(new AssemblyName("System.Linq")),
                 Assembly.Load(new AssemblyName("System.Linq.Expressions")),
@@ -41,12 +41,12 @@ namespace Fur.ViewEngine
         /// <summary>
         /// 模板命名空间
         /// </summary>
-        public string TemplateNamespace { get; set; } = "TemplateNamespace";
+        public string TemplateNamespace { get; set; } = "Fur.ViewEngine";
 
         /// <summary>
         /// 继承
         /// </summary>
-        public string Inherits { get; set; } = "Fur.ViewEngine.ViewEngineTemplate";
+        public string Inherits { get; set; } = "Fur.ViewEngine.Template.Models";
 
         /// <summary>
         /// 默认 Using

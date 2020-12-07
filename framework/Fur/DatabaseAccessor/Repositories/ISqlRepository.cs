@@ -15,7 +15,7 @@ namespace Fur.DatabaseAccessor
     /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
     public interface ISqlRepository<TDbContextLocator>
         : ISqlExecutableRepository<TDbContextLocator>
-        , ISqlQueryableRepository<TDbContextLocator>
+        , ISqlReaderRepository<TDbContextLocator>
         , IPrivateRepository
        where TDbContextLocator : class, IDbContextLocator
     {
@@ -47,5 +47,13 @@ namespace Fur.DatabaseAccessor
         /// <returns></returns>
         TService GetRequiredService<TService>()
             where TService : class;
+
+        /// <summary>
+        /// 将仓储约束为特定仓储
+        /// </summary>
+        /// <typeparam name="TRestrainRepository">特定仓储</typeparam>
+        /// <returns>TRestrainRepository</returns>
+        TRestrainRepository Constraint<TRestrainRepository>()
+            where TRestrainRepository : class, IPrivateRepository;
     }
 }

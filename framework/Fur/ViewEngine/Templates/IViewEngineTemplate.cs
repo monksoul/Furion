@@ -1,66 +1,100 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图模板接口
+    /// 视图引擎模板（编译后）
     /// </summary>
     public interface IViewEngineTemplate
     {
         /// <summary>
-        /// 模型
+        /// 保存到流中
         /// </summary>
-        dynamic Model { get; set; }
+        /// <param name="stream"></param>
+        void SaveToStream(Stream stream);
 
         /// <summary>
-        /// 插入字面量
+        /// 保存到流中
         /// </summary>
-        /// <param name="literal"></param>
-        void WriteLiteral(string literal = null);
-
-        /// <summary>
-        /// 插入对象
-        /// </summary>
-        /// <param name="obj"></param>
-        void Write(object obj = null);
-
-        /// <summary>
-        /// 插入属性
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="prefix"></param>
-        /// <param name="prefixOffset"></param>
-        /// <param name="suffix"></param>
-        /// <param name="suffixOffset"></param>
-        /// <param name="attributeValuesCount"></param>
-        void BeginWriteAttribute(string name, string prefix, int prefixOffset, string suffix, int suffixOffset, int attributeValuesCount);
-
-        /// <summary>
-        /// 插入属性值
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="prefixOffset"></param>
-        /// <param name="value"></param>
-        /// <param name="valueOffset"></param>
-        /// <param name="valueLength"></param>
-        /// <param name="isLiteral"></param>
-        void WriteAttributeValue(string prefix, int prefixOffset, object value, int valueOffset, int valueLength, bool isLiteral);
-
-        /// <summary>
-        /// 结束插入属性
-        /// </summary>
-        void EndWriteAttribute();
-
-        /// <summary>
-        /// 执行
-        /// </summary>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        Task ExecuteAsync();
+        Task SaveToStreamAsync(Stream stream);
 
         /// <summary>
-        /// 返回结果
+        /// 保存到文件
         /// </summary>
+        /// <param name="fileName"></param>
+        void SaveToFile(string fileName);
+
+        /// <summary>
+        /// 保存到文件
+        /// </summary>
+        /// <param name="fileName"></param>
         /// <returns></returns>
-        string Result();
+        Task SaveToFileAsync(string fileName);
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        string Run(object model = null);
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        Task<string> RunAsync(object model = null);
+    }
+
+    /// <summary>
+    /// 泛型视图编译模板接口
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IViewEngineTemplate<out T>
+        where T : IViewEngineModel
+    {
+        /// <summary>
+        /// 保存到流中
+        /// </summary>
+        /// <param name="stream"></param>
+        void SaveToStream(Stream stream);
+
+        /// <summary>
+        /// 保存到流中
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        Task SaveToStreamAsync(Stream stream);
+
+        /// <summary>
+        /// 保存到文件
+        /// </summary>
+        /// <param name="fileName"></param>
+        void SaveToFile(string fileName);
+
+        /// <summary>
+        /// 保存到文件
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        Task SaveToFileAsync(string fileName);
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="initializer"></param>
+        /// <returns></returns>
+        string Run(Action<T> initializer);
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="initializer"></param>
+        /// <returns></returns>
+        Task<string> RunAsync(Action<T> initializer);
     }
 }

@@ -10,20 +10,20 @@ namespace Fur.ViewEngine
     /// 视图编译构建器
     /// </summary>
     [SkipScan]
-    public class ViewEngineCompilationOptionsBuilder : IViewEngineCompilationOptionsBuilder
+    public class ViewEngineOptionsBuilder : IViewEngineOptionsBuilder
     {
         /// <summary>
         /// 视图编译选项
         /// </summary>
-        public ViewEngineCompilationOptions Options { get; set; }
+        public ViewEngineOptions Options { get; set; }
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="options"></param>
-        public ViewEngineCompilationOptionsBuilder(ViewEngineCompilationOptions options = null)
+        public ViewEngineOptionsBuilder(ViewEngineOptions options = null)
         {
-            Options = options ?? new ViewEngineCompilationOptions();
+            Options = options ?? new ViewEngineOptions();
         }
 
         /// <summary>

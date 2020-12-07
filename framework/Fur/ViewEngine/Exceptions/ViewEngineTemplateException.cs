@@ -7,15 +7,15 @@ using System.Runtime.Serialization;
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图编译异常类
+    /// 视图引擎模板编译异常类
     /// </summary>
     [SkipScan]
-    public class ViewEngineCompilationException : ViewEngineException
+    public class ViewEngineTemplateException : ViewEngineException
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        public ViewEngineCompilationException()
+        public ViewEngineTemplateException()
         {
         }
 
@@ -24,7 +24,7 @@ namespace Fur.ViewEngine
         /// </summary>
         /// <param name="info"></param>
         /// <param name="context"></param>
-        protected ViewEngineCompilationException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected ViewEngineTemplateException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Fur.ViewEngine
         /// 构造函数
         /// </summary>
         /// <param name="message"></param>
-        public ViewEngineCompilationException(string message) : base(message)
+        public ViewEngineTemplateException(string message) : base(message)
         {
         }
 
@@ -41,7 +41,7 @@ namespace Fur.ViewEngine
         /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public ViewEngineCompilationException(string message, Exception innerException) : base(message, innerException)
+        public ViewEngineTemplateException(string message, Exception innerException) : base(message, innerException)
         {
         }
 

@@ -432,13 +432,5 @@ namespace Fur.DatabaseAccessor
         IRepository<TChangeEntity, TChangeDbContextLocator> Change<TChangeEntity, TChangeDbContextLocator>()
             where TChangeEntity : class, IPrivateEntity, new()
             where TChangeDbContextLocator : class, IDbContextLocator;
-
-        /// <summary>
-        /// 将仓储约束为特定仓储
-        /// </summary>
-        /// <typeparam name="TRestrainRepository">特定仓储</typeparam>
-        /// <returns>TRestrainRepository</returns>
-        TRestrainRepository Constraint<TRestrainRepository>()
-            where TRestrainRepository : class, IPrivateRepository;
     }
 }

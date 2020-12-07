@@ -5,14 +5,14 @@ using System.Reflection;
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图编译构建器
+    /// 视图引擎选项构建器
     /// </summary>
-    public interface IViewEngineCompilationOptionsBuilder
+    public interface IViewEngineOptionsBuilder
     {
         /// <summary>
         /// 视图编译选项
         /// </summary>
-        ViewEngineCompilationOptions Options { get; set; }
+        ViewEngineOptions Options { get; set; }
 
         /// <summary>
         /// 添加程序集引用

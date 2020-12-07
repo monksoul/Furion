@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using System;
 using System.Linq;
-using System.Net.Mime;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -77,17 +76,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // 添加应用模型转换器
             options.Conventions.Add(new DynamicApiControllerApplicationModelConvention());
-
-            // 配置 ContentType
-            options.Filters.Add(new ProducesAttribute(
-                MediaTypeNames.Application.Json
-                , MediaTypeNames.Application.Xml
-                , "text/json"
-                , MediaTypeNames.Text.Xml
-                , MediaTypeNames.Text.Plain));
-
-            // 处理 Web API 不支持的返回格式，统一返回 406 状态码
-            //options.ReturnHttpNotAcceptable = true;
 
             // 添加 Xml 支持
             options.InputFormatters.Add(new XmlSerializerInputFormatter(options));

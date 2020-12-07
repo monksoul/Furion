@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图异常类
+    /// 视图引擎异常类
     /// </summary>
     [SkipScan]
     public class ViewEngineException : Exception

@@ -1,116 +1,329 @@
 ﻿using Fur.DependencyInjection;
-using System.Text;
+using Fur.Extensions;
+using System;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fur.ViewEngine
 {
     /// <summary>
-    /// 视图模板实现类
+    /// 视图引擎模板（编译后）
     /// </summary>
     [SkipScan]
-    public abstract class ViewEngineTemplate : IViewEngineTemplate
+    public class ViewEngineTemplate : IViewEngineTemplate
     {
         /// <summary>
-        /// 字符串构建器
+        /// 内存流
         /// </summary>
-        private readonly StringBuilder stringBuilder = new();
+        private readonly MemoryStream assemblyByteCode;
 
         /// <summary>
-        /// 特性后缀
+        /// 模板类型
         /// </summary>
-        private string attributeSuffix;
+        private readonly Type templateType;
 
         /// <summary>
-        /// 视图模型
+        /// 构造函数
         /// </summary>
-        public dynamic Model { get; set; }
-
-        /// <summary>
-        /// 插入字面量
-        /// </summary>
-        /// <param name="literal"></param>
-        public virtual void WriteLiteral(string literal = null)
+        /// <param name="assemblyByteCode"></param>
+        internal ViewEngineTemplate(MemoryStream assemblyByteCode)
         {
-            stringBuilder.Append(literal);
+            this.assemblyByteCode = assemblyByteCode;
+
+            var assembly = Assembly.Load(assemblyByteCode.ToArray());
+            templateType = assembly.GetType("Fur.ViewEngine.Template");
         }
 
         /// <summary>
-        /// 插入对象
+        /// 保存到流中
         /// </summary>
-        /// <param name="obj"></param>
-        public virtual void Write(object obj = null)
+        /// <param name="stream"></param>
+        public void SaveToStream(Stream stream)
         {
-            stringBuilder.Append(obj);
+            SaveToStreamAsync(stream).GetAwaiter().GetResult();
         }
 
         /// <summary>
-        /// 插入属性
+        /// 保存到流中
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="prefix"></param>
-        /// <param name="prefixOffset"></param>
-        /// <param name="suffix"></param>
-        /// <param name="suffixOffset"></param>
-        /// <param name="attributeValuesCount"></param>
-        public virtual void BeginWriteAttribute(string name, string prefix, int prefixOffset, string suffix, int suffixOffset, int attributeValuesCount)
-        {
-            attributeSuffix = suffix;
-            stringBuilder.Append(prefix);
-        }
-
-        /// <summary>
-        /// 插入属性值
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="prefixOffset"></param>
-        /// <param name="value"></param>
-        /// <param name="valueOffset"></param>
-        /// <param name="valueLength"></param>
-        /// <param name="isLiteral"></param>
-        public virtual void WriteAttributeValue(string prefix, int prefixOffset, object value, int valueOffset, int valueLength, bool isLiteral)
-        {
-            stringBuilder.Append(prefix);
-            stringBuilder.Append(value);
-        }
-
-        /// <summary>
-        /// 结束插入属性
-        /// </summary>
-        public virtual void EndWriteAttribute()
-        {
-            stringBuilder.Append(attributeSuffix);
-            attributeSuffix = null;
-        }
-
-        /// <summary>
-        /// 执行
-        /// </summary>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        public virtual Task ExecuteAsync()
+        public Task SaveToStreamAsync(Stream stream)
         {
-            return Task.CompletedTask;
+            return assemblyByteCode.CopyToAsync(stream);
         }
 
         /// <summary>
-        /// 返回结果
+        /// 保存到文件
         /// </summary>
-        /// <returns></returns>
-        public virtual string Result()
+        /// <param name="fileName"></param>
+        public void SaveToFile(string fileName)
         {
-            return stringBuilder.ToString();
+            SaveToFileAsync(fileName).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 保存到文件
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public Task SaveToFileAsync(string fileName)
+        {
+            using var fileStream = new FileStream(
+                path: Penetrates.GetTemplateFileName(fileName),
+                mode: FileMode.OpenOrCreate,
+                access: FileAccess.Write,
+                share: FileShare.None,
+                bufferSize: 4096,
+                useAsync: true);
+
+            return assemblyByteCode.CopyToAsync(fileStream);
+        }
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public string Run(object model = null)
+        {
+            return RunAsync(model).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<string> RunAsync(object model = null)
+        {
+            if (model != null && model.IsAnonymous())
+            {
+                model = new AnonymousTypeWrapper(model);
+            }
+
+            var instance = (IViewEngineModel)Activator.CreateInstance(templateType);
+            instance.Model = model;
+
+            await instance.ExecuteAsync();
+
+            return instance.Result();
+        }
+
+        /// <summary>
+        /// 从文件中加载模板
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static IViewEngineTemplate LoadFromFile(string fileName)
+        {
+            return LoadFromFileAsync(fileName: fileName).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 从文件中加载模板
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static async Task<IViewEngineTemplate> LoadFromFileAsync(string fileName)
+        {
+            using var memoryStream = new MemoryStream();
+
+            using (var fileStream = new FileStream(
+                path: Penetrates.GetTemplateFileName(fileName),
+                mode: FileMode.Open,
+                access: FileAccess.Read,
+                share: FileShare.None,
+                bufferSize: 4096,
+                useAsync: true))
+            {
+                await fileStream.CopyToAsync(memoryStream);
+            }
+
+            return new ViewEngineTemplate(memoryStream);
+        }
+
+        /// <summary>
+        /// 从流中加载模板
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static IViewEngineTemplate LoadFromStream(Stream stream)
+        {
+            return LoadFromStreamAsync(stream).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 从流中加载模板
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static async Task<IViewEngineTemplate> LoadFromStreamAsync(Stream stream)
+        {
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            return new ViewEngineTemplate(memoryStream);
         }
     }
 
     /// <summary>
-    /// 视图模板实现类
+    /// 视图引擎模板（编译后）
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [SkipScan]
-    public abstract class ViewEngineTemplate<T> : ViewEngineTemplate
+    public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
+        where T : IViewEngineModel
     {
         /// <summary>
-        /// 强类型
+        /// 内存流
         /// </summary>
-        public new T Model { get; set; }
+        private readonly MemoryStream assemblyByteCode;
+
+        /// <summary>
+        /// 内存流
+        /// </summary>
+        private readonly Type templateType;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="assemblyByteCode"></param>
+        internal ViewEngineTemplate(MemoryStream assemblyByteCode)
+        {
+            this.assemblyByteCode = assemblyByteCode;
+
+            var assembly = Assembly.Load(assemblyByteCode.ToArray());
+            templateType = assembly.GetType("Fur.ViewEngine.Template");
+        }
+
+        /// <summary>
+        /// 保存到流中
+        /// </summary>
+        /// <param name="stream"></param>
+        public void SaveToStream(Stream stream)
+        {
+            SaveToStreamAsync(stream).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 保存到流中
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public Task SaveToStreamAsync(Stream stream)
+        {
+            return assemblyByteCode.CopyToAsync(stream);
+        }
+
+        /// <summary>
+        /// 保存到文件中
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void SaveToFile(string fileName)
+        {
+            SaveToFileAsync(fileName).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 保存到文件中
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public Task SaveToFileAsync(string fileName)
+        {
+            using var fileStream = new FileStream(
+                path: Penetrates.GetTemplateFileName(fileName),
+                mode: FileMode.CreateNew,
+                access: FileAccess.Write,
+                share: FileShare.None,
+                bufferSize: 4096,
+                useAsync: true);
+            return assemblyByteCode.CopyToAsync(fileStream);
+        }
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="initializer"></param>
+        /// <returns></returns>
+        public string Run(Action<T> initializer)
+        {
+            return RunAsync(initializer).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 执行编译
+        /// </summary>
+        /// <param name="initializer"></param>
+        /// <returns></returns>
+        public async Task<string> RunAsync(Action<T> initializer)
+        {
+            var instance = (T)Activator.CreateInstance(templateType);
+            initializer(instance);
+
+            await instance.ExecuteAsync();
+
+            return instance.Result();
+        }
+
+        /// <summary>
+        /// 从文件中加载模板
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static IViewEngineTemplate<T> LoadFromFile(string fileName)
+        {
+            return LoadFromFileAsync(fileName: fileName).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 从文件中加载模板
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static async Task<IViewEngineTemplate<T>> LoadFromFileAsync(string fileName)
+        {
+            using var memoryStream = new MemoryStream();
+
+            using (var fileStream = new FileStream(
+                path: Penetrates.GetTemplateFileName(fileName),
+                mode: FileMode.Open,
+                access: FileAccess.Read,
+                share: FileShare.None,
+                bufferSize: 4096,
+                useAsync: true))
+            {
+                await fileStream.CopyToAsync(memoryStream);
+            }
+
+            return new ViewEngineTemplate<T>(memoryStream);
+        }
+
+        /// <summary>
+        /// 从流中加载模板
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static IViewEngineTemplate<T> LoadFromStream(Stream stream)
+        {
+            return LoadFromStreamAsync(stream).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 从流中加载模板
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static async Task<IViewEngineTemplate<T>> LoadFromStreamAsync(Stream stream)
+        {
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            return new ViewEngineTemplate<T>(memoryStream);
+        }
     }
 }

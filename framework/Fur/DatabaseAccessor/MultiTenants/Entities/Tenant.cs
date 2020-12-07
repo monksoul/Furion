@@ -14,7 +14,7 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         public Tenant()
         {
-            CreatedTime = DateTimeOffset.UtcNow;
+            CreatedTime = DateTimeOffset.Now;
         }
 
         /// <summary>

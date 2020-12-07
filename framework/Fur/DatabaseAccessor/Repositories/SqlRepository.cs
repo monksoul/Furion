@@ -91,5 +91,22 @@ namespace Fur.DatabaseAccessor
         {
             return _serviceProvider.GetRequiredService<TService>();
         }
+
+        /// <summary>
+        /// 将仓储约束为特定仓储
+        /// </summary>
+        /// <typeparam name="TRestrainRepository">特定仓储</typeparam>
+        /// <returns>TRestrainRepository</returns>
+        public virtual TRestrainRepository Constraint<TRestrainRepository>()
+            where TRestrainRepository : class, IPrivateRepository
+        {
+            var type = typeof(TRestrainRepository);
+            if (!type.IsInterface || typeof(IPrivateRepository) == type || type.Name.Equals(nameof(IRepository)) || (type.IsGenericType && type.GetGenericTypeDefinition().Name.Equals(nameof(IRepository))))
+            {
+                throw new InvalidCastException("Invalid type conversion");
+            }
+
+            return this as TRestrainRepository;
+        }
     }
 }

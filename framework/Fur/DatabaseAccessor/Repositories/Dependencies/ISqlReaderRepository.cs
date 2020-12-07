@@ -9,7 +9,7 @@ namespace Fur.DatabaseAccessor
     /// <summary>
     /// Sql 查询仓储接口
     /// </summary>
-    public interface ISqlReaderRepository : ISqlQueryableRepository<MasterDbContextLocator>
+    public interface ISqlReaderRepository : ISqlReaderRepository<MasterDbContextLocator>
     {
     }
 
@@ -17,7 +17,7 @@ namespace Fur.DatabaseAccessor
     /// Sql 查询仓储接口
     /// </summary>
     /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
-    public interface ISqlQueryableRepository<TDbContextLocator> : IPrivateRepository
+    public interface ISqlReaderRepository<TDbContextLocator> : IPrivateRepository
         where TDbContextLocator : class, IDbContextLocator
     {
         /// <summary>
