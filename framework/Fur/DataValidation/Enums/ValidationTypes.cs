@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace Fur.DataValidation
@@ -15,7 +15,7 @@ namespace Fur.DataValidation
         /// 表达式：^[\w\W]+$
         /// </para>
         /// </summary>
-        [Description("非空非Null"), ValidationItemMetadata(@" ^[\w\W]+$", "The Value is required")]
+        [Description("非空非Null"), ValidationItemMetadata(@"^[\w\W]+$", "The Value is required")]
         Required,
 
         /// <summary>
