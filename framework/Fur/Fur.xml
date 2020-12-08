@@ -252,7 +252,7 @@
         </member>
         <member name="F:Fur.InternalApp.runtimeJsonSuffixs">
             <summary>
-            运行时 Json 后缀
+            排除运行时 Json 后缀
             </summary>
         </member>
         <member name="T:Fur.AppSettingsOptions">
