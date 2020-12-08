@@ -246,7 +246,7 @@ namespace Fur
             var scanAssemblies = dependencyContext.CompileLibraries
                 .Where(u =>
                        (u.Type == "project" && !excludeAssemblyNames.Any(j => u.Name.EndsWith(j))) ||
-                       (u.Type == "package" && u.Name.StartsWith($"{nameof(Fur)}.Extras.")) ||
+                       (u.Type == "package" && u.Name.StartsWith(nameof(Fur))) ||
                        (settings.EnabledReferenceAssemblyScan == true && u.Type == "reference"))    // 判断是否启用引用程序集扫描
                 .Select(u => AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(u.Name)))
                 .ToList();
