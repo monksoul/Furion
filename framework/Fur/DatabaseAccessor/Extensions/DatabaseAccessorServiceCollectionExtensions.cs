@@ -70,9 +70,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     // 动态解析数据库上下文
                     var dbContext = provider.GetService(dbContextType) as DbContext;
-                    var dbContextPool = App.GetService<IDbContextPool>();
+
+                    // 实现动态数据库上下文功能，刷新 OnModelCreating
+                    var dbContextAttribute = DbProvider.GetAppDbContextAttribute(dbContextType);
+                    if (dbContextAttribute?.Mode == DbContextMode.Dynamic)
+                    {
+                        DynamicModelCacheKeyFactory.RebuildModels();
+                    }
 
                     // 添加数据库上下文到池中
+                    var dbContextPool = App.GetService<IDbContextPool>();
                     dbContextPool?.AddToPool(dbContext);
 
                     return dbContext;
@@ -90,9 +97,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     // 动态解析数据库上下文
                     var dbContext = provider.GetService(dbContextType) as DbContext;
-                    var dbContextPool = App.GetService<IDbContextPool>();
+
+                    // 实现动态数据库上下文功能，刷新 OnModelCreating
+                    var dbContextAttribute = DbProvider.GetAppDbContextAttribute(dbContextType);
+                    if (dbContextAttribute?.Mode == DbContextMode.Dynamic)
+                    {
+                        DynamicModelCacheKeyFactory.RebuildModels();
+                    }
 
                     // 添加数据库上下文到池中
+                    var dbContextPool = App.GetService<IDbContextPool>();
                     dbContextPool?.AddToPool(dbContext);
 
                     return dbContext;

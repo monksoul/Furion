@@ -898,6 +898,11 @@
             数据库提供器名称
             </summary>
         </member>
+        <member name="P:Fur.DatabaseAccessor.AppDbContextAttribute.Mode">
+            <summary>
+            数据库上下文模式
+            </summary>
+        </member>
         <member name="P:Fur.DatabaseAccessor.AppDbContextAttribute.TablePrefix">
             <summary>
             表统一前缀
@@ -941,7 +946,7 @@
             <param name="dbContext">数据库上下文</param>
             <param name="dbContextLocator">数据库上下文定位器</param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.CreateEntityTypeBuilder(System.Type,Microsoft.EntityFrameworkCore.ModelBuilder,Microsoft.EntityFrameworkCore.DbContext,System.Type,System.Type,Fur.DatabaseAccessor.AppDbContextAttribute)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.CreateEntityTypeBuilder(System.Type,Microsoft.EntityFrameworkCore.ModelBuilder,Microsoft.EntityFrameworkCore.DbContext,System.Type,System.Type,Fur.DatabaseAccessor.DbContextCorrelationType,Fur.DatabaseAccessor.AppDbContextAttribute)">
             <summary>
             创建实体类型构建器
             </summary>
@@ -950,18 +955,29 @@
             <param name="dbContext">数据库上下文</param>
             <param name="dbContextType">数据库上下文类型</param>
             <param name="dbContextLocator">数据库上下文定位器</param>
+            <param name="dbContextCorrelationType"></param>
             <param name="appDbContextAttribute">数据库上下文特性</param>
             <returns>EntityTypeBuilder</returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.AddTableAffixes(System.Type,Fur.DatabaseAccessor.AppDbContextAttribute,Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.ConfigureEntityTableName(System.Type,Fur.DatabaseAccessor.AppDbContextAttribute,Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder,Microsoft.EntityFrameworkCore.DbContext,System.Type)">
             <summary>
-            添加表前后缀
+            配置实体表名
             </summary>
             <param name="type">实体类型</param>
             <param name="appDbContextAttribute">数据库上下文特性</param>
             <param name="entityTypeBuilder">实体类型构建器</param>
             <param name="dbContext">数据库上下文</param>
             <param name="dbContextType">数据库上下文类型</param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.ConfigureEntityMutableTableName(System.Type,Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder,Microsoft.EntityFrameworkCore.DbContext,System.Type,Fur.DatabaseAccessor.DbContextCorrelationType)">
+            <summary>
+            配置实体动态表名
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="entityBuilder">实体类型构建器</param>
+            <param name="dbContext">数据库上下文</param>
+            <param name="dbContextLocator">数据库上下文定位器</param>
+            <param name="dbContextCorrelationType">数据库实体关联类型</param>
         </member>
         <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.ConfigureEntityNoKeyType(System.Type,Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder,System.Collections.Generic.List{System.Type})">
             <summary>
@@ -1097,6 +1113,11 @@
             模型构建筛选器类型集合
             </summary>
         </member>
+        <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.EntityMutableTableTypes">
+            <summary>
+            可变表实体类型集合
+            </summary>
+        </member>
         <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.DbFunctionMethods">
             <summary>
             数据库函数方法集合
@@ -1105,6 +1126,51 @@
         <member name="P:Fur.DatabaseAccessor.DbContextCorrelationType.ModelBuilderFilterInstances">
             <summary>
             模型构建器筛选器实例
+            </summary>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory">
+            <summary>
+            动态模型缓存工厂
+            </summary>
+            <remarks>主要用来实现数据库分表分库</remarks>
+        </member>
+        <member name="F:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.cacheKey">
+            <summary>
+            动态模型缓存Key
+            </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.RebuildModels">
+            <summary>
+            重写构建模型
+            </summary>
+            <remarks>动态切换表之后需要调用该方法</remarks>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.Create(Microsoft.EntityFrameworkCore.DbContext)">
+            <summary>
+            更新模型缓存
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.DbContextMode">
+            <summary>
+            数据库上下文模式
+            </summary>
+        </member>
+        <member name="F:Fur.DatabaseAccessor.DbContextMode.Cached">
+            <summary>
+            缓存模型数据库上下文
+            <para>
+            OnModelCreating 只会初始化一次
+            </para>
+            </summary>
+        </member>
+        <member name="F:Fur.DatabaseAccessor.DbContextMode.Dynamic">
+            <summary>
+            动态模型数据库上下文
+            <para>
+            OnModelCreating 每次都会调用
+            </para>
             </summary>
         </member>
         <member name="T:Fur.DatabaseAccessor.Db">
@@ -1252,118 +1318,6 @@
             操作过程监听
             </summary>
             <param name="kv"></param>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory">
-            <summary>
-            动态模型缓存工厂
-            </summary>
-            <remarks>主要用来实现数据库分表分库</remarks>
-        </member>
-        <member name="F:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.cacheKey">
-            <summary>
-            动态模型缓存Key
-            </summary>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.RebuildModels">
-            <summary>
-            重写构建模型
-            </summary>
-            <remarks>动态切换表之后需要调用该方法</remarks>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.DynamicModelCacheKeyFactory.Create(Microsoft.EntityFrameworkCore.DbContext)">
-            <summary>
-            更新模型缓存
-            </summary>
-            <param name="context"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`1">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`2">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`3">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`4">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`5">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`6">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`7">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`8">
-            <summary>
-            实体动态表依赖接口
-            </summary>
-            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
-            <typeparam name="TDbContextLocator8">数据库上下文定位器</typeparam>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.IPrivateEntityMutableTable">
-            <summary>
-            实体动态表依赖接口依赖（禁止外部继承）
-            </summary>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.IPrivateEntityMutableTable.CurrentTableName(Microsoft.EntityFrameworkCore.DbContext)">
-            <summary>
-            获取当前表名
-            </summary>
-            <param name="dbContext">数据库上下文</param>
-            <returns>当前表明</returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.FakeDeleteAttribute">
             <summary>
@@ -1534,6 +1488,110 @@
             <param name="dbContext"></param>
             <param name="dbContextLocator"></param>
             <param name="state"></param>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`1">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`2">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`3">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`4">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`5">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`6">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`7">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`8">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IEntityMutableTable`9">
+            <summary>
+            动态表名依赖接口
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator1">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator2">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator3">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator4">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator5">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator6">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator7">数据库上下文定位器</typeparam>
+            <typeparam name="TDbContextLocator8">数据库上下文定位器</typeparam>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IPrivateEntityMutableTable`1">
+            <summary>
+            动态表名依赖接口（禁止外部继承）
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IPrivateEntityMutableTable`1.GetTableName(Microsoft.EntityFrameworkCore.DbContext,System.Type)">
+            <summary>
+            获取表名
+            </summary>
+            <param name="dbContext"></param>
+            <param name="dbContextLocator"></param>
+            <returns></returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.IEntitySeedData`1">
             <summary>
@@ -7962,11 +8020,11 @@
             数据库上下文 [AppDbContext] 特性缓存
             </summary>
         </member>
-        <member name="M:Fur.DatabaseAccessor.DbProvider.GetAppDbContextAttribute``1">
+        <member name="M:Fur.DatabaseAccessor.DbProvider.GetAppDbContextAttribute(System.Type)">
             <summary>
             获取数据库上下文 [AppDbContext] 特性
             </summary>
-            <typeparam name="TDbContext"></typeparam>
+            <param name="dbContexType"></param>
             <returns></returns>
         </member>
         <member name="F:Fur.DatabaseAccessor.DbProvider.NotSupportException">
@@ -13136,6 +13194,21 @@
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
             <returns>仓储</returns>
         </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.BuildChange``1">
+            <summary>
+            重新构建并切换仓储
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository.BuildChange``2">
+            <summary>
+            重新构建并切换多数据库上下文仓储
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
+            <returns>仓储</returns>
+        </member>
         <member name="M:Fur.DatabaseAccessor.EFCoreRepository.Sql">
             <summary>
             获取 Sql 操作仓储
@@ -13205,16 +13278,6 @@
             <param name="repository">非泛型仓储</param>
             <param name="serviceProvider">服务提供器</param>
             <param name="dbContextPool"></param>
-        </member>
-        <member name="P:Fur.DatabaseAccessor.EFCoreRepository`2.DbContext">
-            <summary>
-            数据库上下文
-            </summary>
-        </member>
-        <member name="P:Fur.DatabaseAccessor.EFCoreRepository`2.DynamicDbContext">
-            <summary>
-            动态数据库上下文
-            </summary>
         </member>
         <member name="P:Fur.DatabaseAccessor.EFCoreRepository`2.Entities">
             <summary>
@@ -13543,6 +13606,21 @@
         <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.Change``2">
             <summary>
             切换多数据库上下文仓储
+            </summary>
+            <typeparam name="TChangeEntity">实体类型</typeparam>
+            <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.BuildChange``1">
+            <summary>
+            重新构建并切换仓储
+            </summary>
+            <typeparam name="TChangeEntity">实体类型</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.EFCoreRepository`2.BuildChange``2">
+            <summary>
+            重新构建并切换多数据库上下文仓储
             </summary>
             <typeparam name="TChangeEntity">实体类型</typeparam>
             <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
@@ -18260,6 +18338,16 @@
             数据库操作对象
             </summary>
         </member>
+        <member name="P:Fur.DatabaseAccessor.SqlRepository`1.DbContext">
+            <summary>
+            数据库上下文
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.SqlRepository`1.DynamicDbContext">
+            <summary>
+            动态数据库上下文
+            </summary>
+        </member>
         <member name="M:Fur.DatabaseAccessor.SqlRepository`1.Change``1">
             <summary>
             切换仓储
@@ -18435,6 +18523,21 @@
         <member name="M:Fur.DatabaseAccessor.IRepository.Change``2">
             <summary>
             切换多数据库上下文仓储
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository.BuildChange``1">
+            <summary>
+            重新构建并切换仓储
+            </summary>
+            <typeparam name="TEntity">实体类型</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository.BuildChange``2">
+            <summary>
+            重新构建并切换多数据库上下文仓储
             </summary>
             <typeparam name="TEntity">实体类型</typeparam>
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
@@ -18815,6 +18918,21 @@
             <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
             <returns>仓储</returns>
         </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository`2.BuildChange``1">
+            <summary>
+            重新构建并切换仓储
+            </summary>
+            <typeparam name="TChangeEntity">实体类型</typeparam>
+            <returns>仓储</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.IRepository`2.BuildChange``2">
+            <summary>
+            重新构建并切换多数据库上下文仓储
+            </summary>
+            <typeparam name="TChangeEntity">实体类型</typeparam>
+            <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
+            <returns>仓储</returns>
+        </member>
         <member name="T:Fur.DatabaseAccessor.ISqlRepository">
             <summary>
             Sql 操作仓储接口
@@ -18829,6 +18947,16 @@
         <member name="P:Fur.DatabaseAccessor.ISqlRepository`1.Database">
             <summary>
             数据库操作对象
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.ISqlRepository`1.DbContext">
+            <summary>
+            数据库上下文
+            </summary>
+        </member>
+        <member name="P:Fur.DatabaseAccessor.ISqlRepository`1.DynamicDbContext">
+            <summary>
+            动态数据库上下文
             </summary>
         </member>
         <member name="M:Fur.DatabaseAccessor.ISqlRepository`1.Change``1">
@@ -23531,7 +23659,7 @@
             Sqlite 数据库服务拓展
             </summary>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDbPool``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Int32,System.Boolean,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDbPool``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Int32,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
             <summary>
             添加默认数据库上下文
             </summary>
@@ -23541,7 +23669,6 @@
             <param name="optionBuilder"></param>
             <param name="connectionString">连接字符串</param>
             <param name="poolSize">池大小</param>
-            <param name="dynamicDbContext">动态数据库上下文，用于分表分库用</param>
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
@@ -23556,7 +23683,7 @@
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDbPool``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Int32,System.Boolean,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDbPool``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Int32,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
             <summary>
             添加其他数据库上下文
             </summary>
@@ -23567,7 +23694,6 @@
             <param name="optionBuilder"></param>
             <param name="connectionString">连接字符串</param>
             <param name="poolSize">池大小</param>
-            <param name="dynamicDbContext">动态数据库上下文，用于分表分库用</param>
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
@@ -23583,7 +23709,7 @@
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDb``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Boolean,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDb``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
             <summary>
              添加默认数据库上下文
             </summary>
@@ -23593,7 +23719,6 @@
             <param name="optionBuilder"></param>
             <param name="connectionString">连接字符串</param>
             <param name="interceptors">拦截器</param>
-            <param name="dynamicDbContext">动态数据库上下文，用于分表分库用</param>
             <returns>服务集合</returns>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDb``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
@@ -23606,7 +23731,7 @@
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDb``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,System.Boolean,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.AddDb``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{Microsoft.EntityFrameworkCore.DbContextOptionsBuilder},System.String,Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[])">
             <summary>
             添加数据库上下文
             </summary>
@@ -23616,7 +23741,6 @@
             <param name="providerName">数据库提供器</param>
             <param name="optionBuilder"></param>
             <param name="connectionString">连接字符串</param>
-            <param name="dynamicDbContext">动态数据库上下文，用于分表分库用</param>
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
@@ -23631,7 +23755,7 @@
             <param name="interceptors">拦截器</param>
             <returns>服务集合</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.ConfigureDatabase``1(System.String,System.String,Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Boolean)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.ConfigureDatabase``1(System.String,System.String,Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)">
             <summary>
             配置数据库
             </summary>
@@ -23639,7 +23763,6 @@
             <param name="providerName">数据库提供器</param>
             <param name="connectionString">数据库连接字符串</param>
             <param name="options">数据库上下文选项构建器</param>
-            <param name="dynamicDbContext">动态数据库上下文，用于分表分库用</param>
         </member>
         <member name="F:Microsoft.Extensions.DependencyInjection.DatabaseProviderServiceCollectionExtensions.DatabaseProviderUseMethodCollection">
             <summary>

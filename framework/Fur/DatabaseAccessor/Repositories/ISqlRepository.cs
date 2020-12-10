@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Fur.DatabaseAccessor
 {
@@ -23,6 +24,16 @@ namespace Fur.DatabaseAccessor
         /// 数据库操作对象
         /// </summary>
         DatabaseFacade Database { get; }
+
+        /// <summary>
+        /// 数据库上下文
+        /// </summary>
+        DbContext DbContext { get; }
+
+        /// <summary>
+        /// 动态数据库上下文
+        /// </summary>
+        dynamic DynamicDbContext { get; }
 
         /// <summary>
         /// 切换仓储

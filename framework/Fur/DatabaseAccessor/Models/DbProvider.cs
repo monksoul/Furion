@@ -129,7 +129,7 @@ namespace Fur.DatabaseAccessor
             if (!string.IsNullOrEmpty(connectionString)) return connectionString;
 
             // 如果没有配置数据库连接字符串，那么查找特性
-            var dbContextAttribute = GetAppDbContextAttribute<TDbContext>();
+            var dbContextAttribute = GetAppDbContextAttribute(typeof(TDbContext));
             if (dbContextAttribute == null) return default;
 
             // 获取特性连接字符串
@@ -156,17 +156,16 @@ namespace Fur.DatabaseAccessor
         /// <summary>
         /// 数据库上下文 [AppDbContext] 特性缓存
         /// </summary>
-        private static ConcurrentDictionary<Type, AppDbContextAttribute> DbContextAppDbContextAttributes;
+        private static readonly ConcurrentDictionary<Type, AppDbContextAttribute> DbContextAppDbContextAttributes;
 
         /// <summary>
         /// 获取数据库上下文 [AppDbContext] 特性
         /// </summary>
-        /// <typeparam name="TDbContext"></typeparam>
+        /// <param name="dbContexType"></param>
         /// <returns></returns>
-        internal static AppDbContextAttribute GetAppDbContextAttribute<TDbContext>()
-            where TDbContext : DbContext
+        internal static AppDbContextAttribute GetAppDbContextAttribute(Type dbContexType)
         {
-            return DbContextAppDbContextAttributes.GetOrAdd(typeof(TDbContext), Function);
+            return DbContextAppDbContextAttributes.GetOrAdd(dbContexType, Function);
 
             // 本地静态函数
             static AppDbContextAttribute Function(Type dbContextType)

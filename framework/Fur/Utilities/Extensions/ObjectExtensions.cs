@@ -212,7 +212,7 @@ namespace Fur.Extensions
                 ? string.Empty
                 : iLen == 1
                     ? str.ToLower()
-                    : str[0].ToString().ToLower() + str.Substring(1);
+                    : str[0].ToString().ToLower() + str[1..];
         }
     }
 }

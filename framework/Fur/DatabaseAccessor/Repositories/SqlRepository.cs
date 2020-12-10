@@ -47,6 +47,7 @@ namespace Fur.DatabaseAccessor
         {
             // 解析数据库上下文
             var dbContext = dbContextResolve(typeof(TDbContextLocator), default);
+            DynamicDbContext = DbContext = dbContext;
 
             // 初始化数据库相关数据
             Database = dbContext.Database;
@@ -58,6 +59,16 @@ namespace Fur.DatabaseAccessor
         /// 数据库操作对象
         /// </summary>
         public virtual DatabaseFacade Database { get; }
+
+        /// <summary>
+        /// 数据库上下文
+        /// </summary>
+        public virtual DbContext DbContext { get; }
+
+        /// <summary>
+        /// 动态数据库上下文
+        /// </summary>
+        public virtual dynamic DynamicDbContext { get; }
 
         /// <summary>
         /// 切换仓储

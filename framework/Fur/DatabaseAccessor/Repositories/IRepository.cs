@@ -49,6 +49,24 @@ namespace Fur.DatabaseAccessor
             where TDbContextLocator : class, IDbContextLocator;
 
         /// <summary>
+        /// 重新构建并切换仓储
+        /// </summary>
+        /// <typeparam name="TEntity">实体类型</typeparam>
+        /// <returns>仓储</returns>
+        IRepository<TEntity> BuildChange<TEntity>()
+            where TEntity : class, IPrivateEntity, new();
+
+        /// <summary>
+        /// 重新构建并切换多数据库上下文仓储
+        /// </summary>
+        /// <typeparam name="TEntity">实体类型</typeparam>
+        /// <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
+        /// <returns>仓储</returns>
+        IRepository<TEntity, TDbContextLocator> BuildChange<TEntity, TDbContextLocator>()
+            where TEntity : class, IPrivateEntity, new()
+            where TDbContextLocator : class, IDbContextLocator;
+
+        /// <summary>
         /// 获取 Sql 操作仓储
         /// </summary>
         /// <returns>ISqlRepository</returns>
@@ -430,6 +448,24 @@ namespace Fur.DatabaseAccessor
         /// <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
         /// <returns>仓储</returns>
         IRepository<TChangeEntity, TChangeDbContextLocator> Change<TChangeEntity, TChangeDbContextLocator>()
+            where TChangeEntity : class, IPrivateEntity, new()
+            where TChangeDbContextLocator : class, IDbContextLocator;
+
+        /// <summary>
+        /// 重新构建并切换仓储
+        /// </summary>
+        /// <typeparam name="TChangeEntity">实体类型</typeparam>
+        /// <returns>仓储</returns>
+        IRepository<TChangeEntity> BuildChange<TChangeEntity>()
+               where TChangeEntity : class, IPrivateEntity, new();
+
+        /// <summary>
+        /// 重新构建并切换多数据库上下文仓储
+        /// </summary>
+        /// <typeparam name="TChangeEntity">实体类型</typeparam>
+        /// <typeparam name="TChangeDbContextLocator">数据库上下文定位器</typeparam>
+        /// <returns>仓储</returns>
+        IRepository<TChangeEntity, TChangeDbContextLocator> BuildChange<TChangeEntity, TChangeDbContextLocator>()
             where TChangeEntity : class, IPrivateEntity, new()
             where TChangeDbContextLocator : class, IDbContextLocator;
     }

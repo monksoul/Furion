@@ -22,6 +22,7 @@ namespace Fur.DatabaseAccessor
             EntitySeedDataTypes = new List<Type>();
             EntityChangedTypes = new List<Type>();
             ModelBuilderFilterTypes = new List<Type>();
+            EntityMutableTableTypes = new List<Type>();
             ModelBuilderFilterInstances = new List<IPrivateModelBuilderFilter>();
             DbFunctionMethods = new List<MethodInfo>();
         }
@@ -65,6 +66,11 @@ namespace Fur.DatabaseAccessor
         /// 模型构建筛选器类型集合
         /// </summary>
         internal List<Type> ModelBuilderFilterTypes { get; set; }
+
+        /// <summary>
+        /// 可变表实体类型集合
+        /// </summary>
+        internal List<Type> EntityMutableTableTypes { get; set; }
 
         /// <summary>
         /// 数据库函数方法集合

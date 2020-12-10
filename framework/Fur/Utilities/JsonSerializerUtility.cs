@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿using Fur.DependencyInjection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Fur.Utilities
@@ -6,7 +7,8 @@ namespace Fur.Utilities
     /// <summary>
     /// Json序列化静态工具类
     /// </summary>
-    internal static class JsonSerializerUtility
+    [SkipScan]
+    public static class JsonSerializerUtility
     {
         /// <summary>
         /// 是否启用属性大写操作
@@ -19,7 +21,7 @@ namespace Fur.Utilities
         /// <param name="obj"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
-        internal static string Serialize(object obj, JsonSerializerOptions jsonSerializerOptions = default)
+        public static string Serialize(object obj, JsonSerializerOptions jsonSerializerOptions = default)
         {
             return JsonSerializer.Serialize(obj, jsonSerializerOptions ?? GetDefaultJsonSerializerOptions());
         }
@@ -31,7 +33,7 @@ namespace Fur.Utilities
         /// <param name="json"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
-        internal static T Deserialize<T>(string json, JsonSerializerOptions jsonSerializerOptions = default)
+        public static T Deserialize<T>(string json, JsonSerializerOptions jsonSerializerOptions = default)
         {
             return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions ?? GetDefaultJsonSerializerOptions());
         }
@@ -40,7 +42,7 @@ namespace Fur.Utilities
         /// 获取默认 JSON 序列化选项
         /// </summary>
         /// <returns></returns>
-        internal static JsonSerializerOptions GetDefaultJsonSerializerOptions()
+        public static JsonSerializerOptions GetDefaultJsonSerializerOptions()
         {
             var jsonSerializerOptions = new JsonSerializerOptions
             {

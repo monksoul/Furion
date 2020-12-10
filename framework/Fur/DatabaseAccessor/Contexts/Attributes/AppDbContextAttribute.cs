@@ -39,6 +39,11 @@ namespace Fur.DatabaseAccessor
         public string ProviderName { get; set; }
 
         /// <summary>
+        /// 数据库上下文模式
+        /// </summary>
+        public DbContextMode Mode { get; set; } = DbContextMode.Cached;
+
+        /// <summary>
         /// 表统一前缀
         /// </summary>
         public string TablePrefix { get; set; }

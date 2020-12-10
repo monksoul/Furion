@@ -110,8 +110,8 @@ namespace Fur.UnifyResult
         public static void Set(string key, object value)
         {
             var items = HttpContextUtility.GetCurrentHttpContext()?.Items;
-            if (items.ContainsKey(key)) items.Remove(key);
-            items.Add(key, value);
+            if (items != null && items.ContainsKey(key)) items.Remove(key);
+            items?.Add(key, value);
         }
 
         /// <summary>
