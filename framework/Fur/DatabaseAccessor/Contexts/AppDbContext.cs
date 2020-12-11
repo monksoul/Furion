@@ -3,6 +3,7 @@ using Fur.Extensions;
 using Fur.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -46,37 +47,31 @@ namespace Fur.DatabaseAccessor
         public AppDbContext(DbContextOptions<TDbContext> options) : base(options)
         {
             ChangeTrackerEntities = new List<EntityEntry>();
-
-            // 定义数据库上下文提交更改事件
-            SavingChanges += SavingChangesEventInner;
-            SavedChanges += SavedChangesEventInner;
-            SaveChangesFailed += SaveChangesFailedEventInner;
         }
 
         /// <summary>
         /// 数据库上下文提交更改之前执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        protected virtual void SavingChangesEvent(object sender, SavingChangesEventArgs e)
+        /// <param name="eventData"></param>
+        /// <param name="result"></param>
+        protected virtual void SavingChangesEvent(DbContextEventData eventData, InterceptionResult<int> result)
         {
         }
 
         /// <summary>
         /// 数据库上下文提交更改成功执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        protected virtual void SavedChangesEvent(object sender, SavedChangesEventArgs e)
+        /// <param name="eventData"></param>
+        /// <param name="result"></param>
+        protected virtual void SavedChangesEvent(SaveChangesCompletedEventData eventData, int result)
         {
         }
 
         /// <summary>
         /// 数据库上下文提交更改失败执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        protected virtual void SaveChangesFailedEvent(object sender, SaveChangesFailedEventArgs e)
+        /// <param name="eventData"></param>
+        protected virtual void SaveChangesFailedEvent(DbContextErrorEventData eventData)
         {
         }
 
@@ -179,63 +174,61 @@ namespace Fur.DatabaseAccessor
         /// <summary>
         /// 内部数据库上下文提交更改之前执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        private void SavingChangesEventInner(object sender, SavingChangesEventArgs e)
+        /// <param name="eventData"></param>
+        /// <param name="result"></param>
+        internal void SavingChangesEventInner(DbContextEventData eventData, InterceptionResult<int> result)
         {
             // 附加实体更改通知
             if (EnabledEntityChangedListener)
             {
+                var dbContext = eventData.Context;
+
                 // 获取获取数据库操作上下文
-                ChangeTrackerEntities = ((DbContext)sender).ChangeTracker.Entries()
+                ChangeTrackerEntities = (dbContext).ChangeTracker.Entries()
                     .Where(u => u.State == EntityState.Added || u.State == EntityState.Modified || u.State == EntityState.Deleted).ToList();
 
-                AttachEntityChangedListener(sender, "OnChanging", ChangeTrackerEntities);
+                AttachEntityChangedListener(eventData.Context, "OnChanging", ChangeTrackerEntities);
             }
 
-            SavingChangesEvent(sender, e);
+            SavingChangesEvent(eventData, result);
         }
 
         /// <summary>
         /// 内部数据库上下文提交更改成功执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        private void SavedChangesEventInner(object sender, SavedChangesEventArgs e)
+        /// <param name="eventData"></param>
+        /// <param name="result"></param>
+        internal void SavedChangesEventInner(SaveChangesCompletedEventData eventData, int result)
         {
             // 附加实体更改通知
-            if (EnabledEntityChangedListener) AttachEntityChangedListener(sender, "OnChanged", ChangeTrackerEntities);
+            if (EnabledEntityChangedListener) AttachEntityChangedListener(eventData.Context, "OnChanged", ChangeTrackerEntities);
 
-            SavedChangesEvent(sender, e);
+            SavedChangesEvent(eventData, result);
         }
 
         /// <summary>
         /// 内部数据库上下文提交更改失败执行事件
         /// </summary>
-        /// <param name="sender">事件对象</param>
-        /// <param name="e">事件参数</param>
-        private void SaveChangesFailedEventInner(object sender, SaveChangesFailedEventArgs e)
+        /// <param name="eventData"></param>
+        internal void SaveChangesFailedEventInner(DbContextErrorEventData eventData)
         {
             // 附加实体更改通知
-            if (EnabledEntityChangedListener) AttachEntityChangedListener(sender, "OnChangeFailed", ChangeTrackerEntities);
+            if (EnabledEntityChangedListener) AttachEntityChangedListener(eventData.Context, "OnChangeFailed", ChangeTrackerEntities);
 
-            SaveChangesFailedEvent(sender, e);
+            SaveChangesFailedEvent(eventData);
         }
 
         /// <summary>
         /// 附加实体改变监听
         /// </summary>
-        /// <param name="sender"></param>
+        /// <param name="dbContext"></param>
         /// <param name="triggerMethodName"></param>
         /// <param name="changeTrackerEntities"></param>
-        private static void AttachEntityChangedListener(object sender, string triggerMethodName, IEnumerable<EntityEntry> changeTrackerEntities = null)
+        private static void AttachEntityChangedListener(DbContext dbContext, string triggerMethodName, IEnumerable<EntityEntry> changeTrackerEntities = null)
         {
             // 获取所有改变的类型
             var entityChangedTypes = AppDbContextBuilder.DbContextLocatorCorrelationTypes[typeof(TDbContextLocator)].EntityChangedTypes;
             if (!entityChangedTypes.Any()) return;
-
-            // 获取获取数据库操作上下文
-            var dbContext = (DbContext)sender;
 
             // 遍历所有的改变的实体
             foreach (var entity in changeTrackerEntities)

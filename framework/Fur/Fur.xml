@@ -774,26 +774,25 @@
             </summary>
             <param name="options"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavingChangesEvent(System.Object,Microsoft.EntityFrameworkCore.SavingChangesEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavingChangesEvent(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData,Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult{System.Int32})">
             <summary>
             数据库上下文提交更改之前执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
+            <param name="result"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavedChangesEvent(System.Object,Microsoft.EntityFrameworkCore.SavedChangesEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavedChangesEvent(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData,System.Int32)">
             <summary>
             数据库上下文提交更改成功执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
+            <param name="result"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SaveChangesFailedEvent(System.Object,Microsoft.EntityFrameworkCore.SaveChangesFailedEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SaveChangesFailedEvent(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData)">
             <summary>
             数据库上下文提交更改失败执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
         </member>
         <member name="M:Fur.DatabaseAccessor.AppDbContext`2.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)">
             <summary>
@@ -841,32 +840,31 @@
             正在更改并跟踪的数据
             </summary>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavingChangesEventInner(System.Object,Microsoft.EntityFrameworkCore.SavingChangesEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavingChangesEventInner(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData,Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult{System.Int32})">
             <summary>
             内部数据库上下文提交更改之前执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
+            <param name="result"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavedChangesEventInner(System.Object,Microsoft.EntityFrameworkCore.SavedChangesEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SavedChangesEventInner(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData,System.Int32)">
             <summary>
             内部数据库上下文提交更改成功执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
+            <param name="result"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SaveChangesFailedEventInner(System.Object,Microsoft.EntityFrameworkCore.SaveChangesFailedEventArgs)">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.SaveChangesFailedEventInner(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData)">
             <summary>
             内部数据库上下文提交更改失败执行事件
             </summary>
-            <param name="sender">事件对象</param>
-            <param name="e">事件参数</param>
+            <param name="eventData"></param>
         </member>
-        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.AttachEntityChangedListener(System.Object,System.String,System.Collections.Generic.IEnumerable{Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry})">
+        <member name="M:Fur.DatabaseAccessor.AppDbContext`2.AttachEntityChangedListener(Microsoft.EntityFrameworkCore.DbContext,System.String,System.Collections.Generic.IEnumerable{Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry})">
             <summary>
             附加实体改变监听
             </summary>
-            <param name="sender"></param>
+            <param name="dbContext"></param>
             <param name="triggerMethodName"></param>
             <param name="changeTrackerEntities"></param>
         </member>
@@ -7870,6 +7868,54 @@
             <summary>
             数据库上下文提交拦截器
             </summary>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData,Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult{System.Int32})">
+            <summary>
+            拦截保存数据库之前
+            </summary>
+            <param name="eventData"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData,Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            拦截保存数据库之前
+            </summary>
+            <param name="eventData"></param>
+            <param name="result"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SavedChanges(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData,System.Int32)">
+            <summary>
+            拦截保存数据库成功
+            </summary>
+            <param name="eventData"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SavedChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            拦截保存数据库成功
+            </summary>
+            <param name="eventData"></param>
+            <param name="result"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SaveChangesFailed(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData)">
+            <summary>
+            拦截保存数据库失败
+            </summary>
+            <param name="eventData"></param>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbContextSaveChangesInterceptor.SaveChangesFailedAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData,System.Threading.CancellationToken)">
+            <summary>
+            拦截保存数据库失败
+            </summary>
+            <param name="eventData"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.SqlCommandProfilerInterceptor">
             <summary>
