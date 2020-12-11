@@ -13,9 +13,6 @@ namespace Fur.SpecificationDocument
     /// <summary>
     /// 修正 规范化文档 Enum 提示
     /// </summary>
-    /// <remarks>
-    /// 参考https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/1269#issuecomment-577182931
-    /// </remarks>
     [SkipScan]
     public class EnumSchemaFilter : ISchemaFilter
     {

@@ -18576,16 +18576,6 @@
             <typeparam name="TEntity">实体类型</typeparam>
             <typeparam name="TDbContextLocator">数据库上下文定位器</typeparam>
         </member>
-        <member name="P:Fur.DatabaseAccessor.IRepository`2.DbContext">
-            <summary>
-            数据库上下文
-            </summary>
-        </member>
-        <member name="P:Fur.DatabaseAccessor.IRepository`2.DynamicDbContext">
-            <summary>
-            动态数据库上下文
-            </summary>
-        </member>
         <member name="P:Fur.DatabaseAccessor.IRepository`2.Entities">
             <summary>
             实体集合
@@ -21529,9 +21519,6 @@
             <summary>
             修正 规范化文档 Enum 提示
             </summary>
-            <remarks>
-            参考https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/1269#issuecomment-577182931
-            </remarks>
         </member>
         <member name="M:Fur.SpecificationDocument.EnumSchemaFilter.Apply(Microsoft.OpenApi.Models.OpenApiSchema,Swashbuckle.AspNetCore.SwaggerGen.SchemaFilterContext)">
             <summary>

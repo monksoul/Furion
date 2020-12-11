@@ -107,16 +107,6 @@ namespace Fur.DatabaseAccessor
         where TDbContextLocator : class, IDbContextLocator
     {
         /// <summary>
-        /// 数据库上下文
-        /// </summary>
-        DbContext DbContext { get; }
-
-        /// <summary>
-        /// 动态数据库上下文
-        /// </summary>
-        dynamic DynamicDbContext { get; }
-
-        /// <summary>
         /// 实体集合
         /// </summary>
         DbSet<TEntity> Entities { get; }

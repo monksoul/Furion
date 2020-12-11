@@ -75,8 +75,17 @@ namespace Fur.DynamicApiController
             ConfigureControllerName(controller, apiDescriptionSettings);
 
             var actions = controller.Actions;
+
+            // 查找所有重复的方法签命
+            var repeats = actions.GroupBy(u => new { u.ActionMethod.ReflectedType.Name, Signature = u.ActionMethod.ToString() })
+                                 .Where(u => u.Count() > 1)
+                                 .SelectMany(u => u.Where(u => u.ActionMethod.ReflectedType.Name != u.ActionMethod.DeclaringType.Name));
+
             foreach (var action in actions)
             {
+                // 跳过相同方法签命
+                if (repeats.Contains(action)) continue;
+
                 var actionApiDescriptionSettings = action.Attributes.FirstOrDefault(u => u is ApiDescriptionSettingsAttribute) as ApiDescriptionSettingsAttribute;
                 ConfigureAction(action, actionApiDescriptionSettings, apiDescriptionSettings);
             }
