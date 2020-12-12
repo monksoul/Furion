@@ -19989,16 +19989,18 @@
             设置依赖注入方式
             </summary>
         </member>
-        <member name="M:Fur.DependencyInjection.InjectionAttribute.#ctor">
+        <member name="M:Fur.DependencyInjection.InjectionAttribute.#ctor(System.Type[])">
             <summary>
             构造函数
             </summary>
+            <param name="expectInterfaces"></param>
         </member>
-        <member name="M:Fur.DependencyInjection.InjectionAttribute.#ctor(Fur.DependencyInjection.InjectionActions)">
+        <member name="M:Fur.DependencyInjection.InjectionAttribute.#ctor(Fur.DependencyInjection.InjectionActions,System.Type[])">
             <summary>
             构造函数
             </summary>
-            <param name="action">添加服务方式</param>
+            <param name="action"></param>
+            <param name="expectInterfaces"></param>
         </member>
         <member name="P:Fur.DependencyInjection.InjectionAttribute.Action">
             <summary>
@@ -20019,6 +20021,11 @@
         <member name="P:Fur.DependencyInjection.InjectionAttribute.Order">
             <summary>
             排序，排序越大，则在后面注册
+            </summary>
+        </member>
+        <member name="P:Fur.DependencyInjection.InjectionAttribute.ExpectInterfaces">
+            <summary>
+            排除接口
             </summary>
         </member>
         <member name="P:Fur.DependencyInjection.InjectionAttribute.Proxy">

@@ -100,7 +100,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 var injectionAttribute = !type.IsDefined(typeof(InjectionAttribute)) ? new InjectionAttribute() : type.GetCustomAttribute<InjectionAttribute>();
 
                 // 获取所有能注册的接口
-                var canInjectInterfaces = type.GetInterfaces().Where(u => !typeof(IPrivateDependency).IsAssignableFrom(u) && projectAssemblies.Contains(u.Assembly));
+                var canInjectInterfaces = type.GetInterfaces()
+                    .Where(u => !injectionAttribute.ExpectInterfaces.Contains(u)
+                                && !typeof(IPrivateDependency).IsAssignableFrom(u)
+                                && projectAssemblies.Contains(u.Assembly)
+                                && (
+                                    (!type.IsGenericType && !u.IsGenericType)
+                                    || (type.IsGenericType && u.IsGenericType && type.GenericTypeArguments.Length == u.GenericTypeArguments.Length))
+                                );
 
                 // 注册暂时服务
                 if (typeof(ITransient).IsAssignableFrom(type))
