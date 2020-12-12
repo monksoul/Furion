@@ -38,7 +38,7 @@ namespace Fur.UnifyResult
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static (int ErrorCode, object ErrorObject) GetExceptionMetadata(ExceptionContext context)
+        public static (int ErrorCode, object ErrorContent) GetExceptionMetadata(ExceptionContext context)
         {
             // 读取规范化状态码信息
             var errorCode = Get(UnifyResultStatusCodeKey) ?? StatusCodes.Status500InternalServerError;
@@ -107,7 +107,7 @@ namespace Fur.UnifyResult
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void Set(string key, object value)
+        internal static void Set(string key, object value)
         {
             var items = HttpContextUtility.GetCurrentHttpContext()?.Items;
             if (items != null && items.ContainsKey(key)) items.Remove(key);
@@ -119,7 +119,7 @@ namespace Fur.UnifyResult
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static object Get(string key)
+        internal static object Get(string key)
         {
             object value = null;
             HttpContextUtility.GetCurrentHttpContext()?.Items?.TryGetValue(key, out value);

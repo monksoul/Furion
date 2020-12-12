@@ -19468,7 +19468,7 @@
             <summary>
             正数
             <para>
-            表达式：^[+]?\d+(\.\d+)?$
+            表达式：^(0\.0*[1-9]+[0-9]*$|[1-9]+[0-9]*\.[0-9]*[0-9]$|[1-9]+[0-9]*$)
             </para>
             </summary>
         </member>
@@ -19476,7 +19476,7 @@
             <summary>
             负数
             <para>
-            表达式：^-[1-9]\d*\.\d*|-0\.\d*[1-9]\d*$
+            表达式：^-(0\.0*[1-9]+[0-9]*$|[1-9]+[0-9]*\.[0-9]*[0-9]$|[1-9]+[0-9]*$)
             </para>
             </summary>
         </member>
@@ -19484,7 +19484,7 @@
             <summary>
             整数
             <para>
-            表达式：^-?\d+$
+            表达式：^-?[1-9]+[0-9]*$|^0$
             </para>
             </summary>
         </member>
@@ -20640,6 +20640,22 @@
             <param name="typeInfo">类型</param>
             <returns>bool</returns>
         </member>
+        <member name="T:Fur.EventBus.EventMessageAttribute">
+            <summary>
+            事件消息特性
+            </summary>
+        </member>
+        <member name="M:Fur.EventBus.EventMessageAttribute.#ctor(System.String)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="messageId"></param>
+        </member>
+        <member name="P:Fur.EventBus.EventMessageAttribute.MessageId">
+            <summary>
+            消息Id
+            </summary>
+        </member>
         <member name="T:Fur.FriendlyException.ErrorCodeItemMetadataAttribute">
             <summary>
             异常元数据特性
@@ -21195,22 +21211,6 @@
             </summary>
             <param name="parameterExpression"></param>
             <returns></returns>
-        </member>
-        <member name="T:Fur.MessageCenter.EventMessageAttribute">
-            <summary>
-            事件消息特性
-            </summary>
-        </member>
-        <member name="M:Fur.MessageCenter.EventMessageAttribute.#ctor(System.String)">
-            <summary>
-            构造函数
-            </summary>
-            <param name="messageId"></param>
-        </member>
-        <member name="P:Fur.MessageCenter.EventMessageAttribute.MessageId">
-            <summary>
-            消息Id
-            </summary>
         </member>
         <member name="T:Fur.ObjectMapper.IObjectMapper">
             <summary>
@@ -21833,6 +21833,11 @@
         <member name="P:Fur.UnifyResult.RESTfulResult`1.Extras">
             <summary>
             附加数据
+            </summary>
+        </member>
+        <member name="P:Fur.UnifyResult.RESTfulResult`1.Timestamp">
+            <summary>
+            时间戳
             </summary>
         </member>
         <member name="T:Fur.UnifyResult.IUnifyResultProvider">

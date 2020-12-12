@@ -10,7 +10,7 @@
     <RepositoryUrl>https://gitee.com/monksoul/Fur</RepositoryUrl>
     <RepositoryType>Gitee</RepositoryType>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.4.8</Version>
+    <Version>1.4.9</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>

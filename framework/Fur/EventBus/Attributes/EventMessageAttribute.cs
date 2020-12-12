@@ -1,7 +1,7 @@
 ﻿using Fur.DependencyInjection;
 using System;
 
-namespace Fur.MessageCenter
+namespace Fur.EventBus
 {
     /// <summary>
     /// 事件消息特性

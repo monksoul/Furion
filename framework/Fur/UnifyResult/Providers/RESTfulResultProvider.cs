@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -23,15 +24,16 @@ namespace Fur.UnifyResult
         public IActionResult OnException(ExceptionContext context)
         {
             // 解析异常信息
-            var (ErrorCode, ErrorObject) = UnifyResultContext.GetExceptionMetadata(context);
+            var (ErrorCode, ErrorContent) = UnifyResultContext.GetExceptionMetadata(context);
 
             return new JsonResult(new RESTfulResult<object>
             {
                 StatusCode = ErrorCode,
                 Successed = false,
                 Data = null,
-                Errors = ErrorObject,
-                Extras = UnifyResultContext.Take()
+                Errors = ErrorContent,
+                Extras = UnifyResultContext.Take(),
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
         }
 
@@ -55,7 +57,8 @@ namespace Fur.UnifyResult
                 Successed = true,
                 Data = data,
                 Errors = null,
-                Extras = UnifyResultContext.Take()
+                Extras = UnifyResultContext.Take(),
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
         }
 
@@ -75,7 +78,8 @@ namespace Fur.UnifyResult
                 Successed = false,
                 Data = null,
                 Errors = validationResults,
-                Extras = UnifyResultContext.Take()
+                Extras = UnifyResultContext.Take(),
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
         }
 
@@ -97,7 +101,8 @@ namespace Fur.UnifyResult
                         Successed = false,
                         Data = null,
                         Errors = "401 Unauthorized",
-                        Extras = UnifyResultContext.Take()
+                        Extras = UnifyResultContext.Take(),
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     }, JsonSerializerUtility.GetDefaultJsonSerializerOptions());
                     break;
                 // 处理 403 状态码
@@ -108,7 +113,8 @@ namespace Fur.UnifyResult
                         Successed = false,
                         Data = null,
                         Errors = "403 Forbidden",
-                        Extras = UnifyResultContext.Take()
+                        Extras = UnifyResultContext.Take(),
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     }, JsonSerializerUtility.GetDefaultJsonSerializerOptions());
                     break;
 

@@ -33,5 +33,10 @@ namespace Fur.UnifyResult
         /// 附加数据
         /// </summary>
         public object Extras { get; set; }
+
+        /// <summary>
+        /// 时间戳
+        /// </summary>
+        public long Timestamp { get; set; }
     }
 }
