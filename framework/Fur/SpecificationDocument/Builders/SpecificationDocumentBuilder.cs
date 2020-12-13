@@ -289,14 +289,12 @@ namespace Fur.SpecificationDocument
         /// <param name="swaggerUIOptions"></param>
         private static void InjectMiniProfilerPlugin(SwaggerUIOptions swaggerUIOptions)
         {
-            if (App.Settings.InjectMiniProfiler != true) return;
-
             // 启用 MiniProfiler 组件
             var thisType = typeof(SpecificationDocumentBuilder);
             var thisAssembly = thisType.Assembly;
 
             // 自定义 Swagger 首页
-            swaggerUIOptions.IndexStream = () => thisAssembly.GetManifestResourceStream($"{thisType.Namespace}.Assets.index-mini-profiler.html");
+            swaggerUIOptions.IndexStream = () => thisAssembly.GetManifestResourceStream($"{thisType.Namespace}.Assets.{(App.Settings.InjectMiniProfiler != true ? "index" : "index-mini-profiler")}.html");
         }
 
         /// <summary>
