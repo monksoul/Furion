@@ -1,12 +1,10 @@
 ﻿using Fur.DependencyInjection;
 using Fur.Extensions;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -84,7 +82,7 @@ namespace Fur.DatabaseAccessor
                     ? database.DataAdapterFill(sql, parameterModel, commandType)
                     : database.DataAdapterFillAsync(sql, parameterModel, commandType).GetAwaiter().GetResult();
 
-                var result = ConvertValueTuple(returnType, dataSet);
+                var result = dataSet.ToValueTuple(returnType);
                 return !isAsync ? result : result.ToTaskResult(returnType);
             }
             // 处理 基元类型 返回值
@@ -103,7 +101,11 @@ namespace Fur.DatabaseAccessor
                     ? database.DataAdapterFill(sql, parameterModel, commandType)
                     : database.DataAdapterFillAsync(sql, parameterModel, commandType).GetAwaiter().GetResult();
 
-                var result = ConvertProcedureOutputResult(returnType, dbParameters, dataSet);
+                // 处理返回值
+                var result = !returnType.IsGenericType
+                    ? DbHelpers.WrapperProcedureOutput(dbParameters, dataSet) :
+                    DbHelpers.WrapperProcedureOutput(dbParameters, dataSet, returnType.GenericTypeArguments.First());
+
                 return !isAsync ? result : result.ToTaskResult(returnType);
             }
             else
@@ -117,43 +119,8 @@ namespace Fur.DatabaseAccessor
                 else
                 {
                     var list = dataTable.ToList(returnType);
-                    var result = list?.Adapt(list.GetType(), returnType);
-                    return !isAsync ? result : result.ToTaskResult(returnType);
+                    return !isAsync ? list : list.ToTaskResult(returnType);
                 }
-            }
-        }
-
-        /// <summary>
-        /// 处理元组类型返回值
-        /// </summary>
-        /// <param name="returnType">返回值类型</param>
-        /// <param name="dataSet">数据集</param>
-        /// <returns></returns>
-        private static object ConvertValueTuple(Type returnType, DataSet dataSet)
-        {
-            var tupleList = dataSet.ToList(returnType);
-            var result = tupleList?.Adapt(tupleList.GetType(), returnType);
-            return result;
-        }
-
-        /// <summary>
-        /// 处理存储过程带输出结果
-        /// </summary>
-        /// <param name="returnType">返回值类型</param>
-        /// <param name="parameters">命令参数</param>
-        /// <param name="dataSet">数据集</param>
-        /// <returns></returns>
-        private static object ConvertProcedureOutputResult(Type returnType, DbParameter[] parameters, DataSet dataSet)
-        {
-            // 是否是泛型
-            if (!returnType.IsGenericType)
-            {
-                return DbHelpers.WrapperProcedureOutput(parameters, dataSet);
-            }
-            else
-            {
-                var result = DbHelpers.WrapperProcedureOutput(parameters, dataSet, returnType.GenericTypeArguments.First());
-                return result?.Adapt(result.GetType(), returnType);
             }
         }
 

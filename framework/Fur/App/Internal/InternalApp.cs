@@ -128,7 +128,12 @@ namespace Fur
             "appsettings.json",
             "appsettings.Development.json",
             "appsettings.Production.json",
-            "bundleconfig.json"
+            "bundleconfig.json",
+            "bundleconfig.Development.json",
+            "bundleconfig.Production.json",
+            "compilerconfig.json",
+            "compilerconfig.Development.json",
+            "compilerconfig.Production.json"
         };
 
         /// <summary>

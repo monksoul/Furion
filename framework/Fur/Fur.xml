@@ -677,23 +677,6 @@
             <param name="sqlProxyMethod">代理方法</param>
             <returns></returns>
         </member>
-        <member name="M:Fur.DatabaseAccessor.SqlDispatchProxy.ConvertValueTuple(System.Type,System.Data.DataSet)">
-            <summary>
-            处理元组类型返回值
-            </summary>
-            <param name="returnType">返回值类型</param>
-            <param name="dataSet">数据集</param>
-            <returns></returns>
-        </member>
-        <member name="M:Fur.DatabaseAccessor.SqlDispatchProxy.ConvertProcedureOutputResult(System.Type,System.Data.Common.DbParameter[],System.Data.DataSet)">
-            <summary>
-            处理存储过程带输出结果
-            </summary>
-            <param name="returnType">返回值类型</param>
-            <param name="parameters">命令参数</param>
-            <param name="dataSet">数据集</param>
-            <returns></returns>
-        </member>
         <member name="M:Fur.DatabaseAccessor.SqlDispatchProxy.GetProxyMethod(System.Reflection.MethodInfo,System.Object[])">
             <summary>
             获取代理方法信息
@@ -2606,7 +2589,7 @@
             </summary>
             <param name="dataSet">DataSet</param>
             <param name="returnTypes">特定类型集合</param>
-            <returns>object</returns>
+            <returns>List{object}</returns>
         </member>
         <member name="M:Fur.DatabaseAccessor.DbDataConvertExtensions.ToListAsync(System.Data.DataSet,System.Type[])">
             <summary>
@@ -2631,6 +2614,14 @@
             <param name="dataTable">DataTable</param>
             <param name="returnType">返回值类型</param>
             <returns>object</returns>
+        </member>
+        <member name="M:Fur.DatabaseAccessor.DbDataConvertExtensions.ToValueTuple(System.Data.DataSet,System.Type)">
+            <summary>
+            处理元组类型返回值
+            </summary>
+            <param name="dataSet">数据集</param>
+            <param name="tupleType">返回值类型</param>
+            <returns></returns>
         </member>
         <member name="T:Fur.DatabaseAccessor.DbObjectExtensions">
             <summary>
@@ -7968,16 +7959,6 @@
             <param name="connection">数据库连接对象</param>
             <param name="eventData">数据库连接事件数据</param>
         </member>
-        <member name="T:Fur.DatabaseAccessor.IDbContextLocator">
-            <summary>
-            数据库上下文定位器
-            </summary>
-        </member>
-        <member name="T:Fur.DatabaseAccessor.MasterDbContextLocator">
-            <summary>
-            默认数据库上下文定位器
-            </summary>
-        </member>
         <member name="T:Fur.DatabaseAccessor.DbProvider">
             <summary>
             数据库提供器选项
@@ -8188,6 +8169,16 @@
             大小
             </summary>
             <remarks>Nvarchar/varchar类型需指定</remarks>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.IDbContextLocator">
+            <summary>
+            数据库上下文定位器
+            </summary>
+        </member>
+        <member name="T:Fur.DatabaseAccessor.MasterDbContextLocator">
+            <summary>
+            默认数据库上下文定位器
+            </summary>
         </member>
         <member name="T:Fur.DatabaseAccessor.IMultiTenantOnDatabase">
             <summary>
@@ -21781,29 +21772,6 @@
             <param name="next"></param>
             <returns></returns>
         </member>
-        <member name="T:Fur.UnifyResult.UnifyResultStatusCodesMiddleware">
-            <summary>
-            状态码中间件
-            </summary>
-        </member>
-        <member name="F:Fur.UnifyResult.UnifyResultStatusCodesMiddleware._next">
-            <summary>
-            请求委托
-            </summary>
-        </member>
-        <member name="M:Fur.UnifyResult.UnifyResultStatusCodesMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate)">
-            <summary>
-            构造函数
-            </summary>
-            <param name="next"></param>
-        </member>
-        <member name="M:Fur.UnifyResult.UnifyResultStatusCodesMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
-            <summary>
-            中间件执行方法
-            </summary>
-            <param name="context"></param>
-            <returns></returns>
-        </member>
         <member name="T:Fur.UnifyResult.RESTfulResult`1">
             <summary>
             RESTful 风格结果集
@@ -21839,6 +21807,29 @@
             <summary>
             时间戳
             </summary>
+        </member>
+        <member name="T:Fur.UnifyResult.UnifyResultStatusCodesMiddleware">
+            <summary>
+            状态码中间件
+            </summary>
+        </member>
+        <member name="F:Fur.UnifyResult.UnifyResultStatusCodesMiddleware._next">
+            <summary>
+            请求委托
+            </summary>
+        </member>
+        <member name="M:Fur.UnifyResult.UnifyResultStatusCodesMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="next"></param>
+        </member>
+        <member name="M:Fur.UnifyResult.UnifyResultStatusCodesMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            中间件执行方法
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
         </member>
         <member name="T:Fur.UnifyResult.IUnifyResultProvider">
             <summary>
@@ -24272,124 +24263,6 @@
             <param name="hostBuilder">Web主机构建器</param>
             <param name="assemblyName">外部程序集名称</param>
             <returns>IWebHostBuilder</returns>
-        </member>
-        <member name="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions">
-            <summary>
-            分布式缓存扩展方法
-            </summary>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.Get``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String)">
-            <summary>
-            根据缓存key获取缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <returns>缓存结果信息</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetAsync``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,System.Threading.CancellationToken)">
-            <summary>
-            根据缓存key获取缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="token">取消异步令牌</param>
-            <returns>缓存结果信息</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.TryGetValue``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,``0@)">
-            <summary>
-            根据缓存key获取缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="value"></param>
-            <returns>缓存结果信息</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.Set``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,``0)">
-            <summary>
-            根据缓存key设置缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="value">待缓存信息</param>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.Set``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,``0,Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions)">
-            <summary>
-            根据缓存key设置缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="value">待缓存信息</param>
-            <param name="options">缓存过期配置</param>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.SetAsync``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,``0,System.Threading.CancellationToken)">
-            <summary>
-            根据缓存key设置缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="value">待缓存信息</param>
-            <param name="token">取消异步令牌</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.SetAsync``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,``0,Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions,System.Threading.CancellationToken)">
-            <summary>
-            根据缓存key设置缓存信息
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="value">待缓存信息</param>
-            <param name="options">缓存过期配置</param>
-            <param name="token">取消异步令牌</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetOrCreate``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,System.Func{``0})">
-            <summary>
-            根据缓存key获取缓存信息，若不存在则创建缓存
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="factory">获取数据委托</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetOrCreate``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,System.Func{``0},Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions)">
-            <summary>
-            根据缓存key获取缓存信息，若不存在则创建缓存
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="factory">获取数据委托</param>
-            <param name="options">缓存过期配置</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetOrCreateAsync``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,System.Func{System.Threading.Tasks.Task{``0}})">
-            <summary>
-            根据缓存key获取缓存信息，若不存在则创建缓存
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="factory">获取数据委托</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetOrCreateAsync``1(Microsoft.Extensions.Caching.Distributed.IDistributedCache,System.String,System.Func{System.Threading.Tasks.Task{``0}},Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions)">
-            <summary>
-            根据缓存key获取缓存信息，若不存在则创建缓存
-            </summary>
-            <typeparam name="TEntity">实体类型</typeparam>
-            <param name="cache">分布式缓存对象</param>
-            <param name="key">缓存key</param>
-            <param name="factory">获取数据委托</param>
-            <param name="options">缓存过期配置</param>
-            <returns></returns>
         </member>
         <member name="T:Microsoft.EntityFrameworkCore.EntityFrameworkCoreExtensions">
             <summary>

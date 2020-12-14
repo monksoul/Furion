@@ -25,7 +25,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>List{T}</returns>
         public static List<T> ToList<T>(this DataTable dataTable)
         {
-            return dataTable.ToList(typeof(List<T>)).Adapt<List<T>>();
+            return dataTable.ToList(typeof(List<T>)) as List<T>;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<List<T>> ToListAsync<T>(this DataTable dataTable)
         {
             var list = await dataTable.ToListAsync(typeof(List<T>));
-            return list.Adapt<List<T>>();
+            return list as List<T>;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static List<T1> ToList<T1>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>)).Adapt<List<T1>>();
+            return dataSet.ToList(typeof(List<T1>)) as List<T1>;
         }
 
         /// <summary>
@@ -60,7 +60,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2) ToList<T1, T2>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>)).Adapt<(List<T1>, List<T2>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>);
         }
 
         /// <summary>
@@ -73,7 +74,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3) ToList<T1, T2, T3>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>)).Adapt<(List<T1>, List<T2>, List<T3>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>);
         }
 
         /// <summary>
@@ -87,7 +89,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4) ToList<T1, T2, T3, T4>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>)).Adapt<(List<T1>, List<T2>, List<T3>, List<T4>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>, tuple[3] as List<T4>);
         }
 
         /// <summary>
@@ -102,7 +105,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5) ToList<T1, T2, T3, T4, T5>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>)).Adapt<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>, tuple[3] as List<T4>, tuple[4] as List<T5>);
         }
 
         /// <summary>
@@ -118,7 +122,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6) ToList<T1, T2, T3, T4, T5, T6>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>)).Adapt<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>, List<T6>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>, tuple[3] as List<T4>, tuple[4] as List<T5>, tuple[5] as List<T6>);
         }
 
         /// <summary>
@@ -135,7 +140,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7) ToList<T1, T2, T3, T4, T5, T6, T7>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>), typeof(List<T7>)).Adapt<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>, List<T6>, List<T7>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>), typeof(List<T7>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>, tuple[3] as List<T4>, tuple[4] as List<T5>, tuple[5] as List<T6>, tuple[6] as List<T7>);
         }
 
         /// <summary>
@@ -153,7 +159,8 @@ namespace Fur.DatabaseAccessor
         /// <returns>元组类型</returns>
         public static (List<T1> list1, List<T2> list2, List<T3> list3, List<T4> list4, List<T5> list5, List<T6> list6, List<T7> list7, List<T8> list8) ToList<T1, T2, T3, T4, T5, T6, T7, T8>(this DataSet dataSet)
         {
-            return dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>), typeof(List<T7>), typeof(List<T8>)).Adapt<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>, List<T6>, List<T7>, List<T8>)>();
+            var tuple = dataSet.ToList(typeof(List<T1>), typeof(List<T2>), typeof(List<T3>), typeof(List<T4>), typeof(List<T5>), typeof(List<T6>), typeof(List<T7>), typeof(List<T8>));
+            return (tuple[0] as List<T1>, tuple[1] as List<T2>, tuple[2] as List<T3>, tuple[3] as List<T4>, tuple[4] as List<T5>, tuple[5] as List<T6>, tuple[6] as List<T7>, tuple[7] as List<T8>);
         }
 
         /// <summary>
@@ -161,8 +168,8 @@ namespace Fur.DatabaseAccessor
         /// </summary>
         /// <param name="dataSet">DataSet</param>
         /// <param name="returnTypes">特定类型集合</param>
-        /// <returns>object</returns>
-        public static object ToList(this DataSet dataSet, params Type[] returnTypes)
+        /// <returns>List{object}</returns>
+        public static List<object> ToList(this DataSet dataSet, params Type[] returnTypes)
         {
             if (returnTypes == null || returnTypes.Length == 0) return default;
 
@@ -178,42 +185,94 @@ namespace Fur.DatabaseAccessor
             // 处理 8 个结果集
             if (returnTypes.Length >= 8)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]), dataTables[3].ToList(returnTypes[3]), dataTables[4].ToList(returnTypes[4]), dataTables[5].ToList(returnTypes[5]), dataTables[6].ToList(returnTypes[6]), dataTables[7].ToList(returnTypes[7]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2]),
+                    dataTables[3].ToList(returnTypes[3]),
+                    dataTables[4].ToList(returnTypes[4]),
+                    dataTables[5].ToList(returnTypes[5]),
+                    dataTables[6].ToList(returnTypes[6]),
+                    dataTables[7].ToList(returnTypes[7])
+                };
             }
             // 处理 7 个结果集
             else if (returnTypes.Length == 7)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]), dataTables[3].ToList(returnTypes[3]), dataTables[4].ToList(returnTypes[4]), dataTables[5].ToList(returnTypes[5]), dataTables[6].ToList(returnTypes[6]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2]),
+                    dataTables[3].ToList(returnTypes[3]),
+                    dataTables[4].ToList(returnTypes[4]),
+                    dataTables[5].ToList(returnTypes[5]),
+                    dataTables[6].ToList(returnTypes[6])
+                };
             }
             // 处理 6 个结果集
             else if (returnTypes.Length == 6)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]), dataTables[3].ToList(returnTypes[3]), dataTables[4].ToList(returnTypes[4]), dataTables[5].ToList(returnTypes[5]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2]),
+                    dataTables[3].ToList(returnTypes[3]),
+                    dataTables[4].ToList(returnTypes[4]),
+                    dataTables[5].ToList(returnTypes[5])
+                };
             }
             // 处理 5 个结果集
             else if (returnTypes.Length == 5)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]), dataTables[3].ToList(returnTypes[3]), dataTables[4].ToList(returnTypes[4]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2]),
+                    dataTables[3].ToList(returnTypes[3]),
+                    dataTables[4].ToList(returnTypes[4])
+                };
             }
             // 处理 4 个结果集
             else if (returnTypes.Length == 4)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]), dataTables[3].ToList(returnTypes[3]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2]),
+                    dataTables[3].ToList(returnTypes[3])
+                };
             }
             // 处理 3 个结果集
             else if (returnTypes.Length == 3)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]), dataTables[2].ToList(returnTypes[2]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1]),
+                    dataTables[2].ToList(returnTypes[2])
+                };
             }
             // 处理 2 个结果集
             else if (returnTypes.Length == 2)
             {
-                return (dataTables[0].ToList(returnTypes[0]), dataTables[1].ToList(returnTypes[1]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0]),
+                    dataTables[1].ToList(returnTypes[1])
+                };
             }
             // 处理 1 个结果集
             else
             {
-                return (dataTables[0].ToList(returnTypes[0]));
+                return new List<object>
+                {
+                    dataTables[0].ToList(returnTypes[0])
+                };
             }
         }
 
@@ -223,7 +282,7 @@ namespace Fur.DatabaseAccessor
         /// <param name="dataSet">DataSet</param>
         /// <param name="returnTypes">特定类型集合</param>
         /// <returns>object</returns>
-        public static Task<object> ToListAsync(this DataSet dataSet, params Type[] returnTypes)
+        public static Task<List<object>> ToListAsync(this DataSet dataSet, params Type[] returnTypes)
         {
             return Task.FromResult(dataSet.ToList(returnTypes));
         }
@@ -240,7 +299,9 @@ namespace Fur.DatabaseAccessor
             // 获取类型真实返回类型
             var underlyingType = isGenericType ? returnType.GenericTypeArguments.First() : returnType;
 
-            var list = new List<object>();
+            var resultType = typeof(List<>).MakeGenericType(underlyingType);
+            var list = Activator.CreateInstance(resultType);
+            var addMethod = resultType.GetMethod("Add");
 
             // 将 DataTable 转为行集合
             var dataRows = dataTable.AsEnumerable();
@@ -256,7 +317,7 @@ namespace Fur.DatabaseAccessor
                     // 转换成目标类型数据
                     var destValue = firstColumnValue.Adapt(firstColumnValue.GetType(), underlyingType);
                     // 添加到集合中
-                    list.Add(destValue);
+                    _ = addMethod.Invoke(list, new[] { destValue });
                 }
             }
             // 处理Object类型
@@ -273,7 +334,7 @@ namespace Fur.DatabaseAccessor
                     {
                         dic.Add(column.ColumnName, dataRow[column]);
                     }
-                    list.Add(dic);
+                    _ = addMethod.Invoke(list, new[] { dic });
                 }
             }
             else
@@ -312,11 +373,11 @@ namespace Fur.DatabaseAccessor
                     }
 
                     // 添加到集合中
-                    list.Add(model);
+                    _ = addMethod.Invoke(list, new[] { model });
                 }
             }
 
-            return isGenericType ? list : list.FirstOrDefault();
+            return isGenericType ? list : resultType.GetMethod("FirstOrDefault").Invoke(list, null);
         }
 
         /// <summary>
@@ -328,6 +389,25 @@ namespace Fur.DatabaseAccessor
         public static Task<object> ToListAsync(this DataTable dataTable, Type returnType)
         {
             return Task.FromResult(dataTable.ToList(returnType));
+        }
+
+        /// <summary>
+        /// 处理元组类型返回值
+        /// </summary>
+        /// <param name="dataSet">数据集</param>
+        /// <param name="tupleType">返回值类型</param>
+        /// <returns></returns>
+        internal static object ToValueTuple(this DataSet dataSet, Type tupleType)
+        {
+            // 获取元组最底层类型
+            var underlyingTypes = tupleType.GetGenericArguments().Select(u => u.GetGenericArguments().First());
+
+            var toListMethod = typeof(DbDataConvertExtensions)
+                .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .First(u => u.Name == "ToList" && u.IsGenericMethod && u.GetGenericArguments().Length == tupleType.GetGenericArguments().Length)
+                .MakeGenericMethod(underlyingTypes.ToArray());
+
+            return toListMethod.Invoke(null, new[] { dataSet });
         }
     }
 }
