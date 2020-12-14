@@ -1,6 +1,5 @@
 ﻿using Fur;
 using Fur.DependencyInjection;
-using Mapster;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Concurrent;
@@ -439,7 +438,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 var extServices = externalServices.Definitions.OrderBy(u => u.Order);
                 foreach (var externalService in extServices)
                 {
-                    var injectionAttribute = externalService.Adapt<InjectionAttribute>();
+                    var injectionAttribute = new InjectionAttribute
+                    {
+                        Action = externalService.Action,
+                        Named = externalService.Named,
+                        Order = externalService.Order,
+                        Pattern = externalService.Pattern
+                    };
+
                     // 加载代理拦截
                     if (!string.IsNullOrEmpty(externalService.Proxy)) injectionAttribute.Proxy = LoadStringType(externalService.Proxy);
 

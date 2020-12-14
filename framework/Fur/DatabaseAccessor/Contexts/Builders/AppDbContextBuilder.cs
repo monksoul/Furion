@@ -1,9 +1,10 @@
 ﻿using Fur.DependencyInjection;
 using Fur.Extensions;
-using Mapster;
+using Fur.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -34,10 +35,18 @@ namespace Fur.DatabaseAccessor
         private static readonly MethodInfo ModelBuildEntityMethod;
 
         /// <summary>
+        /// 判断是否是 Web 环境
+        /// </summary>
+        private static readonly bool IsWebEnvironment;
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         static AppDbContextBuilder()
         {
+            // 判断是否是 Web 环境
+            IsWebEnvironment = HttpContextUtility.GetCurrentHttpContext() != null;
+
             // 扫描程序集，获取数据库实体相关类型
             EntityCorrelationTypes = App.CanBeScanTypes.Where(t => (typeof(IPrivateEntity).IsAssignableFrom(t) || typeof(IPrivateModelBuilder).IsAssignableFrom(t))
                 && t.IsClass && !t.IsAbstract && !t.IsGenericType && !t.IsInterface && !t.IsDefined(typeof(NonAutomaticAttribute), true))
@@ -91,8 +100,12 @@ namespace Fur.DatabaseAccessor
                 // 配置数据库实体类型构建器
                 ConfigureEntityTypeBuilder(entityType, entityBuilder, dbContext, dbContextLocator, dbContextCorrelationType);
 
-                // 配置数据库实体种子数据
-                ConfigureEntitySeedData(entityType, entityBuilder, dbContext, dbContextLocator, dbContextCorrelationType);
+                // 不是 Web 环境跳过
+                if (!IsWebEnvironment)
+                {
+                    // 配置数据库实体种子数据
+                    ConfigureEntitySeedData(entityType, entityBuilder, dbContext, dbContextLocator, dbContextCorrelationType);
+                }
 
                 // 实体完成配置注入拦截
                 LoadModelBuilderOnCreated(modelBuilder, entityBuilder, dbContext, dbContextLocator, dbContextCorrelationType.ModelBuilderFilterInstances);
@@ -329,7 +342,9 @@ namespace Fur.DatabaseAccessor
             {
                 var instance = Activator.CreateInstance(entitySeedDataType);
                 var hasDataMethod = entitySeedDataType.GetMethod("HasData");
-                data.AddRange(hasDataMethod.Invoke(instance, new object[] { dbContext, dbContextLocator }).Adapt<IEnumerable<object>>());
+
+                var seedData = ((IList)hasDataMethod.Invoke(instance, new object[] { dbContext, dbContextLocator })).Cast<object>();
+                data.AddRange(seedData);
             }
 
             entityBuilder.HasData(data.ToArray());
@@ -452,10 +467,14 @@ namespace Fur.DatabaseAccessor
                             result.ModelBuilderFilterInstances.Add((entityCorrelationType == dbContext.GetType() ? dbContext : Activator.CreateInstance(entityCorrelationType)) as IPrivateModelBuilderFilter);
                         }
 
-                        // 添加种子数据
-                        if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntitySeedData<>)))
+                        // 只有非 Web 环境才添加种子数据
+                        if (!IsWebEnvironment)
                         {
-                            result.EntitySeedDataTypes.Add(entityCorrelationType);
+                            // 添加种子数据
+                            if (entityCorrelationType.HasImplementedRawGeneric(typeof(IPrivateEntitySeedData<>)))
+                            {
+                                result.EntitySeedDataTypes.Add(entityCorrelationType);
+                            }
                         }
 
                         // 添加动态表类型

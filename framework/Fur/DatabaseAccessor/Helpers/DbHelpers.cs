@@ -1,5 +1,4 @@
 ﻿using Fur.DependencyInjection;
-using Mapster;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -46,7 +45,7 @@ namespace Fur.DatabaseAccessor
                 if (property.IsDefined(typeof(DbParameterAttribute), true))
                 {
                     var dbParameterAttribute = property.GetCustomAttribute<DbParameterAttribute>(true);
-                    dbParameters.Add(DbHelpers.ConfigureDbParameter(property.Name, propertyValue, dbParameterAttribute, dbParameter));
+                    dbParameters.Add(ConfigureDbParameter(property.Name, propertyValue, dbParameterAttribute, dbParameter));
                     continue;
                 }
 

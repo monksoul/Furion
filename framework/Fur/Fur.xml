@@ -914,6 +914,11 @@
             创建数据库实体方法
             </summary>
         </member>
+        <member name="F:Fur.DatabaseAccessor.AppDbContextBuilder.IsWebEnvironment">
+            <summary>
+            判断是否是 Web 环境
+            </summary>
+        </member>
         <member name="M:Fur.DatabaseAccessor.AppDbContextBuilder.#cctor">
             <summary>
             构造函数
