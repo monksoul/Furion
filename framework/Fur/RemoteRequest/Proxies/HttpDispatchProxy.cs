@@ -1,6 +1,5 @@
 ﻿using Fur.DependencyInjection;
 using Fur.Extensions;
-using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;

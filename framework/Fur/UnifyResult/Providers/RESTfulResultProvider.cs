@@ -49,6 +49,7 @@ namespace Fur.UnifyResult
             if (context.Result is ContentResult contentResult) data = contentResult.Content;
             // 处理对象结果
             else if (context.Result is ObjectResult objectResult) data = objectResult.Value;
+            else if (context.Result is EmptyResult) data = null;
             else return null;
 
             return new JsonResult(new RESTfulResult<object>

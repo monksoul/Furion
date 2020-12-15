@@ -156,9 +156,6 @@ namespace Microsoft.Extensions.DependencyInjection
             // 注册全局 Startup 扫描
             services.AddStartup();
 
-            // 注册对象映射
-            services.AddObjectMapper();
-
             // 注册MiniProfiler 组件
             if (App.Settings.InjectMiniProfiler == true)
             {
@@ -170,6 +167,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // 注册全局依赖注入
             services.AddDependencyInjection();
+
+            // 添加对象映射
+            services.AddObjectMapper();
 
             // 自定义服务
             configure?.Invoke(services);

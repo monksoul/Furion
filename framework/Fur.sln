@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fur.Extras.DependencyModel.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fur.Extras.Authentication.JwtBearer", "Fur.Extras.Authentication.JwtBearer\Fur.Extras.Authentication.JwtBearer.csproj", "{031FDDEA-26FD-4947-8F36-FF1966EE553D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fur.Extras.DatabaseAccessor.SqlSugar", "Fur.Extras.DatabaseAccessor.SqlSugar\Fur.Extras.DatabaseAccessor.SqlSugar.csproj", "{4FD48F48-AC9B-4C32-8703-4650BE8663B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fur.Extras.ObjectMapper.Mapster", "Fur.Extras.ObjectMapper.Mapster\Fur.Extras.ObjectMapper.Mapster.csproj", "{E11AEF97-B48B-4EA4-82B9-56B2D239AE7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FD48F48-AC9B-4C32-8703-4650BE8663B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FD48F48-AC9B-4C32-8703-4650BE8663B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FD48F48-AC9B-4C32-8703-4650BE8663B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FD48F48-AC9B-4C32-8703-4650BE8663B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E11AEF97-B48B-4EA4-82B9-56B2D239AE7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E11AEF97-B48B-4EA4-82B9-56B2D239AE7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E11AEF97-B48B-4EA4-82B9-56B2D239AE7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E11AEF97-B48B-4EA4-82B9-56B2D239AE7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

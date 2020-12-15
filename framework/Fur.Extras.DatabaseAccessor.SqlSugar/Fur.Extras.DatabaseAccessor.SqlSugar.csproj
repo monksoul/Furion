@@ -2,24 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.5.3</Version>
+    <version>1.5.3</version>
     <Authors>百小僧/MonkSoul</Authors>
     <Company>Baiqian Co.,Ltd.</Company>
     <Product>Fur</Product>
     <Copyright>© 2020 Fur, Baiqian Co.,Ltd.</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://furos.cn</PackageProjectUrl>
-    <Description>Fur Jwt 授权验证拓展插件。</Description>
+    <PackageProjectUrl>https://furion.pro</PackageProjectUrl>
+    <Description>Fur 数据库访问器 SqlSugar 插件。</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>Fur.Extras.Authentication.JwtBearer.xml</DocumentationFile>
+    <DocumentationFile>Fur.Extras.DatabaseAccessor.SqlSugar.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>Fur.Extras.Authentication.JwtBearer.xml</DocumentationFile>
+    <DocumentationFile>Fur.Extras.DatabaseAccessor.SqlSugar.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,14 +28,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="sqlSugarCore" Version="5.0.1.5" />
   </ItemGroup>
 
 </Project>

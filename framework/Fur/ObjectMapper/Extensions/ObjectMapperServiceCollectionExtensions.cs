@@ -1,7 +1,7 @@
 ﻿using Fur;
 using Fur.DependencyInjection;
-using Mapster;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -18,13 +18,18 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IServiceCollection AddObjectMapper(this IServiceCollection services)
         {
-            // 扫描所有继承  IRegister 接口的对象映射配置
-            TypeAdapterConfig.GlobalSettings.Scan(App.Assemblies.ToArray());
+            // 判断是否安装了 Mapster 程序集
+            var objectMapperAssembly = App.Assemblies.FirstOrDefault(u => u.GetName().Name.Equals(AppExtra.OBJECTMAPPER_MAPSTER));
+            if (objectMapperAssembly != null)
+            {
+                // 加载 ObjectMapper 拓展类型和拓展方法
+                var objectMapperServiceCollectionExtensionsType = objectMapperAssembly.GetType($"Microsoft.Extensions.DependencyInjection.ObjectMapperServiceCollectionExtensions");
+                var addObjectMapperMethod = objectMapperServiceCollectionExtensionsType
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .First(u => u.Name == "AddObjectMapper");
 
-            // 配置默认全局映射（支持覆盖）
-            TypeAdapterConfig.GlobalSettings.Default
-                .NameMatchingStrategy(NameMatchingStrategy.Flexible)
-                .PreserveReference(true);
+                return addObjectMapperMethod.Invoke(null, new object[] { services, App.Assemblies.ToArray() }) as IServiceCollection;
+            }
 
             return services;
         }

@@ -1,5 +1,5 @@
 ﻿using Fur.DependencyInjection;
-using Mapster;
+using Fur.Extensions;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -1777,7 +1777,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>TResult</returns>
         public static TResult SqlProcedureScalar<TResult>(this string procName, params DbParameter[] parameters)
         {
-            return GetSqlDatabase(ref procName).ExecuteScalar(procName, parameters, CommandType.StoredProcedure).Adapt<TResult>();
+            return GetSqlDatabase(ref procName).ExecuteScalar(procName, parameters, CommandType.StoredProcedure).ChangeType<TResult>();
         }
 
         /// <summary>
@@ -1788,7 +1788,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>TResult</returns>
         public static TResult SqlProcedureScalar<TResult>(this string procName, object model)
         {
-            return GetSqlDatabase(ref procName).ExecuteScalar(procName, model, CommandType.StoredProcedure).result.Adapt<TResult>();
+            return GetSqlDatabase(ref procName).ExecuteScalar(procName, model, CommandType.StoredProcedure).result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -1800,7 +1800,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlProcedureScalarAsync<TResult>(this string procName, params DbParameter[] parameters)
         {
             var result = await GetSqlDatabase(ref procName).ExecuteScalarAsync(procName, parameters, CommandType.StoredProcedure);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -1813,7 +1813,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlProcedureScalarAsync<TResult>(this string procName, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
             var result = await GetSqlDatabase(ref procName).ExecuteScalarAsync(procName, parameters, CommandType.StoredProcedure, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -1826,7 +1826,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlProcedureScalarAsync<TResult>(this string procName, object model, CancellationToken cancellationToken = default)
         {
             var (result, _) = await GetSqlDatabase(ref procName).ExecuteScalarAsync(procName, model, CommandType.StoredProcedure, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2011,7 +2011,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>TResult</returns>
         public static TResult SqlScalar<TResult>(this string sql, params DbParameter[] parameters)
         {
-            return GetSqlDatabase(ref sql).ExecuteScalar(sql, parameters).Adapt<TResult>();
+            return GetSqlDatabase(ref sql).ExecuteScalar(sql, parameters).ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2022,7 +2022,7 @@ namespace Fur.DatabaseAccessor
         /// <returns>TResult</returns>
         public static TResult SqlScalar<TResult>(this string sql, object model)
         {
-            return GetSqlDatabase(ref sql).ExecuteScalar(sql, model).result.Adapt<TResult>();
+            return GetSqlDatabase(ref sql).ExecuteScalar(sql, model).result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2034,7 +2034,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlScalarAsync<TResult>(this string sql, params DbParameter[] parameters)
         {
             var result = await GetSqlDatabase(ref sql).ExecuteScalarAsync(sql, parameters);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2047,7 +2047,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlScalarAsync<TResult>(this string sql, DbParameter[] parameters, CancellationToken cancellationToken = default)
         {
             var result = await GetSqlDatabase(ref sql).ExecuteScalarAsync(sql, parameters, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2060,7 +2060,7 @@ namespace Fur.DatabaseAccessor
         public static async Task<TResult> SqlScalarAsync<TResult>(this string sql, object model, CancellationToken cancellationToken = default)
         {
             var (result, _) = await GetSqlDatabase(ref sql).ExecuteScalarAsync(sql, model, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2278,7 +2278,7 @@ namespace Fur.DatabaseAccessor
         {
             var database = GetSqlDatabase(ref funcName);
             var sql = DbHelpers.GenerateFunctionSql(database.ProviderName, DbFunctionType.Scalar, funcName, parameters);
-            return database.ExecuteScalar(sql, parameters).Adapt<TResult>();
+            return database.ExecuteScalar(sql, parameters).ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2292,7 +2292,7 @@ namespace Fur.DatabaseAccessor
         {
             var database = GetSqlDatabase(ref funcName);
             var sql = DbHelpers.GenerateFunctionSql(database.ProviderName, DbFunctionType.Scalar, funcName, model);
-            return database.ExecuteScalar(sql, model).result.Adapt<TResult>();
+            return database.ExecuteScalar(sql, model).result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2307,7 +2307,7 @@ namespace Fur.DatabaseAccessor
             var database = GetSqlDatabase(ref funcName);
             var sql = DbHelpers.GenerateFunctionSql(database.ProviderName, DbFunctionType.Scalar, funcName, parameters);
             var result = await database.ExecuteScalarAsync(sql, parameters);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2323,7 +2323,7 @@ namespace Fur.DatabaseAccessor
             var database = GetSqlDatabase(ref funcName);
             var sql = DbHelpers.GenerateFunctionSql(database.ProviderName, DbFunctionType.Scalar, funcName, parameters);
             var result = await database.ExecuteScalarAsync(sql, parameters, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>
@@ -2339,7 +2339,7 @@ namespace Fur.DatabaseAccessor
             var database = GetSqlDatabase(ref funcName);
             var sql = DbHelpers.GenerateFunctionSql(database.ProviderName, DbFunctionType.Scalar, funcName, model);
             var (result, _) = await database.ExecuteScalarAsync(sql, model, cancellationToken: cancellationToken);
-            return result.Adapt<TResult>();
+            return result.ChangeType<TResult>();
         }
 
         /// <summary>

@@ -171,6 +171,11 @@
             Jwt 验证包
             </summary>
         </member>
+        <member name="F:Fur.AppExtra.OBJECTMAPPER_MAPSTER">
+            <summary>
+            Mapster 映射包
+            </summary>
+        </member>
         <member name="T:Fur.StartupFilter">
             <summary>
             应用启动时自动注册中间件
@@ -20307,6 +20312,22 @@
             <param name="str"></param>
             <returns></returns>
         </member>
+        <member name="M:Fur.Extensions.ObjectExtensions.ChangeType``1(System.Object)">
+            <summary>
+            将一个对象转换为指定类型
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fur.Extensions.ObjectExtensions.ChangeType(System.Object,System.Type)">
+            <summary>
+            将一个对象转换为指定类型
+            </summary>
+            <param name="obj">待转换的对象</param>
+            <param name="type">目标类型</param>
+            <returns>转换后的对象</returns>
+        </member>
         <member name="T:Fur.DynamicApiController.DynamicApiControllerAttribute">
             <summary>
             动态 WebApi特性接口
@@ -21207,11 +21228,6 @@
             </summary>
             <param name="parameterExpression"></param>
             <returns></returns>
-        </member>
-        <member name="T:Fur.ObjectMapper.IObjectMapper">
-            <summary>
-            自定义对象映射依赖接口
-            </summary>
         </member>
         <member name="T:Fur.RemoteRequest.HeaderAttribute">
             <summary>

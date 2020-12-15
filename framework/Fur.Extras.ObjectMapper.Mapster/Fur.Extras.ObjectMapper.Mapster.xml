@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Fur.Extras.ObjectMapper.Mapster</name>
+    </assembly>
+    <members>
+        <member name="T:Fur.ObjectMapper.IObjectMapper">
+            <summary>
+            自定义对象映射依赖接口
+            </summary>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.ObjectMapperServiceCollectionExtensions">
+            <summary>
+            对象映射拓展类
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.ObjectMapperServiceCollectionExtensions.AddObjectMapper(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Reflection.Assembly[])">
+            <summary>
+            添加对象映射
+            </summary>
+            <param name="services">服务集合</param>
+            <param name="assemblies"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
