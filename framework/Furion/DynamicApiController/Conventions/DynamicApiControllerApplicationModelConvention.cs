@@ -60,7 +60,20 @@ namespace Furion.DynamicApiController
                 // 判断是否处理 Mvc控制器
                 if (typeof(ControllerBase).IsAssignableFrom(controller.ControllerType))
                 {
-                    if (!_dynamicApiControllerSettings.SupportedMvcController.Value || controller.ApiExplorer?.IsVisible == false) continue;
+                    if (!_dynamicApiControllerSettings.SupportedMvcController.Value || controller.ApiExplorer?.IsVisible == false)
+                    {
+                        // 控制器默认处理规范化结果
+                        if (UnifyContext.EnabledUnifyHandler)
+                        {
+                            foreach (var action in controller.Actions)
+                            {
+                                // 配置动作方法规范化特性
+                                ConfigureActionUnifyResultAttribute(action);
+                            }
+                        }
+
+                        continue;
+                    }
                 }
 
                 var controllerApiDescriptionSettings = controllerType.IsDefined(typeof(ApiDescriptionSettingsAttribute), true) ? controllerType.GetCustomAttribute<ApiDescriptionSettingsAttribute>(true) : default;
