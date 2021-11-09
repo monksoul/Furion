@@ -461,7 +461,7 @@ namespace Furion.RemoteRequest
             catch (Exception ex)
             {
                 // 触发自定义事件
-                OnRequestFailded(this, new HttpRequestFaildedEventArgs(request, response, ex));
+                if (response != null) OnRequestFailded(this, new HttpRequestFaildedEventArgs(request, response, ex));
 
                 exception = ex;
             }

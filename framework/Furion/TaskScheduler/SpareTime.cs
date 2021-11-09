@@ -19,6 +19,7 @@ using System.Timers;
 
 namespace Furion.TaskScheduler
 {
+
     /// <summary>
     /// 后台任务静态类
     /// </summary>
@@ -193,7 +194,7 @@ namespace Furion.TaskScheduler
                 {
                     if (nextLocalTime == null)
                     {
-                        Cancel(workerName);
+                        Cancel(timer.WorkerName);
                         return;
                     }
                 }
@@ -203,7 +204,7 @@ namespace Furion.TaskScheduler
                 }
 
                 // 获取当前任务的记录
-                _ = WorkerRecords.TryGetValue(workerName, out var currentRecord);
+                _ = WorkerRecords.TryGetValue(timer.WorkerName, out var currentRecord);
 
                 // 更新任务信息
                 currentRecord.Timer.Type = timer.Type = SpareTimeTypes.Cron;
@@ -214,7 +215,7 @@ namespace Furion.TaskScheduler
                 var interval = (nextLocalTime.Value - DateTimeOffset.UtcNow.ToLocalTime()).TotalSeconds;
                 if (Math.Floor(interval) != 0)
                 {
-                    UpdateWorkerRecord(workerName, currentRecord);
+                    UpdateWorkerRecord(timer.WorkerName, currentRecord);
                     return;
                 }
 
@@ -223,7 +224,7 @@ namespace Furion.TaskScheduler
 
                 // 更新实际执行次数
                 currentRecord.Timer.Tally = timer.Tally = currentRecord.CronActualTally += 1;
-                UpdateWorkerRecord(workerName, currentRecord);
+                UpdateWorkerRecord(timer.WorkerName, currentRecord);
 
                 // 执行前通知
                 await WriteChannel(timer, 1);
@@ -653,12 +654,22 @@ namespace Furion.TaskScheduler
             }
 
             // 解析 Cron 表达式
-            var cronExpression = CronExpression.Parse(realExpression, cronFormat.Value);
+            if (!CronExpressionSet.TryGetValue(realExpression, out var cronExpression))
+            {
+                cronExpression = CronExpression.Parse(realExpression, cronFormat.Value);
+                CronExpressionSet.TryAdd(realExpression, cronExpression);
+            }
 
             // 获取下一个执行时间
             var nextTime = cronExpression.GetNextOccurrence(DateTimeOffset.UtcNow, TimeZoneInfo.Local);
             return nextTime;
         }
+
+        /// <summary>
+        /// Cron 表达式解析对象
+        /// </summary>
+        /// <remarks>由于目前使用项目太多，放弃了进行破坏性更改，无奈之举牺牲点内存换来性能，该处理本不应该存在</remarks>
+        private static readonly ConcurrentDictionary<string, CronExpression> CronExpressionSet = new();
 
         /// <summary>
         /// 更新工作记录
