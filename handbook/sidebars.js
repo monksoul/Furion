@@ -16,7 +16,7 @@ module.exports = {
     {
       type: "category",
       label: "2. 入门指南",
-      items: ["get-start", "template", "reference", "inject"],
+      items: ["get-start", "get-start-net6", "template", "reference", "inject"],
     },
     {
       type: "doc",

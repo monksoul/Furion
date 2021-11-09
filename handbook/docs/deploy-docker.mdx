@@ -37,7 +37,7 @@ import useBaseUrl from "@docusaurus/useBaseUrl";
 - 👉 编写 `Dockerfile`
 
 ```bash
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.9
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.11
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -83,7 +83,7 @@ docker tag 网站名称:网站版本号 docker账号名/网站名称:网站版�
 如：
 
 ```bash
-docker tag furion:v2.20 monksoul/furion:v2.20
+docker tag furion:v2.20.2 monksoul/furion:v2.20.2
 ```
 
 - 👉 登录 `docker`
@@ -101,7 +101,7 @@ docker push docker账号名/网站名称:网站版本号
 如：
 
 ```bash
-docker push monksoul/furion:v2.20
+docker push monksoul/furion:v2.20.2
 ```
 
 :::
@@ -115,7 +115,7 @@ docker push monksoul/furion:v2.20
 这种方式只需要把 `Dockerfile` 内容替换成以下即可：
 
 ```bash {6}
-FROM mcr.microsoft.com/dotnet/sdk:5.0.9 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.11 AS build
 WORKDIR /source
 
 # Download Source
@@ -131,7 +131,7 @@ RUN dotnet restore
 RUN dotnet publish -c release -o /app --no-restore
 
 # Run
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.9
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.11
 WORKDIR /app
 COPY --from=build /app ./
 EXPOSE 80

@@ -1,0 +1,154 @@
+---
+id: get-start-net6
+title: 2.1.1 一分钟上手 (.NET6)
+sidebar_label: 2.1 一分钟上手 (.NET6) ✨
+---
+
+:::tip 推荐使用脚手架
+
+`Furion` 官方提供了非常灵活方便的脚手架，可以快速的创建多层架构项目。
+
+推荐使用 《[2.2 官方脚手架](template.mdx)》代替本章节功能。
+
+:::
+
+import useBaseUrl from "@docusaurus/useBaseUrl";
+
+:::note 入门条件
+
+对 `.NET Core/ASP.NET Core` 有一定基础了解，还未接触的可先看 [【ASP.NET Core 基础】](https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/?view=aspnetcore-6.0&tabs=windows)
+
+:::
+
+## 2.1 创建 `Web` 项目
+
+:::note 环境要求
+
+使用 `Furion` 之前先确保安装了最新的 `.NET 6 SDK` 并升级 `Visual Studio 2022` 至最新版。
+
+:::
+
+### 2.1.1 创建 `ASP.NET Core Web 应用程序`
+
+- 打开 `Visual Studio 2022` 并创建 `Web` 项目
+
+<img src={useBaseUrl("img/rm1.png")} />
+
+- 配置项目名称
+
+<img src={useBaseUrl("img/rm2.png")} />
+
+- 选择 `WebAPI` 项目
+
+<img src={useBaseUrl("img/rm3.png")} />
+
+:::warning 特别注意
+
+`Furion` 已经内置了 `Swagger` 规范化库，所以创建时**无需勾选** `Enable OpenAPI support` 选项。否则提示版本不一致产生冲突。
+
+:::
+
+## 2.2 添加 `Furion` 依赖包
+
+<img src={useBaseUrl("img/rm4.png")} />
+
+## 2.3 `Furion` 基本配置
+
+### 2.3.1 `Program.cs` 添加 `Inject()`
+
+```cs {18}
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+
+namespace FurionStart
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder
+                    .Inject()   // 添加这一行
+                    .UseStartup<Startup>();
+                });
+    }
+}
+```
+
+### 2.3.2 在 `Startup.cs` 中添加两个 `Inject()`
+
+```cs {20,37}
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace FurionStart
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddControllers().AddInject();  // 添加 AddInject();
+        }
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            // 添加这一行，如果是 MVC和API共存项目，无需添加 string.Empty
+            app.UseInject(string.Empty);
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+    }
+}
+```
+
+:::important 小提醒
+
+如果 `app.UseInject()` 不输入参数，则默认地址为 `/api`，如果输入 `string.Empty` 则为 `/` 目录。如果输入任意字符串，则为 `/任意字符串` 目录。
+
+:::
+
+## 2.4 启动浏览器
+
+启动浏览器查看效果。
+
+<img src={useBaseUrl("img/rm5.png")} />
+
+:::note 小知识
+
+默认情况下，通过 `Visual Studio 2019` 创建的项目会自动配置了启动页，如果使用 `F5` 运行，可能不会自动打开首页，这时候我们只需要配置 `launchSettings.json` 的 `launchUrl` 即可：
+
+<img src={useBaseUrl("img/rm6.png")} />
+
+:::
+
+说好一分钟上手，你们用了多长时间。😁

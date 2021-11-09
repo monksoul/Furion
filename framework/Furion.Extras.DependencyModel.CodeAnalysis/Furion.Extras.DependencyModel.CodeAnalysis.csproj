@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
-		<Version>2.20.1</Version>
+		<Version>2.20.2</Version>
 		<Description>Furion 程序集扫描和代码分析拓展插件。</Description>
 	</PropertyGroup>
 
