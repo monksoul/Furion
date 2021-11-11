@@ -6,6 +6,7 @@
 // THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
+using Furion.ClayObject.Extensions;
 using Furion.DataValidation;
 using Furion.DependencyInjection;
 using Furion.Extensions;
@@ -152,7 +153,19 @@ namespace Furion.RemoteRequest
             foreach (var item in queryParameters)
             {
                 var queryStringAttribute = item.Parameter.GetCustomAttribute<QueryStringAttribute>();
-                if (item.Value != null) parameterQueries.Add(queryStringAttribute.Alias ?? item.Name, item.Value);
+                if (item.Value != null)
+                {
+                    // 处理基元类型
+                    if (item.Value.GetType().IsRichPrimitive())
+                    {
+                        parameterQueries.Add(queryStringAttribute.Alias ?? item.Name, item.Value);
+                    }
+                    // 处理类类型
+                    else
+                    {
+                        parameterQueries.AddOrUpdate(item.Value.ToDictionary());
+                    }
+                }
             }
             httpRequestPart.SetQueries(parameterQueries);
         }
