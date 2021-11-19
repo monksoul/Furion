@@ -16,7 +16,6 @@ namespace System.Collections.Generic
     /// <typeparam name="TEntity"></typeparam>
     [SuppressSniffer]
     public class PagedList<TEntity>
-        where TEntity : new()
     {
         /// <summary>
         /// 页码

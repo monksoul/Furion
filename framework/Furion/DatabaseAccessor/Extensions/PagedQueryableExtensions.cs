@@ -31,7 +31,6 @@ namespace Furion.DatabaseAccessor
         /// <param name="pageSize"></param>
         /// <returns></returns>
         public static PagedList<TEntity> ToPagedList<TEntity>(this IQueryable<TEntity> entities, int pageIndex = 1, int pageSize = 20)
-            where TEntity : new()
         {
             if (pageIndex <= 0) throw new InvalidOperationException($"{nameof(pageIndex)} must be a positive integer greater than 0.");
 
