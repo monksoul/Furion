@@ -42,6 +42,9 @@ namespace Furion.UnifyResult
             // 执行 Action 并获取结果
             var actionExecutedContext = await next();
 
+            // 如果出现异常，则不会进入该过滤器
+            if (actionExecutedContext.Exception != null) return;
+
             // 获取控制器信息
             var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
 
