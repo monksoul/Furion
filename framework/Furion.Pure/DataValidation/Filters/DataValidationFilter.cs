@@ -7,10 +7,12 @@
 // See the Mulan PSL v2 for more details.
 
 using Furion.DependencyInjection;
+using Furion.DynamicApiController;
 using Furion.UnifyResult;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 
 namespace Furion.DataValidation
 {
@@ -20,6 +22,20 @@ namespace Furion.DataValidation
     [SuppressSniffer]
     public sealed class DataValidationFilter : IActionFilter, IOrderedFilter
     {
+        /// <summary>
+        /// Api 行为配置选项
+        /// </summary>
+        private readonly ApiBehaviorOptions _apiBehaviorOptions;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="options"></param>
+        public DataValidationFilter(IOptions<ApiBehaviorOptions> options)
+        {
+            _apiBehaviorOptions = options.Value;
+        }
+
         /// <summary>
         /// 过滤器排序
         /// </summary>
@@ -66,7 +82,14 @@ namespace Furion.DataValidation
             var validationMetadata = ValidatorContext.GetValidationMetadata(modelState);
 
             // 判断是否跳过规范化结果，如果跳过，返回 400 BadRequestResult
-            if (UnifyContext.CheckFailedNonUnify(actionDescriptor.MethodInfo, out var unifyResult)) context.Result = new BadRequestResult();
+            if (UnifyContext.CheckFailedNonUnify(actionDescriptor.MethodInfo, out var unifyResult))
+            {
+                if (!Penetrates.IsApiController(method.DeclaringType))
+                {
+                    context.Result = new BadRequestResult();
+                }
+                else context.Result = _apiBehaviorOptions.InvalidModelStateResponseFactory(context);
+            }
             else
             {
                 // 判断是否支持 MVC 规范化处理
