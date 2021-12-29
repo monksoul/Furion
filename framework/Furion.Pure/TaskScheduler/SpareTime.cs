@@ -304,7 +304,7 @@ namespace Furion.TaskScheduler
             };
 
             // 支持异步事件
-            Func<object, ElapsedEventArgs, Task> handler = async (sender, e) =>
+            async Task handler(object sender, ElapsedEventArgs e)
             {
                 // 获取当前任务的记录
                 _ = WorkerRecords.TryGetValue(workerName, out var currentRecord);
@@ -375,7 +375,7 @@ namespace Furion.TaskScheduler
                     // 处理重入问题
                     Interlocked.Exchange(ref interlocked, 0);
                 }
-            };
+            }
 
             // 订阅执行事件
             timer.Elapsed += (sender, e) => handler(sender, e).GetAwaiter().GetResult();
@@ -647,7 +647,7 @@ namespace Furion.TaskScheduler
             var realExpression = expression.Render();
 
             // 自动化 CronFormat
-            if (cronFormat == default)
+            if (cronFormat == null)
             {
                 var parts = realExpression.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 cronFormat = parts.Length <= 5 ? CronFormat.Standard : CronFormat.IncludeSeconds;
