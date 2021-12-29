@@ -100,11 +100,11 @@ namespace Microsoft.Extensions.DependencyInjection
                             case SpareTimeTypes.Cron:
                                 if (isAsyncMethod)
                                 {
-                                    SpareTime.Do(spareTimeAttribute.CronExpression, (Func<SpareTimer, long, Task>)action, spareTimeAttribute.WorkerName, spareTimeAttribute.Description, spareTimeAttribute.StartNow, cronFormat: spareTimeAttribute.CronFormat == default ? default : (CronFormat)spareTimeAttribute.CronFormat, executeType: spareTimeAttribute.ExecuteType);
+                                    SpareTime.Do(spareTimeAttribute.CronExpression, (Func<SpareTimer, long, Task>)action, spareTimeAttribute.WorkerName, spareTimeAttribute.Description, spareTimeAttribute.StartNow, cronFormat: spareTimeAttribute.CronFormat == default ? null : (CronFormat)spareTimeAttribute.CronFormat, executeType: spareTimeAttribute.ExecuteType);
                                 }
                                 else
                                 {
-                                    SpareTime.Do(spareTimeAttribute.CronExpression, (Action<SpareTimer, long>)action, spareTimeAttribute.WorkerName, spareTimeAttribute.Description, spareTimeAttribute.StartNow, cronFormat: spareTimeAttribute.CronFormat == default ? default : (CronFormat)spareTimeAttribute.CronFormat, executeType: spareTimeAttribute.ExecuteType);
+                                    SpareTime.Do(spareTimeAttribute.CronExpression, (Action<SpareTimer, long>)action, spareTimeAttribute.WorkerName, spareTimeAttribute.Description, spareTimeAttribute.StartNow, cronFormat: spareTimeAttribute.CronFormat == default ? null : (CronFormat)spareTimeAttribute.CronFormat, executeType: spareTimeAttribute.ExecuteType);
                                 }
                                 break;
 
