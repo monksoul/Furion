@@ -69,6 +69,16 @@ namespace Furion.RemoteRequest
         }
 
         /// <summary>
+        /// 发送 GET 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> GetAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Get).SendAsByteArrayAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// 发送 GET 请求
         /// </summary>
         /// <param name="cancellationToken"></param>
@@ -107,6 +117,16 @@ namespace Furion.RemoteRequest
         public Task<string> PostAsStringAsync(CancellationToken cancellationToken = default)
         {
             return SetHttpMethod(HttpMethod.Post).SendAsStringAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// 发送 POST 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> PostAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Post).SendAsByteArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -151,6 +171,16 @@ namespace Furion.RemoteRequest
         }
 
         /// <summary>
+        /// 发送 PUT 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> PutAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Put).SendAsByteArrayAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// 发送 PUT 请求
         /// </summary>
         /// <param name="cancellationToken"></param>
@@ -189,6 +219,16 @@ namespace Furion.RemoteRequest
         public Task<string> DeleteAsStringAsync(CancellationToken cancellationToken = default)
         {
             return SetHttpMethod(HttpMethod.Delete).SendAsStringAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// 发送 DELETE 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> DeleteAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Delete).SendAsByteArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -233,6 +273,16 @@ namespace Furion.RemoteRequest
         }
 
         /// <summary>
+        /// 发送 Patch 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> PatchAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Patch).SendAsByteArrayAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// 发送 PATCH 请求
         /// </summary>
         /// <param name="cancellationToken"></param>
@@ -271,6 +321,16 @@ namespace Furion.RemoteRequest
         public Task<string> HeadAsStringAsync(CancellationToken cancellationToken = default)
         {
             return SetHttpMethod(HttpMethod.Head).SendAsStringAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// 发送 Head 请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<byte[]> HeadAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            return SetHttpMethod(HttpMethod.Head).SendAsByteArrayAsync(cancellationToken);
         }
 
         /// <summary>
@@ -353,6 +413,21 @@ namespace Furion.RemoteRequest
 
             // 读取响应报文
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            return content;
+        }
+
+        /// <summary>
+        /// 发送请求返回 ByteArray
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<byte[]> SendAsByteArrayAsync(CancellationToken cancellationToken = default)
+        {
+            var response = await SendAsync(cancellationToken);
+            if (response == null || response.Content == null) return default;
+
+            // 读取响应报文
+            var content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
             return content;
         }
 
