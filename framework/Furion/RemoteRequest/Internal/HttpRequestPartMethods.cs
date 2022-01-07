@@ -357,10 +357,17 @@ namespace Furion.RemoteRequest
                 var httpResponseMessage = await SendAsync(cancellationToken);
                 return (T)(object)httpResponseMessage;
             }
+            // 处理字符串类型
             if (typeof(T) == typeof(string))
             {
                 var str = await SendAsStringAsync(cancellationToken);
                 return (T)(object)str;
+            }
+            // 处理 byte[] 数组
+            if (typeof(T) == typeof(byte[]))
+            {
+                var byteArray = await SendAsByteArrayAsync(cancellationToken);
+                return (T)(object)byteArray;
             }
 
             // 读取流内容
