@@ -2,12 +2,12 @@
 <p></p>
 
 <p align="center">
-<img src="https://gitee.com/monksoul/Fur/raw/main/handbook/static/img/furlogo.png" height="80"/>
+<img src="https://gitee.com/dotnetchina/Furion/raw/main/handbook/static/img/furlogo.png" height="80"/>
 </p>
 
 <div align="center">
 
-[![star](https://gitee.com/monksoul/Fur/badge/star.svg?theme=gvp)](https://gitee.com/monksoul/Fur/stargazers) [![fork](https://gitee.com/monksoul/Fur/badge/fork.svg?theme=gvp)](https://gitee.com/monksoul/Fur/members) [![GitHub stars](https://img.shields.io/github/stars/MonkSoul/Fur?logo=github)](https://github.com/MonkSoul/Fur/stargazers) [![GitHub forks](https://img.shields.io/github/forks/MonkSoul/Fur?logo=github)](https://github.com/MonkSoul/Fur/network) [![GitHub license](https://img.shields.io/github/license/MonkSoul/Fur)](https://github.com/MonkSoul/Fur/blob/main/LICENSE) [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur)
+[![star](https://gitee.com/dotnetchina/Furion/badge/star.svg?theme=gvp)](https://gitee.com/dotnetchina/Furion/stargazers) [![fork](https://gitee.com/dotnetchina/Furion/badge/fork.svg?theme=gvp)](https://gitee.com/dotnetchina/Furion/members) [![GitHub stars](https://img.shields.io/github/stars/MonkSoul/Fur?logo=github)](https://github.com/MonkSoul/Fur/stargazers) [![GitHub forks](https://img.shields.io/github/forks/MonkSoul/Fur?logo=github)](https://github.com/MonkSoul/Fur/network) [![GitHub license](https://img.shields.io/github/license/MonkSoul/Fur)](https://github.com/MonkSoul/Fur/blob/main/LICENSE) [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur)
 
 </div>
 
@@ -47,7 +47,7 @@
 `Fur` LOGO 设计由 `F` `U` `R` 三个单词组成：
 
 <p>
-<img src="https://gitee.com/monksoul/Fur/raw/main/handbook/static/img/logo2.png" height="120"/>
+<img src="https://gitee.com/dotnetchina/Furion/raw/main/handbook/static/img/logo2.png" height="120"/>
 </p>
 
 我相信很多人看到 `Fur` 的 LOGO 时都会问：“为什么选择奶牛？”，因为 **那些年吹过的牛逼都实现了 🐮**。
@@ -64,12 +64,12 @@
 ## 🥦 系列教程
 
 - **Fur 视频教程：[https://space.bilibili.com/695987967](https://space.bilibili.com/695987967)**
-- Fur 使用例子：[https://gitee.com/monksoul/fur-samples](https://gitee.com/monksoul/fur-samples)
-- Fur 系列教程：[《学 .NET 5 从 Fur 开始》](https://gitee.com/monksoul/Fur/blob/main/tutorials) 系列
+- Fur 使用例子：[https://gitee.com/dotnetchina/Furion-samples](https://gitee.com/dotnetchina/Furion-samples)
+- Fur 系列教程：[《学 .NET 5 从 Fur 开始》](https://gitee.com/dotnetchina/Furion/blob/main/tutorials) 系列
 
 ## 🌭 开源地址
 
-- Gitee：[https://gitee.com/monksoul/Fur](https://gitee.com/monksoul/Fur)
+- Gitee：[https://gitee.com/dotnetchina/Furion](https://gitee.com/dotnetchina/Furion)
 - GitHub：[https://github.com/monksoul/Fur](https://github.com/monksoul/Fur)
 - Docker：[https://hub.docker.com/r/monksoul/fur](https://hub.docker.com/r/monksoul/fur)
 - Nuget：[https://www.nuget.org/packages/Fur](https://www.nuget.org/packages/Fur)
@@ -102,7 +102,7 @@ docker run --name fur -p 5000:80 fur:v1.0.0
 | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------ | ------------------- |
 | [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur)                                     | Fur                                     | v1.0.2 | Fur 总包            |
 | [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur.Extras.Authentication.JwtBearer)     | Fur.Extras.Authentication.JwtBearer     | v1.0.0 | Fur Jwt 拓展包      |
-| [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur.Extras.DependencyModel.CodeAnalysis) | Fur.Extras.DependencyModel.CodeAnalysis | 1.0.1  | Fur 动态反射 拓展包 |
+| [![nuget](https://img.shields.io/badge/Nuget-1.0.x-blue)](https://www.nuget.org/packages/Fur.Extras.DependencyModel.CodeAnalysis) | Fur.Extras.DependencyModel.CodeAnalysis | v1.0.1  | Fur 动态反射 拓展包 |
 
 ## 🍄 Fur 脚手架
 
@@ -131,7 +131,7 @@ docker run --name fur -p 5000:80 fur:v1.0.0
 ## 🥝 功能模块
 
 <p align="center">
-<img src="https://gitee.com/monksoul/Fur/raw/main/handbook/static/img/furfunctions.png"/>
+<img src="https://gitee.com/dotnetchina/Furion/raw/main/handbook/static/img/furfunctions.png"/>
 </p>
 
 ## 🥐 框架依赖
@@ -184,7 +184,7 @@ docker run --name fur -p 5000:80 fur:v1.0.0
 
 `Fur` 目前采用 `Visual Studio 2019 Preview 16.8` 自带性能测试和 `JMeter` 进行测试，由于篇幅有限，只贴部分测试图，测试结果如下：
 
-<img src="https://gitee.com/monksoul/Fur/raw/main/handbook/static/img/xncs.png"/>
+<img src="https://gitee.com/dotnetchina/Furion/raw/main/handbook/static/img/xncs.png"/>
 
 ---
 
@@ -277,9 +277,9 @@ docker run --name fur -p 5000:80 fur:v1.0.0
 ## 🥔 QQ 交流群
 
 <p>
-<img src="https://gitee.com/monksoul/Fur/raw/main/handbook/static/img/dotnetchina.jpg" height="300"/>
+<img src="https://gitee.com/dotnetchina/Furion/raw/main/handbook/static/img/dotnetchina.jpg" height="300"/>
 </p>
 
 ## 🧆 友情链接
 
-👉 **[Fur](https://gitee.com/monksoul/Fur)** 👉 **[SqlSugar](https://github.com/sunkaixuan/SqlSugar)** 👉 **[Layx](https://gitee.com/monksoul/LayX)** 👉 **[t-io](https://gitee.com/tywo45/t-io)** 👉 **[ThinkPHP](http://www.thinkphp.cn/)** 👉 **[Hutool](https://hutool.cn/)** 👉 **[BootstrapAdmin](https://gitee.com/LongbowEnterprise/BootstrapAdmin)** 👉 **[BootstrapBlazor](https://blazor.sdgxgz.com/)** 👉 **[IoTSharp](https://gitee.com/IoTSharp/IoTSharp)**
+👉 **[Fur](https://gitee.com/dotnetchina/Furion)** 👉 **[SqlSugar](https://github.com/sunkaixuan/SqlSugar)** 👉 **[Layx](https://gitee.com/monksoul/LayX)** 👉 **[t-io](https://gitee.com/tywo45/t-io)** 👉 **[ThinkPHP](http://www.thinkphp.cn/)** 👉 **[Hutool](https://hutool.cn/)** 👉 **[BootstrapAdmin](https://gitee.com/LongbowEnterprise/BootstrapAdmin)** 👉 **[BootstrapBlazor](https://blazor.sdgxgz.com/)** 👉 **[IoTSharp](https://gitee.com/IoTSharp/IoTSharp)**
