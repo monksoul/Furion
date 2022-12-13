@@ -51,8 +51,6 @@ The main purpose of this repository is to continue evolving Furion core, making 
 
 Read [contribution documents](https://dotnetchina.gitee.io/furion/docs/contribute) to learn how you can take part in improving Furion.
 
-[![Giteye chart](https://chart.giteye.net/gitee/dotnetchina/Furion/ZS49EPL6.png)](https://giteye.net/chart/ZS49EPL6)
-
 ## 许可证 / License
 
 Furion 采用 [MulanPSL-2.0](https://gitee.com/dotnetchina/Furion/blob/master/LICENSE) 开源许可证。
