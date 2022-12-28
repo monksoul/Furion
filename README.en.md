@@ -65,7 +65,7 @@
 
 - **Fur 视频教程：[https://space.bilibili.com/695987967](https://space.bilibili.com/695987967)**
 - Fur 使用例子：[https://gitee.com/dotnetchina/Furion-samples](https://gitee.com/dotnetchina/Furion-samples)
-- Fur 系列教程：[《学 .NET 5 从 Fur 开始》](https://gitee.com/dotnetchina/Furion/blob/main/tutorials) 系列
+- Fur 系列教程：[《学 .NET 5 从 Fur 开始》](https://gitee.com/dotnetchina/Furion/blob/v1/tutorials) 系列
 
 ## 🌭 开源地址
 
