@@ -228,8 +228,8 @@
                     spec: {
                         wrapSelectors: {
                             taggedOperations: function taggedOperations(ori) {
-                                return function () {
-                                    return ori.apply(void 0, arguments).filter(function (tagMeta) {
+                                return function() {
+                                    return ori.apply(void 0, arguments).filter(function(tagMeta) {
                                         return tagMeta.get("operations") && tagMeta.get("operations").size > 0;
                                     });
                                 };
@@ -293,13 +293,13 @@
         // send ajax request
         function sendRequest(params) {
             let xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
+            xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4 && xhr.status == 200) {
                     let obj = JSON.parse(xhr.response);
                     let headers = xhr.getAllResponseHeaders();
                     let arr = headers.trim().split(/[\r\n]+/);
                     let headerMap = {};
-                    arr.forEach(function (line) {
+                    arr.forEach(function(line) {
                         let parts = line.split(': ');
                         let header = parts.shift();
                         let value = parts.join(': ');
@@ -315,7 +315,7 @@
             function objectToString(obj) {
                 let arr = [];
                 for (var k in obj) {
-                    arr.push(`${k}=${obj[k]}`);
+                    arr.push(`${k}=${encodeURIComponent(obj[k])}`);
                 }
 
                 return arr.join('&');
@@ -343,7 +343,7 @@
 
         // init swagger ui
         function initSwaggerUI(configObject, oauthConfigObject) {
-            configObject.onComplete = function () {
+            configObject.onComplete = function() {
                 var accessToken = window.localStorage.getItem(tokenKey);
                 if (accessToken) {
                     ui.preauthorizeApiKey("Bearer", accessToken);
@@ -351,7 +351,7 @@
             };
 
             // Workaround for https://github.com/swagger-api/swagger-ui/issues/5945
-            configObject.urls.forEach(function (item) {
+            configObject.urls.forEach(function(item) {
                 if (item.url.startsWith("http") || item.url.startsWith("/")) return;
                 item.url = window.location.href.replace("index.html", item.url).split('#')[0];
             });
@@ -387,7 +387,7 @@
             window.ui = ui
         }
 
-        window.onload = function () {
+        window.onload = function() {
             var configObject = JSON.parse('%(ConfigObject)');
             var oauthConfigObject = JSON.parse('%(OAuthConfigObject)');
 
@@ -403,7 +403,7 @@
                 sendRequest({
                     method: "POST",
                     url: loginObject.CheckUrl,
-                    success: function (res, headerMap) {
+                    success: function(res, headerMap) {
                         if (res.toString() === "200") {
                             loginForm.style.display = "none";
                             initSwaggerUI(configObject, oauthConfigObject);
@@ -411,7 +411,7 @@
                         else {
                             userName.focus();
 
-                            submit.addEventListener("click", function (ev) {
+                            submit.addEventListener("click", function(ev) {
                                 if (userName.value.trim().length === 0) {
                                     userName.focus();
                                     return;
@@ -430,7 +430,7 @@
                                         userName: userName.value.trim(),
                                         password: password.value.trim()
                                     },
-                                    success: function (res, headerMap) {
+                                    success: function(res, headerMap) {
                                         if (res.toString() === "200") {
                                             loginForm.style.display = "none";
                                             initSwaggerUI(configObject, oauthConfigObject);
@@ -440,7 +440,7 @@
                                             loginError.innerHTML = "Invalid UserName or Password.";
                                         }
                                     },
-                                    error: function (xhr) {
+                                    error: function(xhr) {
                                         if (xhr.status === 404) {
                                             loginError.innerHTML = "Not Found: " + loginObject.SubmitUrl;
                                         }
@@ -452,7 +452,7 @@
                             });
                         }
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         if (xhr.status === 404) {
                             loginError.innerHTML = "Not Found: " + loginObject.CheckUrl;
                         }
