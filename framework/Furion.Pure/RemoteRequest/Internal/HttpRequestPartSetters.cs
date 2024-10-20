@@ -182,7 +182,12 @@ public sealed partial class HttpRequestPart
     /// <returns></returns>
     public HttpRequestPart SetBaseAddress(string baseAddress)
     {
-        if (!string.IsNullOrWhiteSpace(baseAddress)) BaseAddress = baseAddress;
+        if (!string.IsNullOrWhiteSpace(baseAddress))
+        {
+            // 支持读取配置渲染
+            BaseAddress = baseAddress.Render();
+        }
+
         return this;
     }
 
