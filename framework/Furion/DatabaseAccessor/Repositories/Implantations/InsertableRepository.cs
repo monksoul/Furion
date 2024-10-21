@@ -42,15 +42,11 @@ public partial class PrivateRepository<TEntity>
     /// <param name="tableNamesAction"></param>
     /// <param name="entity"></param>
     /// <param name="keySet"></param>
-    /// <returns></returns>
-    public virtual EntityEntry<TEntity> InsertFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null)
+    public virtual void InsertFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null)
     {
         GenerateInsertSQL(tableNamesAction, entity, out var stringBuilder, out var parameters, keySet);
 
-        // 这里怎么根据将 stringBuilder 和 entity 关联起来
         Database.ExecuteSqlRaw(stringBuilder.ToString(), parameters.ToArray());
-
-        return Context.Entry(entity);
     }
 
     /// <summary>
@@ -59,15 +55,11 @@ public partial class PrivateRepository<TEntity>
     /// <param name="tableNamesAction"></param>
     /// <param name="entity"></param>
     /// <param name="keySet"></param>
-    /// <returns></returns>
-    public virtual async Task<EntityEntry<TEntity>> InsertFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null)
+    public virtual async Task InsertFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null)
     {
         GenerateInsertSQL(tableNamesAction, entity, out var stringBuilder, out var parameters, keySet);
 
-        // 这里怎么根据将 stringBuilder 和 entity 关联起来
         await Database.ExecuteSqlRawAsync(stringBuilder.ToString(), parameters.ToArray());
-
-        return Context.Entry(entity);
     }
 
     /// <summary>

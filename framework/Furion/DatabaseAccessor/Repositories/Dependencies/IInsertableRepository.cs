@@ -60,8 +60,7 @@ public interface IPrivateInsertableRepository<TEntity> : IPrivateRootRepository
     /// <param name="tableNamesAction"></param>
     /// <param name="entity"></param>
     /// <param name="keySet"></param>
-    /// <returns></returns>
-    EntityEntry<TEntity> InsertFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null);
+    void InsertFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null);
 
     /// <summary>
     /// 分表插入一条记录
@@ -69,8 +68,7 @@ public interface IPrivateInsertableRepository<TEntity> : IPrivateRootRepository
     /// <param name="tableNamesAction"></param>
     /// <param name="entity"></param>
     /// <param name="keySet"></param>
-    /// <returns></returns>
-    Task<EntityEntry<TEntity>> InsertFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null);
+    Task InsertFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, object keySet = null);
 
     /// <summary>
     /// 新增一条记录

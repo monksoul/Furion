@@ -25,7 +25,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace Furion.DatabaseAccessor;
 
@@ -35,6 +37,35 @@ namespace Furion.DatabaseAccessor;
 public partial class PrivateRepository<TEntity>
     where TEntity : class, IPrivateEntity, new()
 {
+    /// <summary>
+    /// 分表更新一条记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="entity"></param>
+    /// <param name="includePropertyNames"></param>
+    /// <param name="excludePropertyNames"></param>
+    public virtual void UpdateFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, string[] includePropertyNames = null, string[] excludePropertyNames = null)
+    {
+        GenerateUpdateSQL(tableNamesAction, entity, out var stringBuilder, out var parameters, includePropertyNames, excludePropertyNames);
+
+        Database.ExecuteSqlRaw(stringBuilder.ToString(), parameters.ToArray());
+    }
+
+    /// <summary>
+    /// 分表更新一条记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="entity"></param>
+    /// <param name="includePropertyNames"></param>
+    /// <param name="excludePropertyNames"></param>
+    /// <returns></returns>
+    public virtual async Task UpdateFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, string[] includePropertyNames = null, string[] excludePropertyNames = null)
+    {
+        GenerateUpdateSQL(tableNamesAction, entity, out var stringBuilder, out var parameters, includePropertyNames, excludePropertyNames);
+
+        await Database.ExecuteSqlRawAsync(stringBuilder.ToString(), parameters.ToArray());
+    }
+
     /// <summary>
     /// 更新一条记录
     /// </summary>
@@ -1082,6 +1113,106 @@ public partial class PrivateRepository<TEntity>
             {
                 entityProperty.IsModified = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// 生成 UPDATE 语句
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="entity"></param>
+    /// <param name="stringBuilder"></param>
+    /// <param name="parameters"></param>
+    /// <param name="includePropertyNames"></param>
+    /// <param name="excludePropertyNames"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    private void GenerateUpdateSQL(Func<string, IEnumerable<string>> tableNamesAction
+        , TEntity entity
+        , out StringBuilder stringBuilder
+        , out List<object> parameters
+        , string[] includePropertyNames = null
+        , string[] excludePropertyNames = null)
+    {
+        if (tableNamesAction == null)
+        {
+            throw new ArgumentNullException(nameof(tableNamesAction));
+        }
+
+        // 原始表
+        var originTableName = GetFullTableName();
+
+        // 获取分表名称集合
+        var returnTableNames = tableNamesAction(originTableName)?.ToArray();
+        var tableSegments = ((returnTableNames == null || returnTableNames.Length == 0) ? [originTableName] : returnTableNames)
+            .Distinct()
+        .Select(u => string.IsNullOrWhiteSpace(u) ? originTableName : FormatDbElement(u));
+
+        // 获取主键属性
+        var columnProperty = EntityType.FindPrimaryKey().Properties
+            .FirstOrDefault();
+        var columnPropertyValue = Entry(entity).Property(columnProperty.Name).CurrentValue;
+
+        if (columnPropertyValue == null)
+        {
+            throw new InvalidOperationException("No definition of the primary key found.");
+        }
+
+        // 查询主键列名
+        var keyColumn = FormatDbElement(columnProperty?.GetColumnName(StoreObjectIdentifier.Table(EntityType?.GetTableName(), EntityType?.GetSchema())));
+
+        // 获取列名
+        var columnNames = EntityType.GetProperties()
+            .ToDictionary(p => p.Name, p => FormatDbElement(p.GetColumnName(StoreObjectIdentifier.Table(EntityType?.GetTableName(), EntityType?.GetSchema()))))
+            .Where(u => !u.Value.Equals(keyColumn, StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(p => p.Key, p => p.Value);
+
+        var setColumnStringBuilder = new StringBuilder();
+        parameters = new();
+
+        var i = 0;
+        var j = 0;
+        foreach (var (key, value) in columnNames)
+        {
+            j++;
+
+            var canUpdate = true;
+
+            if (includePropertyNames is { Length: > 0 })
+            {
+                canUpdate = includePropertyNames.Contains(key, StringComparer.OrdinalIgnoreCase);
+            }
+            else if (excludePropertyNames is { Length: > 0 })
+            {
+                if (excludePropertyNames.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    canUpdate = false;
+                }
+            }
+
+            if (canUpdate)
+            {
+                setColumnStringBuilder.Append($"\"{key}\" = {{{i}}}");
+
+                if (j < columnNames.Count)
+                {
+                    setColumnStringBuilder.Append(", ");
+                }
+
+                var propertyValue = Entry(entity).Property(key).CurrentValue;
+                parameters.Add(propertyValue);
+
+                i++;
+            }
+        }
+
+        parameters.Add(columnPropertyValue);
+
+        stringBuilder = new StringBuilder();
+
+        // 生成更新语句
+        foreach (var tableName in returnTableNames)
+        {
+            stringBuilder.AppendLine($"UPDATE {tableName} SET {setColumnStringBuilder} WHERE {keyColumn} = {{{i}}};");
         }
     }
 }

@@ -56,6 +56,25 @@ public partial interface IPrivateUpdateableRepository<TEntity> : IPrivateRootRep
     where TEntity : class, IPrivateEntity, new()
 {
     /// <summary>
+    /// 分表更新一条记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="entity"></param>
+    /// <param name="includePropertyNames"></param>
+    /// <param name="excludePropertyNames"></param>
+    void UpdateFromSegments(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, string[] includePropertyNames = null, string[] excludePropertyNames = null);
+
+    /// <summary>
+    /// 分表更新一条记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="entity"></param>
+    /// <param name="includePropertyNames"></param>
+    /// <param name="excludePropertyNames"></param>
+    /// <returns></returns>
+    Task UpdateFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, TEntity entity, string[] includePropertyNames = null, string[] excludePropertyNames = null);
+
+    /// <summary>
     /// 更新一条记录
     /// </summary>
     /// <param name="entity">实体</param>

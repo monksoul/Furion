@@ -355,7 +355,13 @@ public class PersonService : IDynamicApiController
 
     public async Task 测试分表插入()
     {
-        var persons = await _personRepository
-            .InsertFromSegmentsAsync(table => [table], new Person { Id = 2, Name = "Furion", Age = 32 });
+        await _personRepository
+           .InsertFromSegmentsAsync(table => [table], new Person { Id = 2, Name = "Furion", Age = 32 });
+    }
+
+    public async Task 测试分表更新()
+    {
+        await _personRepository
+           .UpdateFromSegmentsAsync(table => [table], new Person { Id = 1, Name = "Furion", Age = 32 });
     }
 }
