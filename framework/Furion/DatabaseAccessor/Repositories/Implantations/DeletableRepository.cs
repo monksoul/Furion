@@ -43,6 +43,11 @@ public partial class PrivateRepository<TEntity>
     /// <param name="keys"></param>
     public virtual void DeleteFromSegments(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys)
     {
+        if (keys == null || keys.Length == 0)
+        {
+            return;
+        }
+
         GenerateDeleteSQL(tableNamesAction, keys, out var stringBuilder);
 
         Database.ExecuteSqlRaw(stringBuilder.ToString(), keys);
@@ -56,6 +61,11 @@ public partial class PrivateRepository<TEntity>
     /// <returns></returns>
     public virtual async Task DeleteFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys)
     {
+        if (keys == null || keys.Length == 0)
+        {
+            return;
+        }
+
         GenerateDeleteSQL(tableNamesAction, keys, out var stringBuilder);
 
         await Database.ExecuteSqlRawAsync(stringBuilder.ToString(), keys);
