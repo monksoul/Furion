@@ -1,7 +1,7 @@
 ﻿<Project>
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-		<Version>4.9.5.17</Version>
+		<Version>4.9.5.18</Version>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Authors>百小僧</Authors>
 		<Company>百签科技（广东）有限公司</Company>
