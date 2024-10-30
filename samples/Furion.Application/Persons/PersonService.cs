@@ -364,4 +364,10 @@ public class PersonService : IDynamicApiController
         await _personRepository
            .UpdateFromSegmentsAsync(table => [table], new Person { Id = 1, Name = "Furion", Age = 32 });
     }
+
+    public async Task 测试分表删除()
+    {
+        await _personRepository
+           .DeleteFromSegmentsAsync(table => [table], 1, 2, 3, 4);
+    }
 }

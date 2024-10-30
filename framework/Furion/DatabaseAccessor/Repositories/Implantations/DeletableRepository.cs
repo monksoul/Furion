@@ -25,6 +25,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
+using System.Text;
 
 namespace Furion.DatabaseAccessor;
 
@@ -34,6 +36,31 @@ namespace Furion.DatabaseAccessor;
 public partial class PrivateRepository<TEntity>
     where TEntity : class, IPrivateEntity, new()
 {
+    /// <summary>
+    /// 根据主键分表删除记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="keys"></param>
+    public virtual void DeleteFromSegments(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys)
+    {
+        GenerateDeleteSQL(tableNamesAction, keys, out var stringBuilder);
+
+        Database.ExecuteSqlRaw(stringBuilder.ToString(), keys);
+    }
+
+    /// <summary>
+    /// 根据主键分表删除记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="keys"></param>
+    /// <returns></returns>
+    public virtual async Task DeleteFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys)
+    {
+        GenerateDeleteSQL(tableNamesAction, keys, out var stringBuilder);
+
+        await Database.ExecuteSqlRawAsync(stringBuilder.ToString(), keys);
+    }
+
     /// <summary>
     /// 删除一条记录
     /// </summary>
@@ -355,5 +382,57 @@ public partial class PrivateRepository<TEntity>
         if (isRealDelete) ChangeEntityState(entity, EntityState.Deleted);
 
         return entity;
+    }
+
+    /// <summary>
+    /// 生成 Delete 语句
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="keys"></param>
+    /// <param name="stringBuilder"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    private void GenerateDeleteSQL(Func<string, IEnumerable<string>> tableNamesAction
+        , object[] keys
+        , out StringBuilder stringBuilder)
+    {
+        if (tableNamesAction == null)
+        {
+            throw new ArgumentNullException(nameof(tableNamesAction));
+        }
+
+        // 原始表
+        var originTableName = GetFullTableName();
+
+        // 获取分表名称集合
+        var returnTableNames = tableNamesAction(originTableName)?.ToArray();
+        var tableSegments = ((returnTableNames == null || returnTableNames.Length == 0) ? [originTableName] : returnTableNames)
+            .Distinct()
+        .Select(u => string.IsNullOrWhiteSpace(u) ? originTableName : FormatDbElement(u));
+
+        // 获取主键属性
+        var columnProperty = EntityType.FindPrimaryKey().Properties
+            .FirstOrDefault();
+
+        // 查询主键列名
+        var keyColumn = FormatDbElement(columnProperty?.GetColumnName(StoreObjectIdentifier.Table(EntityType?.GetTableName(), EntityType?.GetSchema())));
+
+        var keyInStringBuilder = new StringBuilder();
+
+        for (var i = 0; i < keys.Length; i++)
+        {
+            keyInStringBuilder.Append($"{{{i}}}");
+            if (i != keys.Length - 1)
+            {
+                keyInStringBuilder.Append(", ");
+            }
+        }
+
+        stringBuilder = new StringBuilder();
+
+        // 生成删除语句
+        foreach (var tableName in returnTableNames)
+        {
+            stringBuilder.AppendLine($"DELETE FROM {tableName} WHERE {keyColumn} IN ({keyInStringBuilder});");
+        }
     }
 }

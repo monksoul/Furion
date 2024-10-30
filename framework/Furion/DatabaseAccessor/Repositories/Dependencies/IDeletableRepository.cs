@@ -55,6 +55,21 @@ public interface IPrivateDeletableRepository<TEntity> : IPrivateRootRepository
     where TEntity : class, IPrivateEntity, new()
 {
     /// <summary>
+    /// 根据主键分表删除记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="keys"></param>
+    void DeleteFromSegments(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys);
+
+    /// <summary>
+    /// 根据主键分表删除记录
+    /// </summary>
+    /// <param name="tableNamesAction"></param>
+    /// <param name="keys"></param>
+    /// <returns></returns>
+    Task DeleteFromSegmentsAsync(Func<string, IEnumerable<string>> tableNamesAction, params object[] keys);
+
+    /// <summary>
     /// 删除一条记录
     /// </summary>
     /// <param name="entity">实体</param>
