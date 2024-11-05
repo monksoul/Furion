@@ -533,6 +533,15 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
             writer.WriteString("type", exceptionTypeName);
             writer.WriteString("message", exception.Message);
             writer.WriteString("stackTrace", exception.StackTrace?.ToString());
+
+            // 添加更多信息
+            if (exception is AppFriendlyException friendlyException)
+            {
+                writer.WriteString("errorCode", friendlyException.ErrorCode?.ToString());
+                writer.WriteString("originErrorCode", friendlyException.OriginErrorCode?.ToString());
+                writer.WriteString("statusCode", friendlyException.StatusCode.ToString());
+            }
+
             writer.WriteEndObject();
 
             writer.WritePropertyName("validation");
@@ -557,6 +566,7 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
             writer.WriteString("errorCode", friendlyException?.ErrorCode?.ToString());
             writer.WriteString("originErrorCode", friendlyException?.OriginErrorCode?.ToString());
             writer.WriteString("message", friendlyException?.Message);
+            writer.WriteString("statusCode", friendlyException?.StatusCode.ToString());
             writer.WriteEndObject();
         }
 
