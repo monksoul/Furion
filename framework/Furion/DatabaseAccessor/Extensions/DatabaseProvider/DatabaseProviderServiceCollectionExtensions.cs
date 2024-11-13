@@ -310,7 +310,7 @@ public static class DatabaseProviderServiceCollectionExtensions
         {
             var optionsType = options.GetType();
 
-            optionsType.GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(u => u.GetParameters().Length == 1 && u.GetParameters().First().ParameterType == typeof(string))
+            optionsType.GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(u => u.Name == "MigrationsAssembly" && u.GetParameters().Length == 1 && u.GetParameters().First().ParameterType == typeof(string))
                    .Invoke(options, new[] { Db.MigrationAssemblyName });
 
             // 解决 MySQL/SqlServer/PostgreSQL 有时候出现短暂连接失败问题（v4.8.1.7 版本关闭）

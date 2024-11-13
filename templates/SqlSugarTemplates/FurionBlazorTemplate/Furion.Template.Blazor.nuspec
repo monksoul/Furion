@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Furion.SqlSugar.Template.Blazor</id>
-    <version>4.9.5.19</version>
+    <version>4.9.5.21</version>
     <description>基于 Furion 和 SqlSugar 框架快速搭建 Blazor 多层架构模板。</description>
     <authors>百小僧</authors>
     <packageTypes>
