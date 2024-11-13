@@ -19,18 +19,18 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(net8)' == 'True' ">
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.11" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
   <ItemGroup Condition="'$(net9)' == 'True' ">
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0-rc.2.24474.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0-rc.2.24474.1">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

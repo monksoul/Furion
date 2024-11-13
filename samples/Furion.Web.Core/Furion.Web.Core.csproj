@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<NoWarn>1701;1702;1591</NoWarn>
 		<DocumentationFile>Furion.Web.Core.xml</DocumentationFile>
 	</PropertyGroup>
