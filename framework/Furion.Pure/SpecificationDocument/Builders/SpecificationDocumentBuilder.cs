@@ -117,7 +117,6 @@ public static class SpecificationDocumentBuilder
     public static bool CheckApiDescriptionInCurrentGroup(string currentGroup, ApiDescription apiDescription)
     {
         if (!apiDescription.TryGetMethodInfo(out var method)) return false;
-
         // 处理 Mvc 和 WebAPI 混合项目路由问题
         if (typeof(Controller).IsAssignableFrom(method.DeclaringType) && apiDescription.ActionDescriptor.ActionConstraints == null)
         {
@@ -129,15 +128,29 @@ public static class SpecificationDocumentBuilder
         {
             return true;
         }
-
+        
         // 判断是否是 Minimal API
         var isMinimalApi = apiDescription.ActionDescriptor is not ControllerActionDescriptor;
         if (isMinimalApi)
         {
-            var groupAttribute = apiDescription.ActionDescriptor?.EndpointMetadata?.OfType<EndpointGroupNameAttribute>().LastOrDefault();
+            // var groupAttribute = apiDescription.ActionDescriptor?.EndpointMetadata?.OfType<EndpointGroupNameAttribute>().LastOrDefault();
+            // var groupName = groupAttribute?.EndpointGroupName;
+            // return (string.IsNullOrWhiteSpace(groupName) && currentGroup == _specificationDocumentSettings.DefaultGroupName) || currentGroup == groupName;
+            
+            // 如果用endpoint的groupname
+            var endpointGroups = apiDescription.ActionDescriptor.EndpointMetadata.OfType<EndpointGroupNameAttribute>()
+                .Select(gp=>gp.EndpointGroupName)
+                .ToList();
+            // 如果用WithMetadata方式添加ApiDescriptionSettingsAttribute
+            var apiDescriptionSettingsGroups = apiDescription.ActionDescriptor.EndpointMetadata
+                .OfType<ApiDescriptionSettingsAttribute>()
+                // 不确定为什么有GroupName, 先兼容一下, 反正也是group, 但没有改 GetActionGroups 方法, 添加 GroupName
+                .SelectMany(setting=> (List<string>)[..setting.Groups, setting.GroupName])
+                .ToList();
 
-            var groupName = groupAttribute?.EndpointGroupName;
-            return (string.IsNullOrWhiteSpace(groupName) && currentGroup == _specificationDocumentSettings.DefaultGroupName) || currentGroup == groupName;
+            List<string> groups = [..endpointGroups, ..apiDescriptionSettingsGroups];                
+            var isInDefaultGroup = currentGroup == _specificationDocumentSettings.DefaultGroupName;
+            return  (groups.Count == 0 && isInDefaultGroup) || groups.Contains(currentGroup) ;
         }
         else
         {
@@ -233,6 +246,7 @@ public static class SpecificationDocumentBuilder
         SetProperty<OpenApiLicense>(group, nameof(SpecificationOpenApiInfo.License), value => groupInfo.License = value);
     }
 
+
     /// <summary>
     /// 设置额外配置的值
     /// </summary>
@@ -250,13 +264,16 @@ public static class SpecificationDocumentBuilder
         }
     }
 
+    private static IApplicationBuilder? _app = null;
     /// <summary>
     /// 构建Swagger全局配置
     /// </summary>
     /// <param name="swaggerOptions">Swagger 全局配置</param>
     /// <param name="configure"></param>
-    internal static void Build(SwaggerOptions swaggerOptions, Action<SwaggerOptions> configure = null)
+    /// <param name="app">需要app获取endpoint的datasource</param>
+    internal static void Build(SwaggerOptions swaggerOptions, Action<SwaggerOptions>? configure = null, IApplicationBuilder app = null)
     {
+        _app = app;
         // 生成V2版本
         swaggerOptions.OpenApiVersion = _specificationDocumentSettings.FormatAsV2 == true
             ? OpenApiSpecVersion.OpenApi2_0
@@ -777,8 +794,62 @@ public static class SpecificationDocumentBuilder
                     Visible = u.Visible ?? true
                 }));
         }
+        
+        // 获取minimalapi的分组
+        
+        var endpointSources = ((IEndpointRouteBuilder)_app).DataSources;
+        // 过滤掉名字包含 "ControllerActionEndpointDataSource" 的数据源, (因为下面原来已经有了controller action的判断, 排除掉controller的endpoint)
+        // 目前调试发现 RouteEndpointDataSource, RouteGroupBuilder.GroupEndpointDataSource 和 ControllerActionEndpointDataSource
+        var minimalApiSources = endpointSources
+            .Where(src => src.GetType().Name != "ControllerActionEndpointDataSource")
+            .ToList();
+        foreach (var source in minimalApiSources)
+        {
+            foreach (var endpoint in source.Endpoints)
+            {
+                // 1. 获取 WithMetadata(ApiDescriptionSettingsAttribute) 设置的分组
+                var metaAttr = endpoint.Metadata.GetMetadata<ApiDescriptionSettingsAttribute>();
+                var apiDescriptionSettingsGroups = endpoint.Metadata.OfType<ApiDescriptionSettingsAttribute>()
+                    .SelectMany(m => {
+                        List<string> gps = m.Groups.ToList();
+                        // 这里猜测GroupName也可以作为group的, 不知道是不是这个用意
+                        if (!string.IsNullOrEmpty(m.GroupName))
+                        {
+                            gps.Add(m.GroupName);
+                        }
 
-        // 获取所有的控制器和动作方法
+                        return gps.Select(g => new GroupExtraInfo
+                        {
+                            Group = g,
+                            Order = metaAttr.Order,
+                            Visible = true
+                        }).Where(g=>!string.IsNullOrWhiteSpace(g.Group));
+                    })
+                    .ToList();
+                if (apiDescriptionSettingsGroups.Any())
+                {
+                    finalGroups.AddRange(apiDescriptionSettingsGroups);
+                }
+                
+                // 2. 获取 WithGroupName() 设置的分组
+                var endpointGroups = endpoint.Metadata.OfType<EndpointGroupNameAttribute>()
+                    .Select(m => m.EndpointGroupName)
+                    .Where(name=>!string.IsNullOrWhiteSpace(name))
+                    .Select(name=>new GroupExtraInfo
+                    {
+                        Group = name,
+                        // Order = metaAttr.Order,
+                        Visible = true
+                    })
+                    .ToList();
+                if (endpointGroups.Any())
+                {
+                    finalGroups.AddRange(endpointGroups);
+                }
+            }
+        }
+        
+        // 获取所有的控制器和Action方法 
         var controllers = App.EffectiveTypes.Where(Penetrates.IsApiController).ToArray();
 
         if (controllers.Length == 0)
@@ -798,7 +869,7 @@ public static class SpecificationDocumentBuilder
         {
             var actions = controllers.SelectMany(c =>
                 c.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                 .Where(u => IsApiAction(u, c)));
+                    .Where(u => IsApiAction(u, c)));
 
             // 合并所有分组
             var groupOrders = controllers.SelectMany(GetControllerGroups)
@@ -815,7 +886,7 @@ public static class SpecificationDocumentBuilder
             finalGroups.AddRange(groupOrders);
         }
 
-        // 分组排序
+        // 分组排序去重
         var sortedGroups = finalGroups
             .OrderByDescending(u => u.Order)
             .ThenBy(u => u.Group)

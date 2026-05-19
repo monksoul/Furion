@@ -54,7 +54,7 @@ public static class SpecificationDocumentApplicationBuilderExtensions
         if (App.Settings.InjectSpecificationDocument != true) return app;
 
         // 配置 Swagger 全局参数
-        app.UseSwagger(options => SpecificationDocumentBuilder.Build(options, configureSwagger));
+        app.UseSwagger(options => SpecificationDocumentBuilder.Build(options, configureSwagger, app));
 
         // 配置 Swagger UI 参数
         app.UseSwaggerUI(options => SpecificationDocumentBuilder.BuildUI(options, routePrefix, configureSwaggerUI, withProxy));
