@@ -82,7 +82,7 @@ public static class SpecificationDocumentBuilder
     /// <summary>
     /// 文档分组列表
     /// </summary>
-    public static readonly List<string> DocumentGroups;
+    public static readonly List<string> DocumentGroups=new();
 
     /// <summary>
     /// 构造函数
@@ -103,9 +103,6 @@ public static class SpecificationDocumentBuilder
 
         // 默认分组，支持多个逗号分割
         DocumentGroupExtras = new List<GroupExtraInfo> { ResolveGroupExtraInfo(_specificationDocumentSettings.DefaultGroupName) };
-
-        // 加载所有分组
-        DocumentGroups = ReadGroups();
     }
 
     /// <summary>
@@ -271,6 +268,9 @@ public static class SpecificationDocumentBuilder
     /// <param name="configure"></param>
     internal static void Build(SwaggerOptions swaggerOptions, Action<SwaggerOptions>? configure, IApplicationBuilder app)
     {
+        _app = app;
+        // 加载所有分组
+        DocumentGroups.AddRange(ReadGroups());
         // 生成V2版本
         swaggerOptions.OpenApiVersion = _specificationDocumentSettings.FormatAsV2 == true
             ? OpenApiSpecVersion.OpenApi2_0
@@ -380,6 +380,26 @@ public static class SpecificationDocumentBuilder
 
         // 自定义配置
         configure?.Invoke(swaggerUIOptions);
+        
+        // 要求UseInject必须放在minimalapi注册之后,所以补充根路径 "/"跳转到
+        if (string.IsNullOrEmpty(routePrefix))
+        {
+            // 检查现有路由表中是否已经有根路径 "/"
+            var hasRootEndpoint = endpointDatasources?
+                .SelectMany(ds => ds.Endpoints)
+                .OfType<RouteEndpoint>()
+                .Any(re => re.RoutePattern.RawText == string.Empty || re.RoutePattern.RawText == "/")??false;
+
+            // 3. 只有当开发者自己没有写首页路由时，我们的 Swagger 才去接管首页
+            if (!hasRootEndpoint)
+            {
+                endpointRouteBuilder?.MapGet("/", async context =>
+                {
+                    context.Response.Redirect("index.html", permanent: false);
+                    await Task.CompletedTask;
+                }).WithOrder(int.MinValue); // 确保击穿后再兜底
+            }
+        }
     }
 
     /// <summary>
@@ -772,6 +792,32 @@ public static class SpecificationDocumentBuilder
         swaggerUIOptions.UseResponseInterceptor("function(response) { return defaultResponseInterceptor(response); }");
     }
 
+    private static IEnumerable<EndpointDataSource>? endpointDatasources = null;
+    private static IEndpointRouteBuilder? endpointRouteBuilder = null;
+    private static IEnumerable<EndpointDataSource> GetMinimalApiDataSources(IApplicationBuilder app)
+    {
+        // 1. 优先尝试直接强转（适用于 WebApplication 或已执行 UseRouting 的场景）
+        if (app is IEndpointRouteBuilder routeBuilder)
+        {
+            endpointRouteBuilder = routeBuilder;
+            return routeBuilder.DataSources;
+        }
+    
+        // 2. 如果强转失败，去 Properties 字典中寻找内部隐藏的 RouteBuilder
+        //    __EndpointRouteBuilder 是微软内部定义好的标准 Key
+        if (app.Properties.TryGetValue("__EndpointRouteBuilder", out var obj) 
+            && obj is IEndpointRouteBuilder hiddenRouteBuilder)
+        {
+            endpointRouteBuilder = hiddenRouteBuilder;
+            return hiddenRouteBuilder.DataSources;
+        }
+    
+        // 3. 如果还是没有，说明当前阶段 UseRouting() 还没被调用，路由数据尚未初始化
+        // 此时可以选择返回空，或者抛出更明确的异常提醒调用时机太早
+        return endpointDatasources = Enumerable.Empty<EndpointDataSource>();
+    }
+    
+    
     /// <summary>
     /// 读取所有分组信息
     /// </summary>
@@ -793,7 +839,7 @@ public static class SpecificationDocumentBuilder
         }
         
         // 获取minimalapi的分组
-        var endpointSources = ((IEndpointRouteBuilder)_app).DataSources;
+        var endpointSources = GetMinimalApiDataSources(_app);
         // 过滤掉名字包含 "ControllerActionEndpointDataSource" 的数据源, (因为下面原来已经有了controller action的判断, 排除掉controller的endpoint)
         // 目前调试发现 RouteEndpointDataSource, RouteGroupBuilder.GroupEndpointDataSource 和 ControllerActionEndpointDataSource
         var minimalApiSources = endpointSources
