@@ -159,7 +159,7 @@ public sealed class HttpContextForwardBuilder
     {
         // 初始化 HttpRequestBuilder 实例
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri)
-            .AddHttpContentConverters(() => [new IActionResultContentConverter()]).DisableCache();
+            .AddHttpContentConverters(() => [_actionResultContentConverterInstance.Value]).DisableCache();
 
         // 复制查询参数和路由参数
         CopyQueryAndRouteValues(httpRequestBuilder);

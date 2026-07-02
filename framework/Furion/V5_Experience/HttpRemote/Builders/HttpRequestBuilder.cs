@@ -610,12 +610,20 @@ public sealed partial class HttpRequestBuilder
         // 设置默认的内容类型
         SetDefaultContentType(httpRemoteOptions.DefaultContentType);
 
+        // 初始化 HttpContentProcessorContext 实例
+        var processorContext = new HttpContentProcessorContext(RawContent, ContentType!, ContentEncoding)
+        {
+            HttpClientName = HttpClientName
+        };
+
         // 构建 HttpContent 实例
-        var httpContent = httpContentProcessorFactory.Build(
-            new HttpContentProcessorContext(RawContent, ContentType!, ContentEncoding)
-            {
-                HttpClientName = HttpClientName
-            }, processors);
+        var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
+
+        // 是否在请求结束后自动释放流
+        if (processorContext.CompletionDisposable is { } disposable)
+        {
+            AddDisposable(disposable);
+        }
 
         // 空检查
         if (httpContent is null)

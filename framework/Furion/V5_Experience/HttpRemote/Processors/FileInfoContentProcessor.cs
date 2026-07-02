@@ -48,8 +48,14 @@ public class FileInfoContentProcessor : HttpContentProcessorBase
         // 获取 FileInfo 实例
         var fileInfo = (FileInfo)context.RawContent!;
 
+        // 读取文件流（没有 using）
+        var fileStream = fileInfo.OpenRead();
+
+        // 添加请求结束后自动释放的流
+        context.CompletionDisposable = fileStream;
+
         // 初始化 StreamContent 实例
-        var streamContent = new StreamContent(fileInfo.OpenRead());
+        var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType =
             new MediaTypeHeaderValue(context.ContentType) { CharSet = context.Encoding?.WebName };
 

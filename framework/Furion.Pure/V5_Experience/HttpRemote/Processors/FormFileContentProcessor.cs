@@ -23,18 +23,19 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="FileInfo" /> 内容处理器
+///     <see cref="IFormFile" /> 内容处理器
 /// </summary>
-public class FileInfoContentProcessor : HttpContentProcessorBase
+public class FormFileContentProcessor : HttpContentProcessorBase
 {
     /// <inheritdoc />
     public override bool CanProcess(HttpContentProcessorContext context) =>
-        context.RawContent is FileInfo;
+        context.RawContent is IFormFile;
 
     /// <inheritdoc />
     public override HttpContent? Process(HttpContentProcessorContext context)
@@ -45,11 +46,11 @@ public class FileInfoContentProcessor : HttpContentProcessorBase
             return httpContent;
         }
 
-        // 获取 FileInfo 实例
-        var fileInfo = (FileInfo)context.RawContent!;
+        // 获取 IFormFile 实例
+        var formFile = (IFormFile)context.RawContent!;
 
         // 读取文件流（没有 using）
-        var fileStream = fileInfo.OpenRead();
+        var fileStream = formFile.OpenReadStream();
 
         // 添加请求结束后自动释放的流
         context.CompletionDisposable = fileStream;
@@ -63,7 +64,7 @@ public class FileInfoContentProcessor : HttpContentProcessorBase
         streamContent.Headers.ContentDisposition =
             new ContentDispositionHeaderValue(context.AsFormItem ? "form-data" : "attachment")
             {
-                FileName = fileInfo.Name
+                FileName = formFile.FileName
             };
 
         return streamContent;

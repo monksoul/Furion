@@ -45,4 +45,9 @@ public sealed record HttpContentProcessorContext(object? RawContent, string Cont
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool AsFormItem { get; init; }
+
+    /// <summary>
+    ///     设置需要在请求结束后自动释放的流
+    /// </summary>
+    public IDisposable? CompletionDisposable { get; set; }
 }

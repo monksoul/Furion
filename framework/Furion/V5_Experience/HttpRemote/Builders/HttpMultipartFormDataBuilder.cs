@@ -978,13 +978,22 @@ public sealed class HttpMultipartFormDataBuilder
         var contentType = multipartFormDataItem.ContentType;
         ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
 
-        // 构建 HttpContent 实例
-        var httpContent = httpContentProcessorFactory.Build(
+        // 初始化 HttpContentProcessorContext 实例
+        var processorContext =
             new HttpContentProcessorContext(multipartFormDataItem.RawContent, contentType,
                 multipartFormDataItem.ContentEncoding)
             {
                 HttpClientName = _httpRequestBuilder.HttpClientName, AsFormItem = true
-            }, processors);
+            };
+
+        // 构建 HttpContent 实例
+        var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
+
+        // 是否在请求结束后自动释放流
+        if (processorContext.CompletionDisposable is { } disposable)
+        {
+            _httpRequestBuilder.AddDisposable(disposable);
+        }
 
         // 空检查
         if (httpContent is not null && httpContent.Headers.ContentDisposition is null)
