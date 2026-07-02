@@ -864,7 +864,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <summary>
     ///     设置是否移除默认的多部分内容的 <c>Content-Type</c>
     /// </summary>
-    /// <param name="omit">如果为 <c>true</c> 则移除，默认为 <c>false</c></param>
+    /// <param name="omit">如果为 <c>true</c> 则移除，默认值为：<c>true</c></param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>

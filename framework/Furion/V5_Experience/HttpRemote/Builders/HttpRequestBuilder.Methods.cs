@@ -26,6 +26,7 @@
 using Furion.Extensions;
 using Furion.Utilities;
 using Microsoft.Net.Http.Headers;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
@@ -157,10 +158,7 @@ public sealed partial class HttpRequestBuilder
         // 尝试验证并获取 JsonDocument 实例（需 using）
         var jsonDocument = JsonUtility.Parse(rawString);
 
-        // 添加请求结束时需要释放的对象
-        AddDisposable(jsonDocument);
-
-        return SetContent(jsonDocument, contentType ?? MediaTypeNames.Application.Json, contentEncoding);
+        return SetContent(jsonDocument, contentType ?? MediaTypeNames.Application.Json, contentEncoding, true);
     }
 
     /// <summary>
@@ -275,11 +273,12 @@ public sealed partial class HttpRequestBuilder
     /// <param name="rawContent">原始请求内容</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="contentEncoding">内容编码</param>
+    /// <param name="disposeStreamOnRequestCompletion">是否在请求结束后自动释放流。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     public HttpRequestBuilder SetContent(object? rawContent, string? contentType = null,
-        Encoding? contentEncoding = null)
+        Encoding? contentEncoding = null, bool disposeStreamOnRequestCompletion = false)
     {
         // 空检查
         if (!string.IsNullOrWhiteSpace(contentType))
@@ -308,6 +307,12 @@ public sealed partial class HttpRequestBuilder
         if (contentEncoding is not null)
         {
             SetContentEncoding(contentEncoding);
+        }
+
+        // 是否在请求结束后自动释放流
+        if (disposeStreamOnRequestCompletion && rawContent is IDisposable disposable)
+        {
+            AddDisposable(disposable);
         }
 
         return this;
@@ -414,19 +419,7 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(headers);
 
-        // 初始化请求标头
-        Headers ??= new Dictionary<string, List<string?>>(StringComparer.OrdinalIgnoreCase);
-        var objectHeaders = new Dictionary<string, List<object?>>(StringComparer.OrdinalIgnoreCase);
-
-        // 存在则合并否则添加
-        objectHeaders.AddOrUpdate(
-            Headers.ToDictionary(u => u.Key, object? (u) => u.Value, StringComparer.OrdinalIgnoreCase), false);
-        objectHeaders.AddOrUpdate(headers, false, replace);
-
-        // 设置请求标头
-        Headers = objectHeaders.ToDictionary(kvp => kvp.Key,
-            kvp => kvp.Value.Select(u => u.ToInvariantCultureString()?.EscapeDataString(escape)).ToList(),
-            StringComparer.OrdinalIgnoreCase);
+        Headers = MergeHeaders(Headers, headers, escape, replace);
 
         return this;
     }
@@ -1776,7 +1769,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     设置是否移除默认的内容的 <c>Content-Type</c>
     /// </summary>
-    /// <param name="omit">如果为 <c>true</c> 则移除，默认为 <c>false</c></param>
+    /// <param name="omit">如果为 <c>true</c> 则移除，默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -1991,6 +1984,43 @@ public sealed partial class HttpRequestBuilder
         configure.Combine(ref _uriBuilderConfigure);
 
         return this;
+    }
+
+    /// <summary>
+    ///     将一组标头合并到现有标头字典中
+    /// </summary>
+    /// <param name="existing">当前标头字典</param>
+    /// <param name="newHeaders">待合并的新标头字典</param>
+    /// <param name="escape">是否转义字符串</param>
+    /// <param name="replace">是否替换已存在的请求标头</param>
+    /// <returns>
+    ///     <see cref="IDictionary{TKey,TValue}" />
+    /// </returns>
+    internal static IDictionary<string, List<string?>>? MergeHeaders(
+        [NotNullIfNotNull(nameof(existing))] IDictionary<string, List<string?>>? existing,
+        IDictionary<string, object?> newHeaders, bool escape, bool replace)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(newHeaders);
+
+        // 空检查
+        if (newHeaders is { Count: 0 })
+        {
+            return existing;
+        }
+
+        // 初始化字典
+        existing ??= new Dictionary<string, List<string?>>(StringComparer.OrdinalIgnoreCase);
+        var objectHeaders = new Dictionary<string, List<object?>>(StringComparer.OrdinalIgnoreCase);
+
+        // 存在则合并否则添加
+        objectHeaders.AddOrUpdate(
+            existing.ToDictionary(u => u.Key, object? (u) => u.Value, StringComparer.OrdinalIgnoreCase), false);
+        objectHeaders.AddOrUpdate(newHeaders, false, replace);
+
+        return objectHeaders.ToDictionary(kvp => kvp.Key,
+            kvp => kvp.Value.Select(u => u.ToInvariantCultureString()?.EscapeDataString(escape)).ToList(),
+            StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

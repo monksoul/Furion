@@ -45,7 +45,7 @@ public sealed class HeaderAttribute : Attribute
     ///     <inheritdoc cref="HeaderAttribute" />
     /// </summary>
     /// <remarks>
-    ///     <para>当特性作用于方法或接口时，则表示移除指定请求标头操作。</para>
+    ///     <para>当特性作用于方法或接口时，若配置字符串不含冒号（:），则表示移除指定请求标头；若含冒号，则以第一个冒号为分隔，左侧为键，右侧为值。</para>
     ///     <para>当特性作用于参数时，则表示添加请求标头，同时设置请求标头键为 <c>name</c> 的值。</para>
     /// </remarks>
     /// <param name="name">请求标头键</param>

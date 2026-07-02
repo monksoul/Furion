@@ -25,6 +25,7 @@
 
 using Furion.Extensions;
 using Furion.Utilities;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Furion.HttpRemote;
@@ -60,10 +61,17 @@ internal sealed class HeaderDeclarativeExtractor : IHttpDeclarativeExtractor
                     httpRequestBuilder.WithHeader(headerName, headerAttribute.Value, headerAttribute.Escape,
                         headerAttribute.Replace);
                 }
-                // 移除请求标头
                 else
                 {
-                    httpRequestBuilder.RemoveHeaders(headerName);
+                    // 尝试将字符串按第一个冒号拆分为键值对
+                    if (TrySplitHeader(headerName, out var key, out var value))
+                    {
+                        httpRequestBuilder.WithHeader(key, value, headerAttribute.Escape, headerAttribute.Replace);
+                    }
+                    else
+                    {
+                        httpRequestBuilder.RemoveHeaders(headerName);
+                    }
                 }
             }
         }
@@ -116,5 +124,40 @@ internal sealed class HeaderDeclarativeExtractor : IHttpDeclarativeExtractor
                 }
             }
         }
+    }
+
+    /// <summary>
+    ///     尝试将字符串按第一个冒号拆分为键值对
+    /// </summary>
+    /// <remarks>如果输入非空且至少包含一个冒号，返回 <c>true</c>，否则返回 <c>false</c>。</remarks>
+    /// <param name="input">待拆分的字符串</param>
+    /// <param name="key">输出拆分后的键</param>
+    /// <param name="value">输出拆分后的值</param>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    internal static bool TrySplitHeader(string input, [NotNullWhen(true)] out string? key, out string? value)
+    {
+        key = null;
+        value = null;
+
+        // 空检查
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return false;
+        }
+
+        // 检查是否包含冒号
+        var colonIndex = input.IndexOf(':');
+        if (colonIndex < 0)
+        {
+            return false;
+        }
+
+        // 冒号前为 key，冒号后为 value
+        key = input[..colonIndex].Trim();
+        value = input[(colonIndex + 1)..].Trim();
+
+        return true;
     }
 }

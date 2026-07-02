@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using System.Text;
 
@@ -69,7 +70,7 @@ public static class HttpMultipartFormDataBuilderExtensions
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </param>
     /// <param name="formFiles">
-    ///     <see cref="IFormFileCollection" />
+    ///     <see cref="IFormFile" /> 集合
     /// </param>
     /// <param name="name">表单名称</param>
     /// <returns>
@@ -85,6 +86,73 @@ public static class HttpMultipartFormDataBuilderExtensions
         foreach (var formFile in formFiles)
         {
             httpMultipartFormDataBuilder.AddFile(formFile, name ?? formFile.Name);
+        }
+
+        return httpMultipartFormDataBuilder;
+    }
+
+    /// <summary>
+    ///     添加文件
+    /// </summary>
+    /// <param name="httpMultipartFormDataBuilder">
+    ///     <see cref="HttpMultipartFormDataBuilder" />
+    /// </param>
+    /// <param name="browserFile">
+    ///     <see cref="IBrowserFile" />
+    /// </param>
+    /// <param name="name">表单名称</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="contentEncoding">内容编码</param>
+    /// <param name="maxAllowedSize">流可以提供的最大字节数，默认值为：<c>500KB</c></param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpMultipartFormDataBuilder" />
+    /// </returns>
+    public static HttpMultipartFormDataBuilder AddFile(this HttpMultipartFormDataBuilder httpMultipartFormDataBuilder,
+        IBrowserFile browserFile, string? name = null, string? fileName = null, string? contentType = null,
+        Encoding? contentEncoding = null, long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(browserFile);
+
+        // 添加文件流
+        return httpMultipartFormDataBuilder.AddStream(browserFile.OpenReadStream(maxAllowedSize, cancellationToken),
+            name ?? "file", fileName ?? browserFile.Name, contentType ?? browserFile.ContentType, contentEncoding,
+            true);
+    }
+
+    /// <summary>
+    ///     添加多个文件
+    /// </summary>
+    /// <param name="httpMultipartFormDataBuilder">
+    ///     <see cref="HttpMultipartFormDataBuilder" />
+    /// </param>
+    /// <param name="browserFiles">
+    ///     <see cref="IBrowserFile" /> 集合
+    /// </param>
+    /// <param name="name">表单名称</param>
+    /// <param name="maxAllowedSize">流可以提供的最大字节数，默认值为：<c>500KB</c></param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpMultipartFormDataBuilder" />
+    /// </returns>
+    public static HttpMultipartFormDataBuilder AddFiles(this HttpMultipartFormDataBuilder httpMultipartFormDataBuilder,
+        IEnumerable<IBrowserFile> browserFiles, string? name = null, long maxAllowedSize = 512000,
+        CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(browserFiles);
+
+        // 逐条添加文件
+        foreach (var browserFile in browserFiles)
+        {
+            httpMultipartFormDataBuilder.AddFile(browserFile, name ?? "file", maxAllowedSize: maxAllowedSize,
+                cancellationToken: cancellationToken);
         }
 
         return httpMultipartFormDataBuilder;
