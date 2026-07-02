@@ -39,6 +39,11 @@ namespace Furion.HttpRemote;
 public sealed class HttpRemoteBuilder
 {
     /// <summary>
+    ///     <see cref="GenericHttpContentConverter" /> 集合
+    /// </summary>
+    internal IList<Func<IEnumerable<GenericHttpContentConverter>>>? _genericHttpContentConverterProviders;
+
+    /// <summary>
     ///     <see cref="IHttpContentConverter" /> 集合
     /// </summary>
     internal IList<Func<IEnumerable<IHttpContentConverter>>>? _httpContentConverterProviders;
@@ -99,6 +104,26 @@ public sealed class HttpRemoteBuilder
         _httpContentConverterProviders ??= new List<Func<IEnumerable<IHttpContentConverter>>>();
 
         _httpContentConverterProviders.Add(configure);
+
+        return this;
+    }
+
+    /// <summary>
+    ///     添加 <see cref="GenericHttpContentConverter" /> 响应内容转换器
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="configure"><see cref="GenericHttpContentConverter" /> 实例提供器</param>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    public HttpRemoteBuilder AddGenericHttpContentConverters(Func<IEnumerable<GenericHttpContentConverter>> configure)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        _genericHttpContentConverterProviders ??= new List<Func<IEnumerable<GenericHttpContentConverter>>>();
+
+        _genericHttpContentConverterProviders.Add(configure);
 
         return this;
     }
@@ -314,9 +339,10 @@ public sealed class HttpRemoteBuilder
                 _httpContentProcessorProviders?.SelectMany(u => u.Invoke()).ToArray()));
 
         // 注册 HttpContent 内容转换器工厂
-        services.TryAddSingleton<IHttpContentConverterFactory>(provider =>
-            new HttpContentConverterFactory(provider, provider.GetRequiredService<IHttpRemoteLogger>(),
-                _httpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray()));
+        services.TryAddSingleton<IHttpContentConverterFactory>(provider => new HttpContentConverterFactory(provider,
+            provider.GetRequiredService<IHttpRemoteLogger>(),
+            _httpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+            _genericHttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray()));
 
         // 注册对象内容转换器工厂
         services.TryAddSingleton<IObjectContentConverterFactory, ObjectContentConverterFactory>();

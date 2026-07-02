@@ -115,7 +115,7 @@ public sealed class DigestCredentials
         try
         {
             // 发送 HTTP 远程请求
-            var httpResponseMessage = httpClient.Send(new HttpRequestMessage(httpMethod, requestUri),
+            using var httpResponseMessage = httpClient.Send(new HttpRequestMessage(httpMethod, requestUri),
                 HttpCompletionOption.ResponseHeadersRead);
 
             // 检查响应状态码是否是 401 且响应标头是否包含 WWW-Authenticate 

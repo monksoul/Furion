@@ -26,20 +26,8 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     流内容转换器
+///     泛型 <see cref="IHttpContentConverter" /> 响应内容转换器
 /// </summary>
-public class StreamContentConverter : HttpContentConverterBase<Stream>
-{
-    /// <inheritdoc />
-    public override bool KeepsResponseAlive => true;
-
-    /// <inheritdoc />
-    public override Stream? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        httpResponseMessage.Content.ReadAsStream(cancellationToken);
-
-    /// <inheritdoc />
-    public override async Task<Stream?> ReadAsync(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
-}
+/// <param name="GenericType">转换的目标类型的泛型类型</param>
+/// <param name="Factory">泛型 <see cref="IHttpContentConverter" /> 工厂委托</param>
+public sealed record GenericHttpContentConverter(Type GenericType, Func<Type[], IHttpContentConverter> Factory);

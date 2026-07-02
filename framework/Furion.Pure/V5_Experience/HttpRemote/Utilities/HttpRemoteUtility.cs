@@ -188,7 +188,7 @@ public static class HttpRemoteUtility
             : jsonResponseWrapperType.MakeGenericType(resultType);
 
         return new JsonSerializationContext(jsonResponseType, jsonSerializerOptions,
-            jsonResponseWrapper is null ? u => u : jsonResponseWrapper.GetResultValue);
+            jsonResponseWrapper is null ? (u, _) => u : jsonResponseWrapper.GetResultValue);
     }
 
     /// <summary>

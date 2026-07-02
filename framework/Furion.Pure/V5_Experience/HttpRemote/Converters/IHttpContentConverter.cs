@@ -31,6 +31,12 @@ namespace Furion.HttpRemote;
 public interface IHttpContentConverter
 {
     /// <summary>
+    ///     是否保持 <see cref="HttpResponseMessage" /> 存活
+    /// </summary>
+    /// TODO: 待实现
+    bool KeepsResponseAlive { get; }
+
+    /// <summary>
     ///     <inheritdoc cref="IServiceProvider" />
     /// </summary>
     IServiceProvider? ServiceProvider { get; set; }

@@ -35,7 +35,7 @@ namespace Furion.HttpRemote;
 /// </summary>
 /// <remarks>用于将原始的 <see cref="HttpResponseMessage" /> 进行包装转换。</remarks>
 /// <typeparam name="TResult">转换的目标类型</typeparam>
-public sealed class HttpRemoteResult<TResult>
+public sealed class HttpRemoteResult<TResult> : IDisposable
 {
     /// <summary>
     ///     <inheritdoc cref="HttpRemoteResult{TResult}" />
@@ -129,6 +129,9 @@ public sealed class HttpRemoteResult<TResult>
     ///     <see cref="HttpClient" /> 实例的配置名称
     /// </summary>
     public string? HttpClientName { get; private set; }
+
+    /// <inheritdoc />
+    public void Dispose() => ResponseMessage.Dispose();
 
     // /// <summary>
     // ///     解构函数（至少包含两个 out 参数！！！）

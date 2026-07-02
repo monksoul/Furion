@@ -119,17 +119,24 @@ internal sealed class LongPollingManager
                     continue;
                 }
 
+                // 初始化否应该终止长轮询和是否请求成功变量
+                var shouldTerminate = ShouldTerminatePolling(httpResponseMessage);
+                var isSuccess = httpResponseMessage.IsSuccessStatusCode;
+
                 // 发送响应数据对象到通道
-                dataChannel.Writer.TryWrite(httpResponseMessage);
+                if (!dataChannel.Writer.TryWrite(httpResponseMessage))
+                {
+                    httpResponseMessage.Dispose();
+                }
 
                 // 检查是否应该终止长轮询
-                if (ShouldTerminatePolling(httpResponseMessage))
+                if (shouldTerminate)
                 {
                     break;
                 }
 
                 // 检查是否请求成功
-                if (httpResponseMessage.IsSuccessStatusCode)
+                if (isSuccess)
                 {
                     // 重置当前重试次数
                     CurrentRetries = 0;
@@ -201,17 +208,31 @@ internal sealed class LongPollingManager
                     continue;
                 }
 
+                // 初始化否应该终止长轮询和是否请求成功变量
+                var shouldTerminate = ShouldTerminatePolling(httpResponseMessage);
+                var isSuccess = httpResponseMessage.IsSuccessStatusCode;
+
                 // 发送响应数据对象到通道
-                await dataChannel.Writer.WriteAsync(httpResponseMessage, cancellationToken);
+                try
+                {
+                    await dataChannel.Writer.WriteAsync(httpResponseMessage, cancellationToken);
+                }
+                catch
+                {
+                    // 释放 httpResponseMessage
+                    httpResponseMessage.Dispose();
+
+                    throw;
+                }
 
                 // 检查是否应该终止长轮询
-                if (ShouldTerminatePolling(httpResponseMessage))
+                if (shouldTerminate)
                 {
                     break;
                 }
 
                 // 检查是否请求成功
-                if (httpResponseMessage.IsSuccessStatusCode)
+                if (isSuccess)
                 {
                     // 重置当前重试次数
                     CurrentRetries = 0;
@@ -338,11 +359,15 @@ internal sealed class LongPollingManager
             // 从数据接收传输的通道中读取所有的数据
             await foreach (var httpResponseMessage in dataChannel.Reader.ReadAllAsync(cancellationToken))
             {
-                // 如果请求了取消，则抛出 OperationCanceledException
-                cancellationToken.ThrowIfCancellationRequested();
+                // 释放 httpResponseMessage
+                using (httpResponseMessage)
+                {
+                    // 如果请求了取消，则抛出 OperationCanceledException
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                // 处理服务器响应数据
-                await HandleResponseAsync(httpResponseMessage, cancellationToken);
+                    // 处理服务器响应数据
+                    await HandleResponseAsync(httpResponseMessage, cancellationToken);
+                }
             }
         }
         catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)

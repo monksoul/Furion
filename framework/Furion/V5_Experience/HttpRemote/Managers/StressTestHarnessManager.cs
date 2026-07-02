@@ -189,7 +189,7 @@ internal sealed class StressTestHarnessManager
             try
             {
                 // 发送 HTTP 远程请求
-                var httpResponseMessage =
+                using var httpResponseMessage =
                     await _httpRemoteService.SendAsync(RequestBuilder, option, ct).ConfigureAwait(false);
 
                 // 空检查

@@ -34,6 +34,9 @@ namespace Furion.HttpRemote;
 public class XmlObjectContentConverter : IHttpContentConverter
 {
     /// <inheritdoc />
+    public virtual bool KeepsResponseAlive => false;
+
+    /// <inheritdoc />
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <inheritdoc />

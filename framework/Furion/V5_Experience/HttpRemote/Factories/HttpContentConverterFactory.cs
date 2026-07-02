@@ -38,9 +38,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
     internal readonly Dictionary<Type, IHttpContentConverter> _converters;
 
     /// <summary>
-    ///     泛型 <see cref="IHttpContentConverter" /> 工厂字典集合
+    ///     泛型 <see cref="IHttpContentConverter" /> 工厂委托字典集合
     /// </summary>
-    internal readonly Dictionary<Type, Func<Type[], IHttpContentConverter>> _genericConverters;
+    internal readonly Dictionary<Type, List<Func<Type[], IHttpContentConverter>>> _genericConverters;
 
     /// <inheritdoc cref="IHttpRemoteLogger" />
     internal readonly IHttpRemoteLogger _logger;
@@ -55,8 +55,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
     ///     <see cref="IHttpRemoteLogger" />
     /// </param>
     /// <param name="converters"><see cref="IHttpContentConverter{TResult}" /> 数组</param>
+    /// <param name="genericConverters"><see cref="GenericHttpContentConverter" /> 数组</param>
     public HttpContentConverterFactory(IServiceProvider serviceProvider, IHttpRemoteLogger logger,
-        IHttpContentConverter[]? converters)
+        IHttpContentConverter[]? converters, GenericHttpContentConverter[]? genericConverters)
     {
         ServiceProvider = serviceProvider;
         _logger = logger;
@@ -71,17 +72,31 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
             [typeof(VoidContentConverter)] = new VoidContentConverter()
         };
 
-        // 初始化泛型响应内容转换器
-        // TODO: 未来考虑开放注册
-        _genericConverters = new Dictionary<Type, Func<Type[], IHttpContentConverter>>
-        {
-            [typeof(IAsyncEnumerable<>)] = typeArgs =>
-                (IHttpContentConverter)Activator.CreateInstance(
-                    typeof(AsyncEnumerableContentConverter<>).MakeGenericType(typeArgs[0]))!
-        };
-
         // 添加自定义 IHttpContentConverter 数组
         _converters.TryAdd(converters, value => value.GetType());
+
+        // 初始化泛型响应内容转换器工厂委托
+        _genericConverters = new Dictionary<Type, List<Func<Type[], IHttpContentConverter>>>
+        {
+            [typeof(IAsyncEnumerable<>)] =
+            [
+                typeArgs => (IHttpContentConverter)Activator.CreateInstance(
+                    typeof(AsyncEnumerableContentConverter<>).MakeGenericType(typeArgs[0]))!
+            ]
+        };
+
+        // 添加自定义泛型响应内容转换器工厂委托数组
+        foreach (var (genericType, factory) in genericConverters ?? [])
+        {
+            // 尝试根据泛型类型查找工作委托集合
+            if (!_genericConverters.TryGetValue(genericType, out var factories))
+            {
+                factories = [];
+                _genericConverters[genericType] = factories;
+            }
+
+            factories.Add(factory);
+        }
     }
 
     /// <inheritdoc />
@@ -317,7 +332,7 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
             httpResponseMessage.RequestMessage?.RequestUri?.ToString() ?? "unknown");
 
     /// <summary>
-    ///     尝试解析泛型 <see cref="IHttpContentConverter{TResult}" />
+    ///     尝试解析泛型 <see cref="IHttpContentConverter{TResult}" /> 实例
     /// </summary>
     /// <remarks>TODO: 未来可以考虑缓存反射的结果</remarks>
     /// <param name="resultType">转换的目标类型</param>
@@ -335,9 +350,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
         // 获取泛型定义类型
         var genericTypeDefinition = resultType.GetGenericTypeDefinition();
 
-        // 查找是否注册了泛型内容转换器
-        return !_genericConverters.TryGetValue(genericTypeDefinition, out var genericConverterFactory)
+        // 查找是否注册了泛型内容转换器工厂委托
+        return !_genericConverters.TryGetValue(genericTypeDefinition, out var factories)
             ? null
-            : genericConverterFactory(resultType.GetGenericArguments());
+            : factories.LastOrDefault()?.Invoke(resultType.GetGenericArguments());
     }
 }

@@ -31,6 +31,9 @@ namespace Furion.HttpRemote;
 public class StreamContentConverter : HttpContentConverterBase<Stream>
 {
     /// <inheritdoc />
+    public override bool KeepsResponseAlive => true;
+
+    /// <inheritdoc />
     public override Stream? Read(HttpResponseMessage httpResponseMessage,
         CancellationToken cancellationToken = default) =>
         httpResponseMessage.Content.ReadAsStream(cancellationToken);

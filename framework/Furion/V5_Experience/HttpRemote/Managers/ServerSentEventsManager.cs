@@ -119,8 +119,8 @@ internal sealed class ServerSentEventsManager
         try
         {
             // 发送 HTTP 远程请求
-            var httpResponseMessage = _httpRemoteService.Send(RequestBuilder, HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
+            using var httpResponseMessage = _httpRemoteService.Send(RequestBuilder,
+                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
             // 空检查
             if (httpResponseMessage is null)
@@ -225,7 +225,7 @@ internal sealed class ServerSentEventsManager
         try
         {
             // 发送 HTTP 远程请求
-            var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder,
+            using var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder,
                 HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
             // 空检查

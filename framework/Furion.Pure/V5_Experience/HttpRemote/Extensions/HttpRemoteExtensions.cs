@@ -292,7 +292,7 @@ public static partial class HttpRemoteExtensions
         httpContent.FixInvalidCharset();
 
         // 新增最大处理大小限制，避免内存溢出（OOM）或缓冲区溢出
-        const long maxAllowedSize = 10 * 1024 * 1024; // 10MB
+        const long maxAllowedSize = 5 * 1024 * 1024; // 5MB
 
         // 检查内容是否包含 Content-Length 标头
         if (httpContent.Headers.ContentLength.HasValue)

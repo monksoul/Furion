@@ -32,6 +32,9 @@ namespace Furion.HttpRemote;
 public abstract class HttpContentConverterBase<TResult> : IHttpContentConverter<TResult>, IServiceProvider
 {
     /// <inheritdoc />
+    public virtual bool KeepsResponseAlive => false;
+
+    /// <inheritdoc />
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <inheritdoc />
