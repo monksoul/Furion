@@ -160,11 +160,11 @@
             var accessToken = response.headers[tokenKey];
             if (accessToken && accessToken != "invalid_token") {
                 window.localStorage.setItem(tokenKey, accessToken);
-                ui.preauthorizeApiKey("Bearer", accessToken);
+                window.ui.preauthorizeApiKey("Bearer", accessToken);
             }
             else if (accessToken == "invalid_token") {
                 window.localStorage.removeItem(tokenKey);
-                ui.authActions.logout(["Bearer"]);
+                window.ui.authActions.logout(["Bearer"]);
             }
 
             return response;
@@ -257,7 +257,7 @@
 
             var topbarWrapper = document.querySelector('.topbar-wrapper');
             if (!topbarWrapper) {
-                setTimeout(function() { appendLogoutButton(loginObject); }, 200);
+                setTimeout(function () { appendLogoutButton(loginObject); }, 200);
                 return;
             }
 
@@ -267,10 +267,13 @@
             btn.id = 'swagger-logout-btn';
             btn.className = 'swagger-logout-btn';
             btn.innerHTML = '⏻';
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 window.sessionStorage.removeItem(loginSessionKey);
                 window.location.reload();
+
+                window.localStorage.removeItem(tokenKey);
+                window.ui.authActions.logout(["Bearer"]);
             });
 
             topbarWrapper.appendChild(btn);
@@ -281,7 +284,7 @@
             configObject.onComplete = function () {
                 var accessToken = window.localStorage.getItem(tokenKey);
                 if (accessToken) {
-                    ui.preauthorizeApiKey("Bearer", accessToken);
+                    window.ui.preauthorizeApiKey("Bearer", accessToken);
                 }
 
                 appendLogoutButton(window.__swaggerLoginInfo);
