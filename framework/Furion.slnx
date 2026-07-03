@@ -13,9 +13,6 @@
   <Project Path="Furion.Extras.DatabaseAccessor.SqlSugar/Furion.Extras.DatabaseAccessor.SqlSugar.csproj" />
   <Project Path="Furion.Extras.DependencyModel.CodeAnalysis/Furion.Extras.DependencyModel.CodeAnalysis.csproj" />
   <Project Path="Furion.Extras.ObjectMapper.Mapster/Furion.Extras.ObjectMapper.Mapster.csproj" />
-  <Project Path="Furion.Pure.Extras.DependencyModel.CodeAnalysis/Furion.Pure.Extras.DependencyModel.CodeAnalysis.csproj" />
-  <Project Path="Furion.Pure.Xunit/Furion.Pure.Xunit.csproj" />
-  <Project Path="Furion.Pure/Furion.Pure.csproj" />
   <Project Path="Furion.Xunit/Furion.Xunit.csproj" />
   <Project Path="Furion/Furion.csproj" />
 </Solution>

@@ -446,7 +446,7 @@ public class JWTEncryption
     public static JWTSettingsOptions GetJWTSettings()
     {
         // 获取框架上下文
-        _ = GetFrameworkContext(Assembly.GetCallingAssembly());
+        _ = GetFrameworkContext();
 
         if (FrameworkApp == null)
         {
@@ -680,25 +680,17 @@ public class JWTEncryption
     /// 获取框架上下文
     /// </summary>
     /// <returns></returns>
-    internal static Assembly GetFrameworkContext(Assembly callAssembly)
+    internal static Assembly GetFrameworkContext()
     {
         if (FrameworkApp != null) return FrameworkApp.Assembly;
 
-        // 修复不注册 AddJwt 服务不能使用 JWT 加密问题
-        var executeAssembly = callAssembly == typeof(JWTEncryption).Assembly
-            ? Assembly.GetEntryAssembly()
-            : callAssembly;
-
-        // 获取 Furion 程序集名称
-        var furionAssemblyName = executeAssembly.GetReferencedAssemblies()
-            .FirstOrDefault(u => u.Name == "Furion" || u.Name == "Furion.Pure")
-            ?? throw new InvalidOperationException("No `Furion` assembly installed in the current project was detected.");
-
         // 加载 Furion 程序集
-        var furionAssembly = AssemblyLoadContext.Default.LoadFromAssemblyName(furionAssemblyName);
+        var furionAssembly = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName("Furion"))
+            ?? throw new InvalidOperationException("Unable to load Furion assembly.");
 
         // 获取 Furion.App 静态类
-        FrameworkApp = furionAssembly.GetType("Furion.App");
+        FrameworkApp = furionAssembly.GetType("Furion.App")
+            ?? throw new InvalidOperationException("Type 'Furion.App' not found in Furion assembly.");
 
         return furionAssembly;
     }

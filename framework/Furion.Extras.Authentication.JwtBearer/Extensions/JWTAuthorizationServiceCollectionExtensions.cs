@@ -51,7 +51,7 @@ public static class JWTAuthorizationServiceCollectionExtensions
     public static AuthenticationBuilder AddJwt(this AuthenticationBuilder authenticationBuilder, object tokenValidationParameters = default, Action<JwtBearerOptions> jwtBearerConfigure = null, bool enableGlobalAuthorize = false)
     {
         // 获取框架上下文
-        _ = JWTEncryption.GetFrameworkContext(Assembly.GetCallingAssembly());
+        _ = JWTEncryption.GetFrameworkContext();
 
         // 配置 JWT 选项
         ConfigureJWTOptions(authenticationBuilder.Services);
@@ -92,17 +92,17 @@ public static class JWTAuthorizationServiceCollectionExtensions
     public static AuthenticationBuilder AddJwt(this IServiceCollection services, Action<AuthenticationOptions> authenticationConfigure = null, object tokenValidationParameters = default, Action<JwtBearerOptions> jwtBearerConfigure = null)
     {
         // 获取框架上下文
-        _ = JWTEncryption.GetFrameworkContext(Assembly.GetCallingAssembly());
+        _ = JWTEncryption.GetFrameworkContext();
 
         // 添加默认授权
         var authenticationBuilder = services.AddAuthentication(options =>
-         {
-             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-             // 添加自定义配置
-             authenticationConfigure?.Invoke(options);
-         });
+            // 添加自定义配置
+            authenticationConfigure?.Invoke(options);
+        });
 
         AddJwt(authenticationBuilder, tokenValidationParameters, jwtBearerConfigure);
 
@@ -123,7 +123,7 @@ public static class JWTAuthorizationServiceCollectionExtensions
         where TAuthorizationHandler : class, IAuthorizationHandler
     {
         // 植入 Furion 框架
-        var furionAssembly = JWTEncryption.GetFrameworkContext(Assembly.GetCallingAssembly());
+        var furionAssembly = JWTEncryption.GetFrameworkContext();
 
         // 获取添加授权类型
         var authorizationServiceCollectionExtensionsType = furionAssembly.GetType("Microsoft.Extensions.DependencyInjection.AuthorizationServiceCollectionExtensions");
