@@ -9,9 +9,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\framework\Furion.Extras.Authentication.JwtBearer\Furion.Extras.Authentication.JwtBearer.csproj" />
-		<ProjectReference Include="..\..\framework\Furion.Extras.DatabaseAccessor.Dapper\Furion.Extras.DatabaseAccessor.Dapper.csproj" />
-		<ProjectReference Include="..\..\framework\Furion.Extras.DatabaseAccessor.MongoDB\Furion.Extras.DatabaseAccessor.MongoDB.csproj" />
-		<ProjectReference Include="..\..\framework\Furion.Extras.DatabaseAccessor.SqlSugar\Furion.Extras.DatabaseAccessor.SqlSugar.csproj" />
 		<ProjectReference Include="..\..\framework\Furion.Extras.ObjectMapper.Mapster\Furion.Extras.ObjectMapper.Mapster.csproj" />
 		<ProjectReference Include="..\..\framework\Furion\Furion.csproj" />
 	</ItemGroup>

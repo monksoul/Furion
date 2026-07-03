@@ -8,9 +8,6 @@
     <Project Path="../tests/Furion.UnitTests/Furion.UnitTests.csproj" />
   </Folder>
   <Project Path="Furion.Extras.Authentication.JwtBearer/Furion.Extras.Authentication.JwtBearer.csproj" />
-  <Project Path="Furion.Extras.DatabaseAccessor.Dapper/Furion.Extras.DatabaseAccessor.Dapper.csproj" />
-  <Project Path="Furion.Extras.DatabaseAccessor.MongoDB/Furion.Extras.DatabaseAccessor.MongoDB.csproj" />
-  <Project Path="Furion.Extras.DatabaseAccessor.SqlSugar/Furion.Extras.DatabaseAccessor.SqlSugar.csproj" />
   <Project Path="Furion.Extras.DependencyModel.CodeAnalysis/Furion.Extras.DependencyModel.CodeAnalysis.csproj" />
   <Project Path="Furion.Extras.ObjectMapper.Mapster/Furion.Extras.ObjectMapper.Mapster.csproj" />
   <Project Path="Furion.Xunit/Furion.Xunit.csproj" />
