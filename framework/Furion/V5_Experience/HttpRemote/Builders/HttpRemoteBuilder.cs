@@ -185,6 +185,7 @@ public sealed class HttpRemoteBuilder
     /// <summary>
     ///     添加 HTTP 声明式服务
     /// </summary>
+    /// <remarks>支持封闭泛型类型注册。</remarks>
     /// <param name="declarativeType">
     ///     <see cref="IHttpDeclarative" />
     /// </param>
@@ -198,11 +199,12 @@ public sealed class HttpRemoteBuilder
         ArgumentNullException.ThrowIfNull(declarativeType);
 
         // 检查类型是否是接口且实现了 IHttpDeclarative 接口
-        if (!declarativeType.IsInterface || declarativeType.IsGenericType ||
+        if (!declarativeType.IsInterface ||
+            declarativeType is { IsGenericType: true, ContainsGenericParameters: true } ||
             !typeof(IHttpDeclarative).IsAssignableFrom(declarativeType))
         {
             throw new ArgumentException(
-                $"The type `{declarativeType}` must be a non-generic interface that implements `{typeof(IHttpDeclarative)}`.",
+                $"The type `{declarativeType}` must be a closed or non-generic interface that implements `{typeof(IHttpDeclarative)}`.",
                 nameof(declarativeType));
         }
 
@@ -216,6 +218,7 @@ public sealed class HttpRemoteBuilder
     /// <summary>
     ///     添加 HTTP 声明式服务
     /// </summary>
+    /// <remarks>支持封闭泛型类型注册。</remarks>
     /// <param name="declarativeTypes">
     ///     <see cref="IHttpDeclarative" /> 集合
     /// </param>

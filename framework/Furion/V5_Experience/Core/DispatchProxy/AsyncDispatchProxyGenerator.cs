@@ -39,15 +39,6 @@ using System.Runtime.ExceptionServices;
 
 namespace System.Reflection;
 
-public class DispatchProxyHandler
-{
-    public object InvokeHandle(object[] args) => AsyncDispatchProxyGenerator.Invoke(args);
-
-    public Task InvokeAsyncHandle(object[] args) => AsyncDispatchProxyGenerator.InvokeAsync(args);
-
-    public Task<T> InvokeAsyncHandleT<T>(object[] args) => AsyncDispatchProxyGenerator.InvokeAsync<T>(args);
-}
-
 // Helper class to handle the IL EMIT for the generation of proxies.
 // Much of this code was taken directly from the Silverlight proxy generation.
 // Differences between this and the Silverlight version are:
@@ -77,8 +68,6 @@ public class DispatchProxyHandler
 //
 internal static class AsyncDispatchProxyGenerator
 {
-    private const int InvokeActionFieldAndCtorParameterIndex = 0;
-
     // Proxies are requested for a pair of types: base type and interface type.
     // The generated proxy will subclass the given base type and implement the interface type.
     // We maintain a cache keyed by 'base type' containing a dictionary keyed by interface type,
@@ -96,15 +85,6 @@ internal static class AsyncDispatchProxyGenerator
 
     private static readonly ProxyAssembly s_proxyAssembly = new();
 
-    private static readonly MethodInfo s_dispatchProxyInvokeMethod =
-        typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod("Invoke");
-
-    private static readonly MethodInfo s_dispatchProxyInvokeAsyncMethod =
-        typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod("InvokeAsync");
-
-    private static readonly MethodInfo s_dispatchProxyInvokeAsyncTMethod =
-        typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod("InvokeAsyncT");
-
     // Returns a new instance of a proxy the derives from 'baseType' and implements 'interfaceType'
     internal static object CreateProxyInstance(Type baseType, Type interfaceType)
     {
@@ -112,7 +92,7 @@ internal static class AsyncDispatchProxyGenerator
         Debug.Assert(interfaceType != null);
 
         var proxiedType = GetProxyType(baseType, interfaceType);
-        return Activator.CreateInstance(proxiedType, new DispatchProxyHandler());
+        return Activator.CreateInstance(proxiedType);
     }
 
     private static Type GetProxyType(Type baseType, Type interfaceType)
@@ -168,6 +148,9 @@ internal static class AsyncDispatchProxyGenerator
             throw new ArgumentException($"BaseType_Must_Have_Default_Ctor {baseType.FullName}", "TProxy");
         }
 
+        // Ensure AsyncDispatchProxyGenerator is visible to the dynamic assembly
+        s_proxyAssembly.EnsureTypeIsVisible(typeof(AsyncDispatchProxyGenerator));
+
         // Create a type that derives from 'baseType' provided by caller
         var pb = s_proxyAssembly.CreateProxy("generatedProxy", baseType);
 
@@ -194,64 +177,55 @@ internal static class AsyncDispatchProxyGenerator
         return new ProxyMethodResolverContext(packed, method);
     }
 
+    // Synchronous invocation – direct call to abstract Invoke (no reflection)
     public static object Invoke(object[] args)
     {
         var context = Resolve(args);
-
-        // Call (protected method) DispatchProxyAsync.Invoke()
         object returnValue = null;
         try
         {
-            Debug.Assert(s_dispatchProxyInvokeMethod != null);
-            returnValue = s_dispatchProxyInvokeMethod?.Invoke(context.Packed.DispatchProxy,
-                new object[] { context.Method, context.Packed.Args });
+            Debug.Assert(context.Packed.DispatchProxy != null);
+            returnValue = context.Packed.DispatchProxy.Invoke((MethodInfo)context.Method, context.Packed.Args);
             context.Packed.ReturnValue = returnValue;
         }
         catch (TargetInvocationException tie)
         {
-            ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
+            ExceptionDispatchInfo.Capture(tie.InnerException!).Throw();
         }
 
         return returnValue;
     }
 
-    public static async Task InvokeAsync(object[] args)
+    // Async Task invocation – direct call to abstract InvokeAsync
+    public static Task InvokeAsync(object[] args)
     {
         var context = Resolve(args);
-
-        // Call (protected Task method) NetCoreStackDispatchProxy.InvokeAsync()
         try
         {
-            Debug.Assert(s_dispatchProxyInvokeAsyncMethod != null);
-            await (Task)s_dispatchProxyInvokeAsyncMethod.Invoke(context.Packed.DispatchProxy,
-                new object[] { context.Method, context.Packed.Args });
+            Debug.Assert(context.Packed.DispatchProxy != null);
+            return context.Packed.DispatchProxy.InvokeAsync((MethodInfo)context.Method, context.Packed.Args);
         }
         catch (TargetInvocationException tie)
         {
-            ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
+            ExceptionDispatchInfo.Capture(tie.InnerException!).Throw();
+            return Task.CompletedTask; // unreachable
         }
     }
 
-    public static async Task<T> InvokeAsync<T>(object[] args)
+    // Async Task<T> invocation – direct call to abstract InvokeAsyncT<T>
+    public static Task<T> InvokeAsyncT<T>(object[] args)
     {
         var context = Resolve(args);
-
-        // Call (protected Task<T> method) NetCoreStackDispatchProxy.InvokeAsync<T>()
-        var returnValue = default(T);
         try
         {
-            Debug.Assert(s_dispatchProxyInvokeAsyncTMethod != null);
-            var genericmethod = s_dispatchProxyInvokeAsyncTMethod.MakeGenericMethod(typeof(T));
-            returnValue = await (Task<T>)genericmethod.Invoke(context.Packed.DispatchProxy,
-                new object[] { context.Method, context.Packed.Args });
-            context.Packed.ReturnValue = returnValue;
+            Debug.Assert(context.Packed.DispatchProxy != null);
+            return context.Packed.DispatchProxy.InvokeAsyncT<T>((MethodInfo)context.Method, context.Packed.Args);
         }
         catch (TargetInvocationException tie)
         {
-            ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
+            ExceptionDispatchInfo.Capture(tie.InnerException!).Throw();
+            return Task.FromResult<T>(default!); // unreachable
         }
-
-        return returnValue;
     }
 
     private class ProxyMethodResolverContext(PackedArgs packed, MethodBase method)
@@ -484,14 +458,17 @@ internal static class AsyncDispatchProxyGenerator
 
     private class ProxyBuilder
     {
-        private static readonly MethodInfo
-            s_delegateInvoke = typeof(DispatchProxyHandler).GetMethod("InvokeHandle");
+        // Static references to the direct invocation methods on AsyncDispatchProxyGenerator
+        // NOTE: Must use BindingFlags.Public because the methods are now public
+        private static readonly MethodInfo s_invokeMethod =
+            typeof(AsyncDispatchProxyGenerator).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Static)!;
 
-        private static readonly MethodInfo s_delegateInvokeAsync =
-            typeof(DispatchProxyHandler).GetMethod("InvokeAsyncHandle");
+        private static readonly MethodInfo s_invokeAsyncMethod =
+            typeof(AsyncDispatchProxyGenerator).GetMethod("InvokeAsync", BindingFlags.Public | BindingFlags.Static)!;
 
-        private static readonly MethodInfo s_delegateinvokeAsyncT =
-            typeof(DispatchProxyHandler).GetMethod("InvokeAsyncHandleT");
+        private static readonly MethodInfo s_invokeAsyncTMethod =
+            typeof(AsyncDispatchProxyGenerator).GetMethod("InvokeAsyncT",
+                BindingFlags.Public | BindingFlags.Static)!;
 
         private static readonly OpCode[] s_convOpCodes =
         {
@@ -563,7 +540,6 @@ internal static class AsyncDispatchProxyGenerator
         };
 
         private readonly ProxyAssembly _assembly;
-        private readonly List<FieldBuilder> _fields;
         private readonly Type _proxyBaseType;
         private readonly TypeBuilder _tb;
 
@@ -572,9 +548,6 @@ internal static class AsyncDispatchProxyGenerator
             _assembly = assembly;
             _tb = tb;
             _proxyBaseType = proxyBaseType;
-
-            _fields = new List<FieldBuilder>();
-            _fields.Add(tb.DefineField("_handler", typeof(DispatchProxyHandler), FieldAttributes.Private));
         }
 
         private static bool IsGenericTask(Type type)
@@ -595,32 +568,16 @@ internal static class AsyncDispatchProxyGenerator
 
         private void Complete()
         {
-            var args = new Type[_fields.Count];
-            for (var i = 0; i < args.Length; i++)
-            {
-                args[i] = _fields[i].FieldType;
-            }
-
-            var cb =
-                _tb.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, args);
+            // Constructor simply chains to base default ctor (no extra fields needed)
+            var cb = _tb.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, Type.EmptyTypes);
             var il = cb.GetILGenerator();
 
-            // chained ctor call
             var baseCtor = _proxyBaseType.GetTypeInfo().DeclaredConstructors
                 .SingleOrDefault(c => c.IsPublic && c.GetParameters().Length == 0);
             Debug.Assert(baseCtor != null);
 
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, baseCtor);
-
-            // store all the fields
-            for (var i = 0; i < args.Length; i++)
-            {
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg, i + 1);
-                il.Emit(OpCodes.Stfld, _fields[i]);
-            }
-
             il.Emit(OpCodes.Ret);
         }
 
@@ -835,40 +792,50 @@ internal static class AsyncDispatchProxyGenerator
                 packedArr.EndSet(typeof(Type[]));
             }
 
-            for (var i = 0; i < parameters.Length; i++)
-            {
-                if (parameters[i].ParameterType.IsByRef)
-                {
-                    args.BeginSet(i);
-                    argsArr.Get(i);
-                    args.EndSet(i, typeof(object));
-                }
-            }
-
-            var invokeMethod = s_delegateInvoke;
+            // Determine the correct static method on AsyncDispatchProxyGenerator
+            MethodInfo invokeMethodToCall;
             if (mi.ReturnType == typeof(Task))
             {
-                invokeMethod = s_delegateInvokeAsync;
+                invokeMethodToCall = s_invokeAsyncMethod;
             }
-
-            if (IsGenericTask(mi.ReturnType))
+            else if (IsGenericTask(mi.ReturnType))
             {
                 var returnTypes = mi.ReturnType.GetGenericArguments();
-                invokeMethod = s_delegateinvokeAsyncT.MakeGenericMethod(returnTypes);
+                invokeMethodToCall = s_invokeAsyncTMethod.MakeGenericMethod(returnTypes);
+            }
+            else
+            {
+                invokeMethodToCall = s_invokeMethod;
             }
 
-            // Call AsyncDispatchProxyGenerator.Invoke(object[]), InvokeAsync or InvokeAsyncT
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, _fields[InvokeActionFieldAndCtorParameterIndex]);
+            // Call AsyncDispatchProxyGenerator.Invoke(object[]), InvokeAsync or InvokeAsyncT (direct static call)
             packedArr.Load();
-            il.Emit(OpCodes.Callvirt, invokeMethod);
+            il.Emit(OpCodes.Call, invokeMethodToCall);
+
+            // Handle return value
             if (mi.ReturnType != typeof(void))
             {
-                Convert(il, typeof(object), mi.ReturnType, false);
+                Convert(il, invokeMethodToCall.ReturnType, mi.ReturnType, false);
             }
             else
             {
                 il.Emit(OpCodes.Pop);
+            }
+
+            // Write back ref/out parameters from the args array
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].ParameterType.IsByRef)
+                {
+                    // Load the address of the parameter
+                    args.BeginSet(i);
+                    // Load the object from args[i]
+                    argsArr.Get(i);
+                    // Convert object to the actual type
+                    Convert(il, typeof(object), parameters[i].ParameterType.GetElementType(), false);
+                    // Store into the parameter address
+                    Stind(il, parameters[i].ParameterType.GetElementType());
+                }
             }
 
             il.Emit(OpCodes.Ret);
