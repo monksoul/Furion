@@ -563,7 +563,26 @@ internal static class TypeExtensions
     internal static Action<object, object?> CreatePropertySetter(this Type type, PropertyInfo propertyInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(propertyInfo);
+
+        // 检查类型是否是值类型
+        if (type.IsValueType)
+        {
+            throw new NotSupportedException("Value types are not supported for setters.");
+        }
+
+        // 获取属性的设置方法，并允许非公开访问
+        var setMethod = propertyInfo.GetSetMethod(true);
+
+        // 空检查
+        ArgumentNullException.ThrowIfNull(setMethod);
+
+        // 检查属性是否是静态属性
+        if (setMethod.IsStatic)
+        {
+            throw new ArgumentException("Property setter must be an instance method.", nameof(propertyInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_设置_属性名
         var setterMethod = new DynamicMethod(
@@ -576,12 +595,6 @@ internal static class TypeExtensions
 
         // 获取动态方法的 IL 生成器
         var ilGenerator = setterMethod.GetILGenerator();
-
-        // 获取属性的设置方法，并允许非公开访问
-        var setMethod = propertyInfo.GetSetMethod(true);
-
-        // 空检查
-        ArgumentNullException.ThrowIfNull(setMethod);
 
         // 将目标对象加载到堆栈上，并将其转换为所需的类型
         ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -622,7 +635,20 @@ internal static class TypeExtensions
     internal static Action<object, object?> CreateFieldSetter(this Type type, FieldInfo fieldInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(fieldInfo);
+
+        // 检查类型是否是值类型
+        if (type.IsValueType)
+        {
+            throw new NotSupportedException("Value types are not supported for setters.");
+        }
+
+        // 检查字段是否是静态字段
+        if (fieldInfo.IsStatic)
+        {
+            throw new ArgumentException("Field must be an instance field.", nameof(fieldInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_设置_字段名
         var setterMethod = new DynamicMethod(
@@ -673,7 +699,20 @@ internal static class TypeExtensions
     internal static Func<object, object?> CreatePropertyGetter(this Type type, PropertyInfo propertyInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(propertyInfo);
+
+        // 获取属性的获取方法，并允许非公开访问
+        var getMethod = propertyInfo.GetGetMethod(true);
+
+        // 空检查
+        ArgumentNullException.ThrowIfNull(getMethod);
+
+        // 检查属性是否是静态属性
+        if (getMethod.IsStatic)
+        {
+            throw new ArgumentException("Property getter must be an instance method.", nameof(propertyInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_获取_属性名
         var dynamicMethod = new DynamicMethod(
@@ -686,12 +725,6 @@ internal static class TypeExtensions
 
         // 获取动态方法的 IL 生成器
         var ilGenerator = dynamicMethod.GetILGenerator();
-
-        // 获取属性的获取方法，并允许非公开访问
-        var getMethod = propertyInfo.GetGetMethod(true);
-
-        // 空检查
-        ArgumentNullException.ThrowIfNull(getMethod);
 
         // 将目标对象加载到堆栈上
         ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -728,6 +761,7 @@ internal static class TypeExtensions
     internal static Func<object?> CreateStaticPropertyGetter(this Type type, PropertyInfo propertyInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(propertyInfo);
 
         // 获取属性的获取方法，并允许非公开访问
@@ -735,6 +769,12 @@ internal static class TypeExtensions
 
         // 空检查
         ArgumentNullException.ThrowIfNull(getMethod);
+
+        // 检查属性是否是非静态属性
+        if (!getMethod.IsStatic)
+        {
+            throw new ArgumentException("Property getter must be static.", nameof(propertyInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_获取_属性名
         var dynamicMethod = new DynamicMethod(
@@ -779,7 +819,14 @@ internal static class TypeExtensions
     internal static Func<object, object?> CreateFieldGetter(this Type type, FieldInfo fieldInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(fieldInfo);
+
+        // 检查字段是否是静态字段
+        if (fieldInfo.IsStatic)
+        {
+            throw new ArgumentException("Field must be an instance field.", nameof(fieldInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_获取_字段名
         var dynamicMethod = new DynamicMethod(
@@ -828,7 +875,14 @@ internal static class TypeExtensions
     internal static Func<object?> CreateStaticFieldGetter(this Type type, FieldInfo fieldInfo)
     {
         // 空检查
+        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(fieldInfo);
+
+        // 检查字段是否是非静态字段
+        if (!fieldInfo.IsStatic)
+        {
+            throw new ArgumentException("Field must be static.", nameof(fieldInfo));
+        }
 
         // 创建一个新的动态方法，并为其命名，命名格式为类型全名_获取_字段名
         var dynamicMethod = new DynamicMethod(
