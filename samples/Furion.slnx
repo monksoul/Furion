@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="../framework/Furion/Furion.csproj" />
+  <Project Path="ConsoleApp1/ConsoleApp1.csproj" />
+  <Project Path="Furion.Application/Furion.Application.csproj" />
+  <Project Path="Furion.Core/Furion.Core.csproj" />
+  <Project Path="Furion.Database.Migrations/Furion.Database.Migrations.csproj" />
+  <Project Path="Furion.EntityFramework.Core/Furion.EntityFramework.Core.csproj" />
+  <Project Path="Furion.Web.Core/Furion.Web.Core.csproj" />
+  <Project Path="Furion.Web.Entry/Furion.Web.Entry.csproj" />
+  <Project Path="WinFormsApp1/WinFormsApp1.csproj" />
+  <Project Path="WpfApp1/WpfApp1.csproj" />
+</Solution>
