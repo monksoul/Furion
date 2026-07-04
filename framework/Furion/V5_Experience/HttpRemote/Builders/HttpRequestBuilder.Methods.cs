@@ -1712,6 +1712,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     设置请求基地址
     /// </summary>
+    /// <remarks>可充当前缀使用。</remarks>
     /// <param name="baseAddress">基地址</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />

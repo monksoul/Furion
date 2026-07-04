@@ -34,6 +34,7 @@ public sealed class BaseAddressAttribute : Attribute
     /// <summary>
     ///     <inheritdoc cref="BaseAddressAttribute" />
     /// </summary>
+    /// <remarks>可充当前缀使用。</remarks>
     /// <param name="baseAddress">请求基地址</param>
     public BaseAddressAttribute(string? baseAddress) => BaseAddress = baseAddress;
 

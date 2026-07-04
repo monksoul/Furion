@@ -167,7 +167,8 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         var requestSummary = request.ProfilerHeaders(httpClient);
         var requestContentSummary = await request.Content.ProfilerAsync(cancellationToken: cancellationToken);
 
-        Log(logger, remoteOptions, $"{requestSummary}\r\n{requestContentSummary}", httpRemoteAnalyzer);
+        Log(logger, remoteOptions, Helpers.JoinNonEmptyLines(requestSummary, requestContentSummary),
+            httpRemoteAnalyzer);
     }
 
     /// <summary>
@@ -199,7 +200,8 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         var responseContentSummary =
             await httpResponseMessage.Content.ProfilerAsync("Response Body", httpResponseMessage, cancellationToken);
 
-        Log(logger, remoteOptions, $"{generalSummary}\r\n{responseContentSummary}", httpRemoteAnalyzer);
+        Log(logger, remoteOptions, Helpers.JoinNonEmptyLines(generalSummary, responseContentSummary),
+            httpRemoteAnalyzer);
     }
 
     /// <summary>

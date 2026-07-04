@@ -282,6 +282,6 @@ public sealed class HttpRemoteResult<TResult> : IDisposable
         var generalAndResponseEntry = ResponseMessage.ProfilerGeneralAndHeaders(generalCustomKeyValues:
             [new KeyValuePair<string, IEnumerable<string>>("Request Duration (ms)", [$"{RequestDuration:N2}"])]);
 
-        return $"{requestEntry}\r\n{generalAndResponseEntry}";
+        return Helpers.JoinNonEmptyLines(requestEntry, generalAndResponseEntry);
     }
 }

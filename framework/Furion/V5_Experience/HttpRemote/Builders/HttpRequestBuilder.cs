@@ -157,7 +157,8 @@ public sealed partial class HttpRequestBuilder
             ? processedRequestUri
             : processedRequestUri is null
                 ? processedBaseAddress
-                : new Uri(processedBaseAddress, processedRequestUri);
+                : new Uri(Helpers.CombineUrl(processedBaseAddress.OriginalString, processedRequestUri.OriginalString),
+                    UriKind.RelativeOrAbsolute);
 
         // 初始化带全局（客户端） BaseAddress 的请求地址
         var requestUriWithClientBaseAddress = clientBaseAddress is null

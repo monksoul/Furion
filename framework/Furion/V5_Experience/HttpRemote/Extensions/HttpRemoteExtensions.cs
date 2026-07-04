@@ -259,7 +259,7 @@ public static partial class HttpRemoteExtensions
         // 格式化响应条目
         var responseEntry = httpResponseMessage.ProfilerHeaders(responseSummary);
 
-        return $"{generalEntry}\r\n{responseEntry}";
+        return Helpers.JoinNonEmptyLines(generalEntry, responseEntry);
     }
 
     /// <summary>
@@ -409,13 +409,17 @@ public static partial class HttpRemoteExtensions
         // 空检查
         if (!string.IsNullOrWhiteSpace(contentEncoding))
         {
-            decompressor = contentEncoding.Trim().ToLowerInvariant() switch
+            // 检查是否不是 WebAssembly 应用
+            if (!OperatingSystem.IsBrowser())
             {
-                "gzip" => new GZipStream(compressedStream, CompressionMode.Decompress, true),
-                "deflate" => new DeflateStream(compressedStream, CompressionMode.Decompress, true),
-                "br" => new BrotliStream(compressedStream, CompressionMode.Decompress, true),
-                _ => null
-            };
+                decompressor = contentEncoding.Trim().ToLowerInvariant() switch
+                {
+                    "gzip" => new GZipStream(compressedStream, CompressionMode.Decompress, true),
+                    "deflate" => new DeflateStream(compressedStream, CompressionMode.Decompress, true),
+                    "br" => new BrotliStream(compressedStream, CompressionMode.Decompress, true),
+                    _ => null
+                };
+            }
         }
 
         var readStream = decompressor ?? compressedStream;

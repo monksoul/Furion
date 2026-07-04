@@ -315,12 +315,18 @@ public sealed class HttpRemoteBuilder
         // 注册默认 HttpClient 客户端
         if (services.All(u => u.ServiceType != typeof(IHttpClientFactory)))
         {
-            services.AddHttpClient(string.Empty)
+            // 注册默认 HttpClient 客户端
+            var httpClientBuilder = services.AddHttpClient(string.Empty);
+
+            // 检查是否不是 WebAssembly 应用
+            if (!OperatingSystem.IsBrowser())
+            {
                 // 默认启用 gzip、deflate 和 brotli 自动解压
-                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
                 {
                     AutomaticDecompression = DecompressionMethods.All
                 });
+            }
         }
 
         // 检查是否配置（注册）了日志程序

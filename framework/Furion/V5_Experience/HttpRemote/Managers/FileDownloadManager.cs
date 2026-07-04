@@ -1076,6 +1076,12 @@ internal sealed class FileDownloadManager
     /// </returns>
     internal static Stream WrapDecompressionStream(Stream rawContentStream, HttpResponseMessage httpResponseMessage)
     {
+        // 检查是否是 WebAssembly 应用
+        if (OperatingSystem.IsBrowser())
+        {
+            return rawContentStream;
+        }
+
         // 获取响应内容 Content-Encoding 标头
         var contentEncoding = httpResponseMessage.Content.Headers.ContentEncoding.FirstOrDefault()?.Trim()
             .ToLowerInvariant();

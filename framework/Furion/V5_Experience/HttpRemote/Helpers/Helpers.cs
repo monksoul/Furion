@@ -297,4 +297,47 @@ internal static class Helpers
 
         return null;
     }
+
+    /// <summary>
+    ///     将传入的字符串数组中所有非空白字符串用换行符（\r\n）拼接成一个字符串
+    /// </summary>
+    /// <param name="lines">字符串数组</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string JoinNonEmptyLines(params string?[]? lines) =>
+        lines is null or { Length: 0 }
+            ? string.Empty
+            : string.Join("\r\n", lines.Where(line => !string.IsNullOrWhiteSpace(line)));
+
+    /// <summary>
+    ///     组合基地址和请求地址
+    /// </summary>
+    /// <param name="baseUrl">基地址</param>
+    /// <param name="requestUrl">请求地址</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string CombineUrl(string? baseUrl, string? requestUrl)
+    {
+        // 空检查
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return requestUrl ?? string.Empty;
+        }
+
+        // 空检查
+        if (string.IsNullOrWhiteSpace(requestUrl))
+        {
+            return baseUrl;
+        }
+
+        // 检查 requestUrl 是否是绝对 URL
+        if (Uri.TryCreate(requestUrl, UriKind.Absolute, out _))
+        {
+            return requestUrl;
+        }
+
+        return baseUrl.TrimEnd('/') + "/" + requestUrl.TrimStart('/');
+    }
 }
