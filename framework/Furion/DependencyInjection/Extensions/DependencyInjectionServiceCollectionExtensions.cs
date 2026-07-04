@@ -65,12 +65,12 @@ public static class DependencyInjectionServiceCollectionExtensions
     /// <param name="dependencyType"></param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddDispatchProxyForInterface<TDispatchProxy, TIDispatchProxy>(this IServiceCollection services, Type dependencyType)
-        where TDispatchProxy : AspectDispatchProxy, IDispatchProxy
+        where TDispatchProxy : DispatchProxyAsync, IDispatchProxy
         where TIDispatchProxy : class
     {
         // 注册代理类
         var lifetime = TryGetServiceLifetime(dependencyType);
-        services.Add(ServiceDescriptor.Describe(typeof(AspectDispatchProxy), typeof(TDispatchProxy), lifetime));
+        services.TryAdd(ServiceDescriptor.Describe(typeof(DispatchProxyAsync), typeof(TDispatchProxy), lifetime));
 
         // 代理依赖接口类型
         var proxyType = typeof(TDispatchProxy);
@@ -232,19 +232,23 @@ public static class DependencyInjectionServiceCollectionExtensions
         var lifetime = TryGetServiceLifetime(dependencyType);
 
         // 注册代理类型
-        services.Add(ServiceDescriptor.Describe(typeof(AspectDispatchProxy), proxyType, lifetime));
+        services.TryAdd(ServiceDescriptor.Describe(typeof(DispatchProxyAsync), proxyType, lifetime));
 
         // 注册服务
         services.Add(ServiceDescriptor.Describe(inter, provider =>
         {
-            dynamic proxy = DispatchCreateMethod.MakeGenericMethod(inter, proxyType).Invoke(null, null);
-            proxy.Services = provider;
-            if (hasTarget)
+            var proxyObj = DispatchProxyAsync.Create(inter, proxyType);
+
+            if (proxyObj is IDispatchProxy proxy)
             {
-                proxy.Target = provider.GetService(type);
+                proxy.Services = provider;
+                if (hasTarget)
+                {
+                    proxy.Target = provider.GetService(type);
+                }
             }
 
-            return proxy;
+            return proxyObj;
         }, lifetime));
     }
 
@@ -366,11 +370,6 @@ public static class DependencyInjectionServiceCollectionExtensions
     private static readonly ConcurrentDictionary<string, Type> TypeNamedCollection;
 
     /// <summary>
-    /// 创建代理方法
-    /// </summary>
-    private static readonly MethodInfo DispatchCreateMethod;
-
-    /// <summary>
     /// 全局服务代理类型
     /// </summary>
     private static readonly Type GlobalServiceProxyType;
@@ -382,9 +381,8 @@ public static class DependencyInjectionServiceCollectionExtensions
     {
         // 获取全局代理类型
         GlobalServiceProxyType = App.EffectiveTypes
-            .FirstOrDefault(u => typeof(AspectDispatchProxy).IsAssignableFrom(u) && typeof(IGlobalDispatchProxy).IsAssignableFrom(u) && u.IsClass && !u.IsInterface && !u.IsAbstract);
+            .FirstOrDefault(u => typeof(DispatchProxyAsync).IsAssignableFrom(u) && typeof(IGlobalDispatchProxy).IsAssignableFrom(u) && u.IsClass && !u.IsInterface && !u.IsAbstract);
 
         TypeNamedCollection = new ConcurrentDictionary<string, Type>();
-        DispatchCreateMethod = typeof(AspectDispatchProxy).GetMethod(nameof(AspectDispatchProxy.Create));
     }
 }

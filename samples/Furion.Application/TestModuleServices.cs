@@ -805,16 +805,16 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
 
     public string 测试模板组合与复用()
     {
-var headerTemplate = viewEngine.RunCompileFromCached("<header>@Model.Title</header>", new { Title = "Furion" });
-var footerTemplate = viewEngine.RunCompileFromCached("<footer>@Model.Year</footer>", new { Year = DateTime.Now.Year });
+        var headerTemplate = viewEngine.RunCompileFromCached("<header>@Model.Title</header>", new { Title = "Furion" });
+        var footerTemplate = viewEngine.RunCompileFromCached("<footer>@Model.Year</footer>", new { Year = DateTime.Now.Year });
 
-var pageTemplate = viewEngine.RunCompile(@"<body>@Model.Header @Model.Body @Model.Footer</body>",
-    new
-    {
-        Header = headerTemplate,
-        Body = "<p>Main Content</p>",
-        Footer = footerTemplate
-    });
+        var pageTemplate = viewEngine.RunCompile(@"<body>@Model.Header @Model.Body @Model.Footer</body>",
+            new
+            {
+                Header = headerTemplate,
+                Body = "<p>Main Content</p>",
+                Footer = footerTemplate
+            });
 
         return pageTemplate;
     }
@@ -836,7 +836,7 @@ public class TestService2 : ITestService2, ITransient
 }
 
 
-public class LogDispatchProxy : AspectDispatchProxy, IDispatchProxy
+public class LogDispatchProxy : DispatchProxyAsync, IDispatchProxy
 {
     /// <summary>
     /// 当前服务实例

@@ -36,7 +36,7 @@ namespace Furion.DatabaseAccessor;
 /// <summary>
 /// Sql 执行代理类
 /// </summary>
-public class SqlDispatchProxy : AspectDispatchProxy, IDispatchProxy
+public class SqlDispatchProxy : DispatchProxyAsync, IDispatchProxy
 {
     /// <summary>
     /// 实例对象
