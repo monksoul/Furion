@@ -298,8 +298,17 @@ public sealed partial class TriggerBuilder
     /// 设置每周一至周五（午夜）开始作业触发器
     /// </summary>
     /// <returns><see cref="TriggerBuilder"/></returns>
-    public TriggerBuilder AlterToWorkday()
+    public TriggerBuilder AlterToWeekdays()
     {
-        return AlterToCron("@workday");
+        return AlterToCron("@weekdays");
+    }
+
+    /// <summary>
+    /// 设置每周六和周日（午夜）开始作业触发器
+    /// </summary>
+    /// <returns><see cref="TriggerBuilder"/></returns>
+    public TriggerBuilder AlterToWeekends()
+    {
+        return AlterToCron("@weekends");
     }
 }

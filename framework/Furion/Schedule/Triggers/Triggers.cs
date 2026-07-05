@@ -375,9 +375,18 @@ public static class Triggers
     /// 创建每周一至周五（午夜）开始作业触发器构建器
     /// </summary>
     /// <returns><see cref="TriggerBuilder"/></returns>
-    public static TriggerBuilder Workday()
+    public static TriggerBuilder Weekdays()
     {
-        return Cron("@workday");
+        return Cron("@weekdays");
+    }
+
+    /// <summary>
+    /// 创建每周六和周日（午夜）开始作业触发器构建器
+    /// </summary>
+    /// <returns><see cref="TriggerBuilder"/></returns>
+    public static TriggerBuilder Weekends()
+    {
+        return Cron("@weekends");
     }
 
     /// <summary>
