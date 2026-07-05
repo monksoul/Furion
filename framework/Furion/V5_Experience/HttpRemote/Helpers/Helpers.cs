@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Extensions;
 using Furion.Utilities;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics.CodeAnalysis;
@@ -30,6 +31,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
 
 namespace Furion.HttpRemote;
@@ -235,19 +238,57 @@ internal static class Helpers
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    internal static string GetContentTypeOrDefault(object? rawContent, string? defaultContentType) =>
-        rawContent switch
+    internal static string GetContentTypeOrDefault(object? rawContent, string? defaultContentType)
+    {
+        switch (rawContent)
+        {
+            // 检查是否是 HttpContent 类型
+            case HttpContent httpContent:
+            {
+                // 获取 Content-Type 标头
+                var contentType = httpContent.Headers.ContentType?.MediaType;
+
+                // 空检查
+                if (!string.IsNullOrWhiteSpace(contentType))
+                {
+                    return contentType;
+                }
+
+                break;
+            }
+            // 检查是否是 JsonNode 类型
+            case JsonNode jsonNode:
+            {
+                return jsonNode.GetValueKind() is JsonValueKind.Object or JsonValueKind.Array
+                    ? MediaTypeNames.Application.Json
+                    : MediaTypeNames.Text.Plain;
+            }
+            // 检查是否是 JsonElement 类型
+            case JsonElement jsonElement:
+            {
+                return jsonElement.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                    ? MediaTypeNames.Application.Json
+                    : MediaTypeNames.Text.Plain;
+            }
+        }
+
+        return rawContent switch
         {
             JsonContent => MediaTypeNames.Application.Json,
             FormUrlEncodedContent => MediaTypeNames.Application.FormUrlEncoded,
-            (byte[] or Stream or ByteArrayContent or StreamContent or ReadOnlyMemoryContent or ReadOnlyMemory<byte>)
-                and not StringContent => MediaTypeNames.Application
-                    .Octet,
-            MultipartContent => MediaTypeNames.Multipart.FormData,
+            StringContent => MediaTypeNames.Text.Plain,
+            ByteArrayContent or StreamContent or ReadOnlyMemoryContent => MediaTypeNames.Application.Octet,
+            byte[] or Stream or ReadOnlyMemory<byte> => MediaTypeNames.Application.Octet,
+            MultipartFormDataContent => MediaTypeNames.Multipart.FormData,
+            MultipartContent => "multipart/mixed",
+            // ReSharper disable once DuplicatedSwitchExpressionArms
+            HttpContent => MediaTypeNames.Application.Octet,
             MultipartFile => MediaTypeNames.Application.Octet,
             FileInfo fileInfo => FileTypeMapper.GetContentType(fileInfo.Name),
+            not null when !rawContent.GetType().IsBaseTypeOrEnumOrCollection() => MediaTypeNames.Application.Json,
             _ => defaultContentType ?? MediaTypeNames.Text.Plain
         };
+    }
 
     /// <summary>
     ///     尝试从响应标头 <c>Content-Disposition</c> 中解析文件名
