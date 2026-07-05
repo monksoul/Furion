@@ -29,14 +29,18 @@ namespace Furion.TimeCrontab;
 /// Cron 字段值含 {0}#{1} 字符解析器
 /// </summary>
 /// <remarks>
-/// <para>表示月中第{0}个星期{1}，仅在 <see cref="CrontabFieldKind.DayOfWeek"/> 字段域中使用</para>
+/// <para>表示月中第{0}个星期{1}，仅在 <see cref="CrontabFieldKind.DayOfWeek"/> 字段域中使用。</para>
+/// <para>当使用 <c>R#N</c> 或 <c>H#N</c> 语法时，星期几会在解析时随机选定（0-6），之后遵循同样的规则（每月第 N 个该星期几）。</para>
 /// </remarks>
 internal sealed class SpecificDayOfWeekInMonthParser : ICronParser
 {
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dayOfWeek">星期，0 = 星期天，7 = 星期六</param>
+    /// <param name="dayOfWeek">
+    /// 星期，0 = 星期天，7 = 星期六。
+    /// 当由 <c>R#N</c> 或 <c>H#N</c> 生成时，该值已在解析时随机确定。
+    /// </param>
     /// <param name="weekNumber">月中第几个星期</param>
     /// <param name="kind">Cron 字段种类</param>
     /// <exception cref="TimeCrontabException"></exception>

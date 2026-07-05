@@ -1,5 +1,6 @@
 ﻿using Furion.Application;
 using Furion.Schedule;
+using Furion.TimeCrontab;
 using Furion.VirtualFileServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -140,6 +141,8 @@ public sealed class Startup : AppStartup
             options.AddJob<TestJob>(builder => builder.SetTemporary(), Triggers.PeriodMinutes(1));
 
             options.AddJob<TestJob>(u => u.SetIncludeAnnotations(true), Triggers.At("2025-11-26 14:58:20"));
+
+            options.AddJob(JobBuilder.Create<TestJob>().SetDescription("随机"), Triggers.Cron("H(30-59) * * * * *", CronStringFormat.WithSeconds));
 
             options.AddPersistence<TestJobPersistence>();
         });
