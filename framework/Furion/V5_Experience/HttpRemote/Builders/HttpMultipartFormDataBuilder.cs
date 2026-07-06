@@ -46,6 +46,9 @@ public sealed class HttpMultipartFormDataBuilder
     /// </summary>
     internal readonly List<MultipartFormDataItem> _partContents;
 
+    /// <inheritdoc cref="OnPreAddContent" />
+    internal Action<HttpContent, string>? _onPreAddContent;
+
     /// <summary>
     ///     多部分表单内容项排序委托
     /// </summary>
@@ -59,9 +62,6 @@ public sealed class HttpMultipartFormDataBuilder
     ///     用于处理在添加 <see cref="HttpContent" /> 表单项内容前，对表单名称进行自定义转换的转换器
     /// </summary>
     internal Func<string, string?>? FormNameTransformer;
-
-    /// <inheritdoc cref="OnPreAddContent" />
-    internal Action<HttpContent, string>? _onPreAddContent;
 
     /// <summary>
     ///     <inheritdoc cref="HttpMultipartFormDataBuilder" />
@@ -936,17 +936,37 @@ public sealed class HttpMultipartFormDataBuilder
                 continue;
             }
 
-            // 检查是否移除默认的多部分内容的 Content-Type，解决对接 Java 程序时可能出现失败问题
-            if (OmitContentType)
+            // 初始化 HttpContent 集合
+            var httpContents = new List<HttpContent>();
+
+            // 检查是否是 CompositeHttpContent 实例
+            if (httpContent is CompositeHttpContent compositeHttpContent)
             {
-                httpContent.Headers.ContentType = null;
+                httpContents.AddRange(compositeHttpContent.Contents);
+            }
+            else
+            {
+                httpContents.Add(httpContent);
             }
 
-            // 调用用于处理在添加 HttpContent 表单项内容时的操作
-            OnPreAddContent?.Invoke(httpContent, transformedName);
+            // 遍历集逐条添加
+            foreach (var itemContent in httpContents)
+            {
+                // 检查是否移除默认的多部分内容的 Content-Type，解决对接 Java 程序时可能出现失败问题
+                if (OmitContentType)
+                {
+                    itemContent.Headers.ContentType = null;
+                }
 
-            // 添加 HttpContent 表单项内容
-            multipartFormDataContent.Add(httpContent, transformedName);
+                // 调用用于处理在添加 HttpContent 表单项内容时的操作
+                OnPreAddContent?.Invoke(itemContent, transformedName);
+
+                // 添加 HttpContent 表单项内容
+                multipartFormDataContent.Add(itemContent, transformedName);
+            }
+
+            // 清空集合
+            httpContents.Clear();
         }
 
         return multipartFormDataContent;
@@ -990,29 +1010,59 @@ public sealed class HttpMultipartFormDataBuilder
         var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
 
         // 是否在请求结束后自动释放流
-        if (processorContext.CompletionDisposable is { } disposable)
+        if (processorContext.CompletionDisposables is { } disposables)
         {
-            _httpRequestBuilder.AddDisposable(disposable);
+            _httpRequestBuilder.AddDisposables(disposables);
+            processorContext.CompletionDisposables.Clear();
         }
 
+        // 检查是否是 CompositeHttpContent 实例
+        if (httpContent is CompositeHttpContent compositeHttpContent)
+        {
+            // 遍历所有的请求内容
+            foreach (var itemContent in compositeHttpContent.Contents)
+            {
+                // 尝试设置请求内容的 Content-Disposition 标头
+                TrySetContentDisposition(multipartFormDataItem, itemContent, name, contentType);
+            }
+
+            return httpContent;
+        }
+
+        // 尝试设置请求内容的 Content-Disposition 标头
+        TrySetContentDisposition(multipartFormDataItem, httpContent, name, contentType);
+
+        return httpContent;
+    }
+
+    /// <summary>
+    ///     尝试设置请求内容的 <c>Content-Disposition</c> 标头
+    /// </summary>
+    /// <param name="multipartFormDataItem">
+    ///     <see cref="MultipartFormDataItem" />
+    /// </param>
+    /// <param name="httpContent">
+    ///     <see cref="HttpContent" />
+    /// </param>
+    /// <param name="name">表单名称</param>
+    /// <param name="contentType">内容类型</param>
+    internal static void TrySetContentDisposition(MultipartFormDataItem multipartFormDataItem, HttpContent? httpContent,
+        string name, string contentType)
+    {
         // 空检查
         if (httpContent is not null && httpContent.Headers.ContentDisposition is null)
         {
             // 设置表单项内容 Content-Disposition 标头
-            httpContent.Headers.ContentDisposition =
-                new ContentDispositionHeaderValue("form-data")
-                {
-                    Name = name.AddQuotes(),
-                    FileName =
-                        (string.IsNullOrWhiteSpace(multipartFormDataItem.FileName) &&
-                         contentType.IsIn([MediaTypeNames.Application.Octet], StringComparer.OrdinalIgnoreCase)
-                            // 解决发送文件或二进制【未设置】文件名问题
-                            ? $"Unnamed_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}"
-                            : multipartFormDataItem.FileName).AddQuotes()
-                };
+            httpContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            {
+                Name = name.AddQuotes(),
+                FileName = (string.IsNullOrWhiteSpace(multipartFormDataItem.FileName) &&
+                            contentType.IsIn([MediaTypeNames.Application.Octet], StringComparer.OrdinalIgnoreCase)
+                    // 解决发送文件或二进制【未设置】文件名问题
+                    ? $"Unnamed_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}"
+                    : multipartFormDataItem.FileName).AddQuotes()
+            };
         }
-
-        return httpContent;
     }
 
     /// <summary>

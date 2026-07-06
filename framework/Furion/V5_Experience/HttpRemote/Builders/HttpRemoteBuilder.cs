@@ -342,16 +342,14 @@ public sealed class HttpRemoteBuilder
             options.HttpDeclarativeExtractors = _httpDeclarativeExtractors?.AsReadOnly();
         });
 
+        // 注册内容提供器
+        RegisterContentProviders(services);
+
         // 注册 HttpContent 内容处理器工厂
-        services.TryAddSingleton<IHttpContentProcessorFactory>(provider =>
-            new HttpContentProcessorFactory(provider,
-                _httpContentProcessorProviders?.SelectMany(u => u.Invoke()).ToArray()));
+        services.TryAddSingleton<IHttpContentProcessorFactory, HttpContentProcessorFactory>();
 
         // 注册 HttpContent 内容转换器工厂
-        services.TryAddSingleton<IHttpContentConverterFactory>(provider => new HttpContentConverterFactory(provider,
-            provider.GetRequiredService<IHttpRemoteLogger>(),
-            _httpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-            _genericHttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray()));
+        services.TryAddSingleton<IHttpContentConverterFactory, HttpContentConverterFactory>();
 
         // 注册对象内容转换器工厂
         services.TryAddSingleton<IObjectContentConverterFactory, ObjectContentConverterFactory>();
@@ -369,6 +367,44 @@ public sealed class HttpRemoteBuilder
 
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);
+    }
+
+    /// <summary>
+    ///     注册内容提供器
+    /// </summary>
+    /// <remarks>处理重复注册远程请求服务时不能合并多个提供器问题。</remarks>
+    /// <param name="services">
+    ///     <see cref="IServiceCollection" />
+    /// </param>
+    internal void RegisterContentProviders(IServiceCollection services)
+    {
+        // 注册所有请求内容处理器
+        if (_httpContentProcessorProviders is not null)
+        {
+            foreach (var processor in _httpContentProcessorProviders.SelectMany(u => u()))
+            {
+                services.AddSingleton(processor);
+            }
+        }
+
+        // 注册所有响应内容转换器
+        if (_httpContentConverterProviders is not null)
+        {
+            foreach (var converter in _httpContentConverterProviders.SelectMany(u => u()))
+            {
+                services.AddSingleton(converter);
+            }
+        }
+
+        // 注册所有泛型响应内容转换器
+        // ReSharper disable once InvertIf
+        if (_genericHttpContentConverterProviders != null)
+        {
+            foreach (var converter in _genericHttpContentConverterProviders.SelectMany(u => u()))
+            {
+                services.AddSingleton(converter);
+            }
+        }
     }
 
     /// <summary>

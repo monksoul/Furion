@@ -621,15 +621,37 @@ public sealed partial class HttpRequestBuilder
         var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
 
         // 是否在请求结束后自动释放流
-        if (processorContext.CompletionDisposable is { } disposable)
+        if (processorContext.CompletionDisposables is { } disposables)
         {
-            AddDisposable(disposable);
+            AddDisposables(disposables);
+            processorContext.CompletionDisposables.Clear();
         }
 
-        // 空检查
-        if (httpContent is null)
+        switch (httpContent)
         {
-            return;
+            // 空检查
+            case null:
+                return;
+            // 检查是否是 CompositeHttpContent 实例
+            case CompositeHttpContent compositeHttpContent:
+                {
+                    // 获取 HttpContent 集合
+                    var httpContents = compositeHttpContent.Contents;
+
+                    switch (httpContents.Count)
+                    {
+                        case 0:
+                            return;
+                        case 1:
+                            httpContent = httpContents[0];
+                            break;
+                        default:
+                            throw new InvalidOperationException(
+                                "Multiple content items are not allowed as top-level request content.");
+                    }
+
+                    break;
+                }
         }
 
         // 检查是否移除默认的内容的 Content-Type，解决对接 Java 程序时可能出现失败问题

@@ -47,7 +47,17 @@ public sealed record HttpContentProcessorContext(object? RawContent, string Cont
     public bool AsFormItem { get; init; }
 
     /// <summary>
-    ///     设置需要在请求结束后自动释放的流
+    ///     设置需要在请求结束后自动释放的流集合
     /// </summary>
-    public IDisposable? CompletionDisposable { get; set; }
+    public List<IDisposable>? CompletionDisposables { get; set; }
+
+    /// <summary>
+    ///     创建一个复合 <see cref="HttpContent" />
+    /// </summary>
+    /// <remarks>用于返回多个 <see cref="HttpContent" />。</remarks>
+    /// <param name="contents"><see cref="HttpContent" /> 集合</param>
+    /// <returns>
+    ///     <see cref="CompositeHttpContent" />
+    /// </returns>
+    public CompositeHttpContent Composite(params IEnumerable<HttpContent> contents) => new(contents);
 }

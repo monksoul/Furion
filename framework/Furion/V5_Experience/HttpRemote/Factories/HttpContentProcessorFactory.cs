@@ -41,8 +41,8 @@ internal sealed class HttpContentProcessorFactory : IHttpContentProcessorFactory
     /// <param name="serviceProvider">
     ///     <see cref="IServiceProvider" />
     /// </param>
-    /// <param name="processors"><see cref="IHttpContentProcessor" /> 数组</param>
-    public HttpContentProcessorFactory(IServiceProvider serviceProvider, IHttpContentProcessor[]? processors)
+    /// <param name="processors"><see cref="IHttpContentProcessor" /> 集合</param>
+    public HttpContentProcessorFactory(IServiceProvider serviceProvider, IEnumerable<IHttpContentProcessor> processors)
     {
         ServiceProvider = serviceProvider;
 
@@ -59,7 +59,7 @@ internal sealed class HttpContentProcessorFactory : IHttpContentProcessorFactory
             [typeof(FileInfoContentProcessor)] = new FileInfoContentProcessor()
         };
 
-        // 添加自定义 IHttpContentProcessor 数组
+        // 添加自定义 IHttpContentProcessor 集合
         _processors.TryAdd(processors, value => value.GetType());
     }
 

@@ -244,32 +244,32 @@ internal static class Helpers
         {
             // 检查是否是 HttpContent 类型
             case HttpContent httpContent:
-            {
-                // 获取 Content-Type 标头
-                var contentType = httpContent.Headers.ContentType?.MediaType;
-
-                // 空检查
-                if (!string.IsNullOrWhiteSpace(contentType))
                 {
-                    return contentType;
-                }
+                    // 获取 Content-Type 标头
+                    var contentType = httpContent.Headers.ContentType?.MediaType;
 
-                break;
-            }
+                    // 空检查
+                    if (!string.IsNullOrWhiteSpace(contentType))
+                    {
+                        return contentType;
+                    }
+
+                    break;
+                }
             // 检查是否是 JsonNode 类型
             case JsonNode jsonNode:
-            {
-                return jsonNode.GetValueKind() is JsonValueKind.Object or JsonValueKind.Array
-                    ? MediaTypeNames.Application.Json
-                    : MediaTypeNames.Text.Plain;
-            }
+                {
+                    return jsonNode.GetValueKind() is JsonValueKind.Object or JsonValueKind.Array
+                        ? MediaTypeNames.Application.Json
+                        : MediaTypeNames.Text.Plain;
+                }
             // 检查是否是 JsonElement 类型
             case JsonElement jsonElement:
-            {
-                return jsonElement.ValueKind is JsonValueKind.Object or JsonValueKind.Array
-                    ? MediaTypeNames.Application.Json
-                    : MediaTypeNames.Text.Plain;
-            }
+                {
+                    return jsonElement.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                        ? MediaTypeNames.Application.Json
+                        : MediaTypeNames.Text.Plain;
+                }
         }
 
         return rawContent switch

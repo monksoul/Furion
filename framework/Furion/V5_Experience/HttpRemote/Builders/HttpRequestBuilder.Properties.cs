@@ -278,7 +278,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于请求结束时需要释放的对象集合
     /// </summary>
-    internal HashSet<IDisposable>? Disposables { get; private set; }
+    internal List<IDisposable>? Disposables { get; private set; }
 
     /// <summary>
     ///     <see cref="HttpClient" /> 实例管理器

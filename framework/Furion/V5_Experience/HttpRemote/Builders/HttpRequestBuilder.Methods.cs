@@ -319,6 +319,36 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     清除请求内容
+    /// </summary>
+    /// <remarks>
+    ///     如果 <see cref="RawContent" /> 实现了 <see cref="IDisposable" />，并且此前已通过 <see cref="AddDisposable" />
+    ///     将其添加到可释放对象列表中，则该方法会将其从列表中移除。
+    /// </remarks>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder RemoveContent()
+    {
+        // 获取原始请求内容
+        var rawContent = RawContent;
+
+        // 移除需要释放的原始请求内容
+        if (rawContent is IDisposable disposable)
+        {
+            Disposables?.Remove(disposable);
+        }
+
+        ContentType = null;
+        ContentEncoding = null;
+        RawContent = null;
+        MultipartFormDataBuilder = null;
+        OmitContentType = false;
+
+        return this;
+    }
+
+    /// <summary>
     ///     设置多部分表单内容，请求类型为 <c>multipart/form-data</c>
     /// </summary>
     /// <remarks>
@@ -1368,8 +1398,26 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(disposable);
 
+        return AddDisposables(disposable);
+    }
+
+    /// <summary>
+    ///     批量添加请求结束时需要释放的对象
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="disposables">
+    ///     <see cref="IDisposable" /> 集合
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder AddDisposables(params IEnumerable<IDisposable> disposables)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(disposables);
+
         Disposables ??= [];
-        Disposables.Add(disposable);
+        Disposables.AddRange(disposables);
 
         return this;
     }
@@ -2030,7 +2078,7 @@ public sealed partial class HttpRequestBuilder
     internal void ReleaseDisposables()
     {
         // 空检查
-        if (Disposables.IsNullOrEmpty())
+        if (Disposables is null or { Count: 0 })
         {
             return;
         }

@@ -54,10 +54,10 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
     /// <param name="logger">
     ///     <see cref="IHttpRemoteLogger" />
     /// </param>
-    /// <param name="converters"><see cref="IHttpContentConverter{TResult}" /> 数组</param>
-    /// <param name="genericConverters"><see cref="GenericHttpContentConverter" /> 数组</param>
+    /// <param name="converters"><see cref="IHttpContentConverter{TResult}" /> 集合</param>
+    /// <param name="genericConverters"><see cref="GenericHttpContentConverter" /> 集合</param>
     public HttpContentConverterFactory(IServiceProvider serviceProvider, IHttpRemoteLogger logger,
-        IHttpContentConverter[]? converters, GenericHttpContentConverter[]? genericConverters)
+        IEnumerable<IHttpContentConverter> converters, IEnumerable<GenericHttpContentConverter> genericConverters)
     {
         ServiceProvider = serviceProvider;
         _logger = logger;
@@ -72,7 +72,7 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
             [typeof(VoidContentConverter)] = new VoidContentConverter()
         };
 
-        // 添加自定义 IHttpContentConverter 数组
+        // 添加自定义 IHttpContentConverter 集合
         _converters.TryAdd(converters, value => value.GetType());
 
         // 初始化泛型响应内容转换器工厂委托
@@ -85,7 +85,7 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
             ]
         };
 
-        // 添加自定义泛型响应内容转换器工厂委托数组
+        // 添加自定义泛型响应内容转换器工厂委托集合
         foreach (var (genericType, factory) in genericConverters ?? [])
         {
             // 尝试根据泛型类型查找工作委托集合

@@ -50,6 +50,7 @@ public interface IHttpContentProcessor
     /// <summary>
     ///     将原始请求内容转换为 <see cref="HttpContent" /> 实例
     /// </summary>
+    /// <remarks>若需要返回多个 <see cref="HttpContent" />，可通过创建 <see cref="CompositeHttpContent" /> 实例返回。</remarks>
     /// <param name="context">
     ///     <see cref="HttpContentProcessorContext" />
     /// </param>

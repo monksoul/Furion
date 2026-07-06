@@ -27,6 +27,7 @@ using Furion.HttpRemote.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -289,6 +290,98 @@ public static class HttpRemoteUtility
             socket.Dispose();
             throw;
         }
+    }
+
+    /// <summary>
+    ///     获取本机第一个活跃的非回环 IPv4 地址
+    /// </summary>
+    /// <remarks>如果遍历所有本机网络接口后仍无可用地址，则返回安全回退值 <c>127.0.0.1</c>。</remarks>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    public static string GetLocalIPv4()
+    {
+        try
+        {
+            // 遍历系统中所有网络接口（以太网、Wi-Fi、虚拟网卡等）
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                // 排除未启用的接口
+                if (networkInterface.OperationalStatus != OperationalStatus.Up)
+                {
+                    continue;
+                }
+
+                // 排除回环接口和隧道接口
+                if (networkInterface.NetworkInterfaceType is NetworkInterfaceType.Loopback
+                    or NetworkInterfaceType.Tunnel)
+                {
+                    continue;
+                }
+
+                // 遍历该接口上的所有单播 IP 地址
+                foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                {
+                    // 检查是否是 IPv4 地址
+                    if (ipAddress.Address.AddressFamily is AddressFamily.InterNetwork)
+                    {
+                        return ipAddress.Address.ToString();
+                    }
+                }
+            }
+        }
+        catch (NetworkInformationException)
+        {
+        }
+
+        return "127.0.0.1";
+    }
+
+    /// <summary>
+    ///     获取本机第一个活跃的非回环网卡的 MAC 地址
+    /// </summary>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    public static string GetLocalMacAddress()
+    {
+        try
+        {
+            // 遍历系统中所有网络接口（以太网、Wi-Fi、虚拟网卡等）
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                // 排除未启用的接口
+                if (networkInterface.OperationalStatus != OperationalStatus.Up)
+                {
+                    continue;
+                }
+
+                // 排除回环接口和隧道接口
+                if (networkInterface.NetworkInterfaceType is NetworkInterfaceType.Loopback
+                    or NetworkInterfaceType.Tunnel)
+                {
+                    continue;
+                }
+
+                // 获取物理地址
+                var physicalAddress = networkInterface.GetPhysicalAddress();
+                var bytes = physicalAddress.GetAddressBytes();
+
+                // 空检查
+                if (bytes.Length == 0)
+                {
+                    continue;
+                }
+
+                // 格式化为标准的 MAC 地址字符串
+                return string.Join("-", bytes.Select(b => b.ToString("X2")));
+            }
+        }
+        catch (NetworkInformationException)
+        {
+        }
+
+        return string.Empty;
     }
 
     /// <summary>
