@@ -25,13 +25,14 @@
 
 using Furion.Extensions;
 using Furion.Utilities;
+using System.Text.RegularExpressions;
 
 namespace Furion.HttpRemote;
 
 /// <summary>
 ///     文件传输的进度信息
 /// </summary>
-public sealed class FileTransferProgress
+public sealed partial class FileTransferProgress
 {
     /// <summary>
     ///     使用一个小的正值来防止除零错误
@@ -58,6 +59,11 @@ public sealed class FileTransferProgress
     /// </summary>
     /// <remarks>仅适用于 <see cref="UpdateConsoleProgress" /> 方法。</remarks>
     internal bool _hasPrintedHeader;
+
+    /// <summary>
+    ///     上一次输出文本的显示长度
+    /// </summary>
+    internal int _lastDisplayLength;
 
     /// <summary>
     ///     <inheritdoc cref="FileTransferProgress" />
@@ -151,18 +157,26 @@ public sealed class FileTransferProgress
     /// </returns>
     public string ToSummaryString()
     {
+        // 判断是否已完成下载
+        var isComplete = FileSize > 0 && PercentageComplete >= 100.0;
+
         // 初始化已传输的数据文本
         var sizeText = FileSize > 0
             ? $"{Transferred.ToSizeUnits("MB"):F2}MB of {FileSize.ToSizeUnits("MB"):F2}MB ({PercentageComplete:F2}% complete)"
             : $"{Transferred.ToSizeUnits("MB"):F2}MB (Unknown size)";
 
         // 初始化预估剩余传输时间文本
-        var etaText = FileSize > 0 && EstimatedTimeRemaining != TimeSpan.MaxValue
-            ? $"ETA: {EstimatedTimeRemaining.TotalSeconds:F2}s"
-            : "ETA: Unknown";
+        var etaPart = isComplete
+            ? string.Empty
+            : FileSize > 0 && EstimatedTimeRemaining != TimeSpan.MaxValue
+                ? $", ETA: {EstimatedTimeRemaining.TotalSeconds:F2}s"
+                : ", ETA: Unknown";
+
+        // 初始化完成状态文本
+        var donePart = isComplete ? " Done!" : string.Empty;
 
         return
-            $"Transferred {sizeText}, Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalSeconds:F2}s, {etaText}, File: {FileName}, Path: {FilePath}.";
+            $"Transferred {sizeText}, Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalSeconds:F2}s{etaPart}.{donePart} File: {FileName}, Path: {FilePath}.";
     }
 
     /// <inheritdoc cref="ToSummaryStringAsync" />
@@ -184,19 +198,23 @@ public sealed class FileTransferProgress
     /// <remarks>需确保应用项目支持 <see cref="Console" /> 输出。</remarks>
     public void UpdateConsoleProgress()
     {
-        // 获取控制台宽度
-        int windowWidth;
+        // 初始化控制台宽度
+        var windowWidth = 120;
+
+        // 获取控制台实际宽度
         try
         {
             windowWidth = Console.WindowWidth;
         }
         catch
         {
-            windowWidth = 80;
+            try
+            {
+                windowWidth = Console.BufferWidth;
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch { }
         }
-
-        // 计算自适应进度条宽度，10-30 字符最合适
-        var barWidth = (int)Math.Clamp(windowWidth * 0.3, 10, 30);
 
         // 检查是否已打印文件头
         if (!_hasPrintedHeader)
@@ -205,8 +223,17 @@ public sealed class FileTransferProgress
             _hasPrintedHeader = true;
         }
 
+        // 判断是否已完成下载
+        var isComplete = FileSize > 0 && PercentageComplete >= 100.0;
+
+        // 计算自适应进度条宽度，10-20 字符最合适
+        var barWidth = isComplete ? 20 : (int)Math.Clamp(windowWidth * 0.3, 10, 20);
+
         // 初始化进度文本
         string progressText;
+
+        // 初始化下载完成显示的 Done! 字符串
+        const string done = " \e[32mDone!\e[0m";
 
         // 已知文件大小则显示标准进度条
         if (FileSize > 0)
@@ -214,10 +241,13 @@ public sealed class FileTransferProgress
             var progress = (int)Math.Clamp(PercentageComplete, 0, 100);
             var filledLength = (int)(progress / 100.0 * barWidth);
             var progressBar = new string('#', filledLength) + new string('.', barWidth - filledLength);
-            var statusSuffix = PercentageComplete >= 100.0 ? " \e[32mDone!\e[0m" : string.Empty;
+            var statusSuffix = isComplete ? done : string.Empty;
+            var etaPart = isComplete
+                ? string.Empty
+                : $", ETA: {EstimatedTimeRemaining.TotalMilliseconds.FormatDuration()}";
 
             progressText =
-                $"[{progressBar}] {PercentageComplete:F2}% ({Transferred.ToSizeUnits("MB"):F2}MB/{FileSize.ToSizeUnits("MB"):F2}MB) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}, ETA: {EstimatedTimeRemaining.TotalMilliseconds.FormatDuration()}.{statusSuffix}";
+                $"[{progressBar}] {PercentageComplete:F2}% ({Transferred.ToSizeUnits("MB"):F2}MB/{FileSize.ToSizeUnits("MB"):F2}MB) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}{etaPart}.{statusSuffix}";
         }
         // 未知文件大小则显示动态动画进度条
         else
@@ -232,22 +262,52 @@ public sealed class FileTransferProgress
         }
 
         // 处理窗口过小问题（截断处理）
-        if (progressText.Length >= windowWidth)
+        if (GetDisplayLength(progressText) >= windowWidth)
         {
-            progressText = progressText[..(windowWidth - 4)] + "...";
+            progressText = !isComplete
+                ? progressText[..(windowWidth - 4)] + "..."
+                : progressText[..(windowWidth - 4 - GetDisplayLength(done))] + "..." + done;
         }
 
         // 清除当前行并写入新进度（不换行）
         try
         {
             Console.CursorLeft = 0;
-            Console.Write(progressText.PadRight(windowWidth - 1));
-            Console.CursorLeft = 0;
+            Console.Write(progressText);
+
+            // 获取文本的显示长度和是否需要填充
+            var displayLen = GetDisplayLength(progressText);
+            var padding = windowWidth - 1 - displayLen;
+
+            // 填充空格
+            if (padding > 0)
+            {
+                Console.Write(new string(' ', padding));
+            }
+
+            // 检查是否已完成下载
+            if (isComplete)
+            {
+                Console.WriteLine();
+                _hasPrintedHeader = false;
+            }
+            else
+            {
+                Console.CursorLeft = 0;
+            }
+
+            // 更新历史显示长度
+            _lastDisplayLength = displayLen;
+
+            return;
         }
         // 控制台不可用
         catch (IOException) { }
         // 某些平台不支持
         catch (PlatformNotSupportedException) { }
+
+        // 发生异常时回退输出
+        FallbackWrite(progressText, isComplete);
     }
 
     /// <summary>
@@ -331,4 +391,64 @@ public sealed class FileTransferProgress
             ? TimeSpan.MaxValue
             : TimeSpan.FromSeconds(secondsRemaining);
     }
+
+    /// <summary>
+    ///     回退输出
+    /// </summary>
+    /// <param name="text">要输出的进度文本</param>
+    /// <param name="isComplete">是否已完成下载</param>
+    internal void FallbackWrite(string text, bool isComplete)
+    {
+        // 获取文本的显示长度
+        var displayLen = GetDisplayLength(text);
+
+        // 初始化需要填充的最长显示长度
+        var fillLen = Math.Max(_lastDisplayLength, displayLen);
+        var padding = fillLen - displayLen;
+
+        // 输出文本
+        Console.Write("\r" + text);
+
+        // 填充空格以覆盖旧行残留
+        if (padding > 0)
+        {
+            Console.Write(new string(' ', padding));
+        }
+
+        // 完成时换行并重置头标记
+        if (isComplete)
+        {
+            Console.WriteLine();
+            _hasPrintedHeader = false;
+        }
+
+        _lastDisplayLength = fillLen;
+    }
+
+    /// <summary>
+    ///     获取字符串的显示长度
+    /// </summary>
+    /// <param name="text">字符串</param>
+    /// <returns>
+    ///     <see cref="int" />
+    /// </returns>
+    internal static int GetDisplayLength(string text) => StripAnsi(text).Length;
+
+    /// <summary>
+    ///     移除 ANSI 转义序列
+    /// </summary>
+    /// <param name="text">字符串</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string StripAnsi(string text) => AnsiRegex().Replace(text, string.Empty);
+
+    /// <summary>
+    ///     ANSI 正则表达式
+    /// </summary>
+    /// <returns>
+    ///     <see cref="Regex" />
+    /// </returns>
+    [GeneratedRegex(@"\e\[[\d;]*[a-zA-Z]")]
+    private static partial Regex AnsiRegex();
 }
