@@ -24,8 +24,10 @@
 // ------------------------------------------------------------------------
 
 using Furion.DynamicApiController;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace Furion.SpecificationDocument;
 
@@ -41,14 +43,33 @@ public class TagsOrderDocumentFilter : IDocumentFilter
     /// <param name="context"></param>
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        swaggerDoc.Tags = Penetrates.ControllerOrderCollection
+        // 获取原先的标签描述
+        var tagDescriptionMap = swaggerDoc.Tags?
+            .ToDictionary(t => t.Name, t => t.Description)
+            ?? [];
+
+        var orderedTags = Penetrates.ControllerOrderCollection
             .Where(u => SpecificationDocumentBuilder.GetControllerGroups(u.Value.Item3).Any(c => c.Group == context.DocumentName))
             .OrderByDescending(u => u.Value.Item2)
             .ThenBy(u => u.Key)
-            .Select(c => new OpenApiTag
+            .Select(u =>
             {
-                Name = c.Value.Item1,
-                Description = swaggerDoc.Tags?.FirstOrDefault(m => m.Name == c.Key)?.Description
-            }).ToHashSet();
+                var description = tagDescriptionMap.TryGetValue(u.Value.Item1, out var desc) ? desc : null;
+
+                // 如果没有标签描述，尝试从控制器的 [ApiDescriptionSettings] 特性中获取
+                if (string.IsNullOrEmpty(description))
+                {
+                    description = u.Value.Item3.GetCustomAttribute<ApiDescriptionSettingsAttribute>(inherit: true)?.Description;
+                }
+
+                return new OpenApiTag
+                {
+                    Name = u.Value.Item1,
+                    Description = description
+                };
+            })
+            .ToHashSet();
+
+        swaggerDoc.Tags = orderedTags;
     }
 }

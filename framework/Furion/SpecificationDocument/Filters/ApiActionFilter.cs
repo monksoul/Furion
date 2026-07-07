@@ -46,36 +46,28 @@ public class ApiActionFilter : IOperationFilter
         // 获取方法
         var method = context.MethodInfo;
 
-        // 处理更多描述
-        if (method.IsDefined(typeof(ApiDescriptionSettingsAttribute), true))
+        // 处理 ApiDescriptionSettings 特性描述
+        var apiDescriptionSettings = method.GetCustomAttribute<ApiDescriptionSettingsAttribute>(true);
+        if (apiDescriptionSettings != null && !string.IsNullOrWhiteSpace(apiDescriptionSettings.Description))
         {
-            var apiDescriptionSettings = method.GetCustomAttribute<ApiDescriptionSettingsAttribute>(true);
-
-            // 添加单一接口描述
-            if (!string.IsNullOrWhiteSpace(apiDescriptionSettings.Description))
-            {
-                operation.Description += apiDescriptionSettings.Description;
-            }
+            operation.Description = (operation.Description ?? string.Empty) + apiDescriptionSettings.Description;
         }
 
         // 处理定义 [DisplayName] 特性但并未注释的情况
-        if (string.IsNullOrWhiteSpace(operation.Summary) && method.IsDefined(typeof(DisplayNameAttribute), true))
+        if (string.IsNullOrWhiteSpace(operation.Summary))
         {
             var displayName = method.GetCustomAttribute<DisplayNameAttribute>(true);
-            if (!string.IsNullOrWhiteSpace(displayName.DisplayName))
+            if (displayName != null && !string.IsNullOrWhiteSpace(displayName.DisplayName))
             {
                 operation.Summary = displayName.DisplayName;
             }
         }
 
-        // 处理过时
-        if (method.IsDefined(typeof(ObsoleteAttribute), true))
+        // 处理过时标记
+        var deprecated = method.GetCustomAttribute<ObsoleteAttribute>(true);
+        if (deprecated != null && !string.IsNullOrWhiteSpace(deprecated.Message))
         {
-            var deprecated = method.GetCustomAttribute<ObsoleteAttribute>(true);
-            if (!string.IsNullOrWhiteSpace(deprecated.Message))
-            {
-                operation.Description = $"<div>{deprecated.Message}</div>" + operation.Description;
-            }
+            operation.Description = $"<div>{deprecated.Message}</div>" + (operation.Description ?? string.Empty);
         }
     }
 }
