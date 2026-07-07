@@ -9,15 +9,17 @@
 > Furion 不盲从、不喧哗。不引入 AI 生成底层代码，只守护框架的纯粹、透明与严谨。  
 > Furion 给你工程的确定性，和不可替代的长期稳定。
 
+## 安装
+
+```powershell
+dotnet add package Furion
+```
+
 ## 例子
 
 我们在 [主页](https://furion.net) 上有不少例子，这是让您入门的第一个：
 
-创建 `app.cs` 文件，写入以下代码：
-
 ```cs
-#:package Furion@*
-
 Serve.Run();
 
 [DynamicApiController]
@@ -27,7 +29,7 @@ public class HelloService
 }
 ```
 
-运行 `dotnet app.cs`，打开浏览器访问 `http://localhost:5000`。
+打开浏览器访问 `http://localhost:5000`。
 
 ## 文档
 

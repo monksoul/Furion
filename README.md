@@ -9,15 +9,17 @@ An application framework that you can integrate into any .NET/C# application.
 > Furion does not follow blindly or make noise. It never introduces AI-generated low-level code, guarding only the framework's purity, transparency, and rigor.  
 > Furion gives you engineering certainty, and irreplaceable long-term stability.
 
+## Installation
+
+```powershell
+dotnet add package Furion
+```
+
 ## Examples
 
 We have several examples [on the website](https://furion.net). Here is the first one to get you started:
 
-Create an `app.cs` file with the following code:
-
 ```cs
-#:package Furion@*
-
 Serve.Run();
 
 [DynamicApiController]
@@ -27,7 +29,7 @@ public class HelloService
 }
 ```
 
-Run `dotnet app.cs`, then open your browser and navigate to `http://localhost:5000`.
+Open browser access `http://localhost:5000`.
 
 ## Documentation
 
