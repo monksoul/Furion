@@ -2,6 +2,11 @@
 
 # Furion
 
+> AI can generate ten thousand lines of code in a second, but it cannot think through architectural evolution and system boundaries for you.  
+> AI brings code generation out of control, Furion keeps system architecture in control.  
+> Furion does not follow blindly or make noise. It never introduces AI-generated low-level code, guarding only the framework's purity, transparency, and rigor.  
+> Furion gives you engineering certainty, and irreplaceable long-term stability.
+
 An application framework that you can integrate into any .NET/C# application.
 
 ## Installation
