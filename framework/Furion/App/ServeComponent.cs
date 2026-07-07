@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Encodings.Web;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Furion.Components;
 
@@ -55,6 +56,7 @@ public sealed class ServeServiceComponent : IServiceComponent
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+                    options.JsonSerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
                 })
                 .AddInjectWithUnifyResult();
     }
