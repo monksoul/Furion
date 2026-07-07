@@ -36,6 +36,11 @@ public interface IHttpContentConverterFactory
     IServiceProvider ServiceProvider { get; }
 
     /// <summary>
+    ///     获取当前异步上下文中最后一次使用的 <see cref="IHttpContentConverter" />
+    /// </summary>
+    IHttpContentConverter? CurrentConverter { get; }
+
+    /// <summary>
     ///     将 <see cref="HttpResponseMessage" /> 转换为
     ///     <typeparamref name="TResult" />
     ///     实例

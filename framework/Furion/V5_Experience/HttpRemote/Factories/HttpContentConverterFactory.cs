@@ -38,6 +38,11 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
     internal readonly Dictionary<Type, IHttpContentConverter> _converters;
 
     /// <summary>
+    ///     用于在当前异步上下文中传递最近一次使用的 <see cref="IHttpContentConverter" />
+    /// </summary>
+    internal readonly AsyncLocal<IHttpContentConverter?> _currentConverter = new();
+
+    /// <summary>
     ///     泛型 <see cref="IHttpContentConverter" /> 工厂委托字典集合
     /// </summary>
     internal readonly Dictionary<Type, List<Func<Type[], IHttpContentConverter>>> _genericConverters;
@@ -101,6 +106,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
 
     /// <inheritdoc />
     public IServiceProvider ServiceProvider { get; }
+
+    /// <inheritdoc />
+    public IHttpContentConverter? CurrentConverter => _currentConverter.Value;
 
     /// <inheritdoc />
     public TResult? Read<TResult>(HttpResponseMessage? httpResponseMessage, IHttpContentConverter[]? converters = null,
@@ -251,6 +259,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
         // 设置服务提供器
         targetConverter.ServiceProvider ??= ServiceProvider;
 
+        // 将当前使用的转换器记录到异步上下文中
+        _currentConverter.Value = targetConverter;
+
         return targetConverter;
     }
 
@@ -310,6 +321,9 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
 
         // 设置服务提供器
         targetConverter.ServiceProvider ??= ServiceProvider;
+
+        // 将当前使用的转换器记录到异步上下文中
+        _currentConverter.Value = targetConverter;
 
         return targetConverter;
     }

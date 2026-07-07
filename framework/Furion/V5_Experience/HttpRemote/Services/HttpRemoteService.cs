@@ -158,10 +158,21 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
         {
             // 将 HttpResponseMessage 转换为 TResult 实例
-            // TODO: 这里需要根据 IHttpContentConverter.KeepsResponseAlive 来决定是否释放 httpResponseMessage
-            return _httpContentConverterFactory.Read<TResult>(httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                cancellationToken);
+            try
+            {
+                return _httpContentConverterFactory.Read<TResult>(httpResponseMessage,
+                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+                    cancellationToken);
+            }
+            finally
+            {
+                // 释放 httpResponseMessage 实例
+                if (httpResponseMessage is not null &&
+                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
+                {
+                    httpResponseMessage.Dispose();
+                }
+            }
         }
 
         // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
@@ -223,10 +234,21 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
         {
             // 将 HttpResponseMessage 转换为 TResult 实例
-            // TODO: 这里需要根据 IHttpContentConverter.KeepsResponseAlive 来决定是否释放 httpResponseMessage
-            return await _httpContentConverterFactory.ReadAsync<TResult>(httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                cancellationToken);
+            try
+            {
+                return await _httpContentConverterFactory.ReadAsync<TResult>(httpResponseMessage,
+                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+                    cancellationToken);
+            }
+            finally
+            {
+                // 释放 httpResponseMessage 实例
+                if (httpResponseMessage is not null &&
+                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
+                {
+                    httpResponseMessage.Dispose();
+                }
+            }
         }
 
         // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
@@ -288,10 +310,21 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
         {
             // 将 HttpResponseMessage 转换为 resultType 类型实例
-            // TODO: 这里需要根据 IHttpContentConverter.KeepsResponseAlive 来决定是否释放 httpResponseMessage
-            return _httpContentConverterFactory.Read(resultType, httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                cancellationToken);
+            try
+            {
+                return _httpContentConverterFactory.Read(resultType, httpResponseMessage,
+                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+                    cancellationToken);
+            }
+            finally
+            {
+                // 释放 httpResponseMessage 实例
+                if (httpResponseMessage is not null &&
+                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
+                {
+                    httpResponseMessage.Dispose();
+                }
+            }
         }
 
         // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
@@ -322,10 +355,21 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
         {
             // 将 HttpResponseMessage 转换为 resultType 类型实例
-            // TODO: 这里需要根据 IHttpContentConverter.KeepsResponseAlive 来决定是否释放 httpResponseMessage
-            return await _httpContentConverterFactory.ReadAsync(resultType, httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                cancellationToken);
+            try
+            {
+                return await _httpContentConverterFactory.ReadAsync(resultType, httpResponseMessage,
+                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+                    cancellationToken);
+            }
+            finally
+            {
+                // 释放 httpResponseMessage 实例
+                if (httpResponseMessage is not null &&
+                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
+                {
+                    httpResponseMessage.Dispose();
+                }
+            }
         }
 
         // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
