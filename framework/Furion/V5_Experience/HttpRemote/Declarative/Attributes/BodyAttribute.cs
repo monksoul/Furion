@@ -86,4 +86,10 @@ public class BodyAttribute : Attribute
     ///     </para>
     /// </remarks>
     public bool RawString { get; set; }
+
+    /// <summary>
+    ///     是否在请求结束后自动释放流
+    /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
+    public bool DisposeStreamOnRequestCompletion { get; set; }
 }
