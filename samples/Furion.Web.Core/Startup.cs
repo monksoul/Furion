@@ -142,7 +142,7 @@ public sealed class Startup : AppStartup
 
             options.AddJob<TestJob>(u => u.SetIncludeAnnotations(true), Triggers.At("2025-11-26 14:58:20"));
 
-            options.AddJob(JobBuilder.Create<TestJob>().SetDescription("随机"), Triggers.Cron("H(30-59) * * * * *", CronStringFormat.WithSeconds));
+            options.AddJob(JobBuilder.Create<TestJob>().SetDescription("这是描述描述描述描述这是描述描述描述描述这是描述描述描述描述这是描述描述描述描述"), Triggers.Cron("H(30-59) * * * * *", CronStringFormat.WithSeconds));
 
             options.AddPersistence<TestJobPersistence>();
         });

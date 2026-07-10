@@ -592,7 +592,6 @@ export default function Jobs({ mode }: { mode: string }) {
             words,
           );
         }}
-        contentStyle={{ padding: 10, boxSizing: "border-box" }}
       >
         <TabPane
           tab={
@@ -649,7 +648,7 @@ export default function Jobs({ mode }: { mode: string }) {
                 formatPageText: () => (
                   <Typography.Paragraph
                     type="secondary"
-                    style={{ padding: 10 }}
+                    style={{ padding: "0 10px" }}
                   >
                     {words.trim().length > 0 ? (
                       <>
@@ -772,7 +771,7 @@ export default function Jobs({ mode }: { mode: string }) {
                   <div>
                     <Typography.Paragraph
                       ellipsis={{
-                        rows: 2,
+                        rows: 1,
                         expandable: true,
                         expandText: "展开",
                         collapsible: true,

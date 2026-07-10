@@ -60,7 +60,7 @@ export default function Timelines({
                 <div>
                   <Typography.Paragraph
                     ellipsis={{
-                      rows: 2,
+                      rows: 1,
                       expandable: true,
                       expandText: "展开",
                       collapsible: true,

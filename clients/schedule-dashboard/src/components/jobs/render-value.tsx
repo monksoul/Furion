@@ -167,7 +167,7 @@ export default function RenderValue(props: {
     preview = (
       <Typography.Paragraph
         ellipsis={{
-          rows: 2,
+          rows: 1,
           expandable: true,
           collapsible: true,
           collapseText: "折叠",

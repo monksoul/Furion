@@ -1,4 +1,4 @@
-import { IconClock, IconClockStroked } from "@douyinfe/semi-icons";
+import { IconClockStroked } from "@douyinfe/semi-icons";
 import { Space, Tag, Tooltip } from "@douyinfe/semi-ui";
 import { useEffect, useState } from "react";
 

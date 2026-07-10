@@ -1,7 +1,6 @@
 import {
   IconCode,
   IconDelete,
-  IconLink,
   IconMore,
   IconPlayCircle,
   IconStop,
@@ -187,7 +186,7 @@ const columns: ColumnProps<JobDetail>[] = [
       const value = safeToString(text);
       return (
         <Tooltip content={text || undefined}>
-          {value.length >= 8 ? `${value.substring(0, 8)}...` : value}
+          {value.length >= 14 ? `${value.substring(0, 14)}...` : value}
         </Tooltip>
       );
     },
@@ -248,7 +247,7 @@ const columns: ColumnProps<JobDetail>[] = [
       return (
         <Typography.Paragraph
           ellipsis={{
-            rows: 2,
+            rows: 1,
             expandable: true,
             collapsible: true,
             collapseText: "折叠",

@@ -1,5 +1,4 @@
 import React, { JSX } from "react";
-import apiconfig from "./apiconfig";
 import { Navigate, useLocation, useNavigate } from "react-router";
 
 const AppSecretKey = "AppSecret";
