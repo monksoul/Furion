@@ -269,7 +269,7 @@ public sealed partial class FileTransferProgress
                 : progressText[..(windowWidth - 4 - GetDisplayLength(done))] + "..." + done;
         }
 
-        // 清除当前行并写入新进度（不换行）
+        // 清除当前行并写入新进度
         try
         {
             Console.CursorLeft = 0;
@@ -409,7 +409,7 @@ public sealed partial class FileTransferProgress
         // 输出文本
         Console.Write("\r" + text);
 
-        // 填充空格以覆盖旧行残留
+        // 填充空格
         if (padding > 0)
         {
             Console.Write(new string(' ', padding));
@@ -444,7 +444,7 @@ public sealed partial class FileTransferProgress
     internal static string StripAnsi(string text) => AnsiRegex().Replace(text, string.Empty);
 
     /// <summary>
-    ///     ANSI 正则表达式
+    ///     ANSI 转义序列正则表达式
     /// </summary>
     /// <returns>
     ///     <see cref="Regex" />

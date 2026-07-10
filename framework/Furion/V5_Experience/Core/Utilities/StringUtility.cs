@@ -38,11 +38,12 @@ public static class StringUtility
     /// </summary>
     /// <param name="keyValues">键值集合</param>
     /// <param name="summary">摘要</param>
+    /// <param name="skipEmptyValues">是否跳过值为空的项，默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
     public static string? FormatKeyValuesSummary(IEnumerable<KeyValuePair<string, IEnumerable<string>>> keyValues,
-        string? summary = null)
+        string? summary = null, bool skipEmptyValues = false)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(keyValues);
@@ -69,18 +70,34 @@ public static class StringUtility
         // 检查是否设置了摘要
         var hasSummary = !string.IsNullOrWhiteSpace(summary);
 
+        // 用于控制只在有输出内容时才添加换行
+        var hasOutput = false;
+
         // 逐条构建摘要信息
-        var index = 0;
         foreach (var (key, value) in keyValuePairs)
         {
+            // 获取格式化后的值
+            var formatValue = AddTabToEachLine(string.Join(", ", value), true);
+
+            // 检查是否跳过值为空的项
+            if (skipEmptyValues && string.IsNullOrWhiteSpace(formatValue))
+            {
+                continue;
+            }
+
+            // 非首条输出前添加换行
+            if (hasOutput)
+            {
+                stringBuilder.Append("\r\n");
+            }
+
+            hasOutput = true;
+
             // 检查是否包含摘要，如果有则添加制表符（两个空白）
             if (hasSummary)
             {
                 stringBuilder.Append("  ");
             }
-
-            // 获取格式化后的值
-            var formatValue = AddTabToEachLine(string.Join(", ", value), true);
 
             // 处理空 Key 问题
             if (!string.IsNullOrWhiteSpace(key))
@@ -91,14 +108,12 @@ public static class StringUtility
             {
                 stringBuilder.Append($"{string.Join(", ", formatValue)}");
             }
+        }
 
-            // 处理最后一行空行问题
-            if (index < count - 1)
-            {
-                stringBuilder.Append("\r\n");
-            }
-
-            index++;
+        // 如果没有任何输出项，直接返回 null
+        if (!hasOutput)
+        {
+            return null;
         }
 
         // 获取字符串

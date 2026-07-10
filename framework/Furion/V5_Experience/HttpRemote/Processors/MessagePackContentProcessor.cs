@@ -115,17 +115,12 @@ public class MessagePackContentProcessor : HttpContentProcessorBase
             var objType = obj.GetType();
 
             // 查找 MessagePack 序列化器委托字典缓存是否存在该类型
-            if (_serializerCache.TryGetValue(objType, out var serializer))
+            var serializer = _serializerCache.GetOrAdd(objType, type =>
             {
-                return serializer(obj);
-            }
-
-            // 创建 MessagePack 序列化器委托
-            serializer = o =>
-                (byte[])serializeMethod.MakeGenericMethod(objType).Invoke(null, [o, null, CancellationToken.None])!;
-
-            // 添加到 MessagePack 序列化器委托字典缓存中
-            _serializerCache.TryAdd(objType, serializer);
+                // 创建 MessagePack 序列化器委托
+                return o => (byte[])serializeMethod.MakeGenericMethod(type)
+                    .Invoke(null, [o, null, CancellationToken.None])!;
+            });
 
             return serializer(obj);
         };

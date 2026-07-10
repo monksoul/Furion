@@ -1124,14 +1124,18 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     /// <summary>
     ///     状态码区间正则表达式
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    ///     <see cref="Regex" />
+    /// </returns>
     [GeneratedRegex(@"^\d+[-~]\d+$")]
     private static partial Regex StatusCodeRangeRegex();
 
     /// <summary>
     ///     状态码比较正则表达式
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    ///     <see cref="Regex" />
+    /// </returns>
     [GeneratedRegex(@"^([<>]=?|=|>|<)(\d+)$")]
     private static partial Regex StatusCodeCompareRegex();
 }

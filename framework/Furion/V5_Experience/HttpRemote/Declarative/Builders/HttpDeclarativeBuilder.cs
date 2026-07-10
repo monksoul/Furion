@@ -141,7 +141,8 @@ public sealed class HttpDeclarativeBuilder
         ArgumentNullException.ThrowIfNull(httpRemoteOptions);
 
         // 初始化方法信息友好字符串
-        var declaringTypeFriendlyString = Method.DeclaringType?.ToFriendlyString();
+        var declaringType = Method.DeclaringType;
+        var declaringTypeFriendlyString = declaringType?.ToFriendlyString();
         var methodFriendlyString = Method.ToFriendlyString();
 
         // 获取 HttpMethodAttribute 实例并检查被调用方法是否贴有 [HttpMethod] 特性
@@ -154,8 +155,9 @@ public sealed class HttpDeclarativeBuilder
 
         // 初始化 HttpRequestBuilder 实例并添加声明式方法签名
         var httpRequestBuilder = HttpRequestBuilder
-            .Create(httpMethodAttribute.HttpMethod, httpMethodAttribute.RequestUri)
-            .WithProperty(Constants.DECLARATIVE_METHOD_KEY, $"{methodFriendlyString} | {declaringTypeFriendlyString}");
+            .Create(httpMethodAttribute.HttpMethod, httpMethodAttribute.RequestUri).WithProperty(
+                Constants.DECLARATIVE_METHOD_KEY,
+                $"\e[36m\e[3m{methodFriendlyString} | {declaringTypeFriendlyString}{(InterfaceType != declaringType ? $" | {InterfaceType.ToFriendlyString()}" : string.Empty)}\e[0m");
 
         // 初始化 HttpDeclarativeExtractorContext 实例
         var httpDeclarativeExtractorContext = new HttpDeclarativeExtractorContext(Method, Args,

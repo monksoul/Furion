@@ -179,11 +179,15 @@ internal static class ObjectExtensions
     /// <param name="obj">
     ///     <see cref="object" />
     /// </param>
+    /// <param name="returnPropertyInfo">
+    ///     当无法通过已知类型转换而回退到反射读取公开属性时，如果为 <c>true</c> 则字典的值将保存 <see cref="PropertyInfo" />
+    ///     对象，否则保存属性的实际值。默认值为 <c>false</c>
+    /// </param>
     /// <returns>
     ///     <see cref="IDictionary{TKey,TValue}" />
     /// </returns>
     /// <exception cref="NotSupportedException"></exception>
-    internal static IDictionary<object, object?>? ObjectToDictionary(this object? obj)
+    internal static IDictionary<object, object?>? ObjectToDictionary(this object? obj, bool returnPropertyInfo = false)
     {
         // 空检查
         if (obj is null)
@@ -225,7 +229,7 @@ internal static class ObjectExtensions
         switch (obj)
         {
             case JsonDocument jsonDocument:
-                return jsonDocument.RootElement.ObjectToDictionary();
+                return jsonDocument.RootElement.ObjectToDictionary(returnPropertyInfo);
             case JsonElement { ValueKind: JsonValueKind.Object } jsonElement:
                 // 转换为字典类型并返回
                 return jsonElement.EnumerateObject().ToDictionary<JsonProperty, object, object?>(
@@ -242,10 +246,8 @@ internal static class ObjectExtensions
                 case Hashtable hashtable:
                     return hashtable.Cast<DictionaryEntry>().ToDictionary(entry => entry.Key, entry => entry.Value);
                 case NameValueCollection nameValueCollection:
-                    return nameValueCollection
-                        .AllKeys
-                        .ToDictionary(
-                            object (key) => key!, object? (key) => nameValueCollection[key]);
+                    return nameValueCollection.AllKeys.ToDictionary(object (key) => key!,
+                        object? (key) => nameValueCollection[key]);
             }
 
             // === 处理非 KeyValuePair<,> 集合类型 ===
@@ -257,9 +259,7 @@ internal static class ObjectExtensions
                 // 转换为字典类型并返回
                 return dictionaryObj.Count == 0
                     ? new Dictionary<object, object?>()
-                    : dictionaryObj.Keys
-                        .Cast<object?>()
-                        .ToDictionary(key => key!, key => dictionaryObj[key!]);
+                    : dictionaryObj.Keys.Cast<object?>().ToDictionary(key => key!, key => dictionaryObj[key!]);
             }
 
             // === 处理 KeyValuePair<,> 集合类型 ===
@@ -290,16 +290,23 @@ internal static class ObjectExtensions
             // 初始化反射搜索成员方式
             const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public;
 
-            // 尝试查找对象类型的所有公开且可读的实例属性集合并转换为字典类型并返回
-            return objType.GetProperties(bindingFlags)
-                .Where(property => property.CanRead)
-                .ToDictionary(object (property) => AliasAsUtility.GetPropertyName(property, out _),
+            // 根据 returnPropertyInfo 参数决定字典的值是 PropertyInfo 还是属性实际值
+            if (returnPropertyInfo)
+            {
+                return objType.GetProperties(bindingFlags).Where(property => property.CanRead).ToDictionary(
+                    object (property) => AliasAsUtility.GetPropertyName(property, out _),
+                    object? (property) => property);
+            }
+            else
+            {
+                return objType.GetProperties(bindingFlags).Where(property => property.CanRead).ToDictionary(
+                    object (property) => AliasAsUtility.GetPropertyName(property, out _),
                     property => property.GetValue(obj));
+            }
         }
         catch (Exception e)
         {
-            throw new AggregateException(
-                new NotSupportedException(notSupportedExceptionMessage), e);
+            throw new AggregateException(new NotSupportedException(notSupportedExceptionMessage), e);
         }
     }
 

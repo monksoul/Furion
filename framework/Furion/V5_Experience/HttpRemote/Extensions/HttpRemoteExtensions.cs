@@ -244,17 +244,17 @@ public static partial class HttpRemoteExtensions
             {
                 new KeyValuePair<string, IEnumerable<string>>("Request URL",
                     [httpRequestMessage.RequestUri?.OriginalString!]),
-                new KeyValuePair<string, IEnumerable<string>>("HTTP Method", [httpRequestMessage.Method.ToString()]),
+                new KeyValuePair<string, IEnumerable<string>>("Request Method", [httpRequestMessage.Method.ToString()]),
                 new KeyValuePair<string, IEnumerable<string>>("Status Code",
                 [
                     httpResponseMessage.GetColoredText(
                         $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}")
                 ]),
                 new KeyValuePair<string, IEnumerable<string>>("HTTP Version", [httpResponseMessage.Version.ToString()]),
-                new KeyValuePair<string, IEnumerable<string>>("HTTP Content",
-                    [$"{httpContent?.GetType().Name}"])
+                new KeyValuePair<string, IEnumerable<string>>("HTTP Content", [$"{httpContent?.GetType().Name}"]),
+                new KeyValuePair<string, IEnumerable<string>>("Content Type", [$"{httpContent?.Headers.ContentType}"])
             }.ConcatIgnoreNull(httpClientKeyValues).ConcatIgnoreNull(declarativeKeyValues)
-            .ConcatIgnoreNull(generalCustomKeyValues), generalSummary);
+            .ConcatIgnoreNull(generalCustomKeyValues), generalSummary, true);
 
         // 格式化响应条目
         var responseEntry = httpResponseMessage.ProfilerHeaders(responseSummary);
@@ -631,10 +631,14 @@ public static partial class HttpRemoteExtensions
         // 获取内容字符编码
         var charset = httpContent.Headers.ContentType.CharSet.Trim();
 
-        // 修复 "utf8"、"utf 8" 和 "utf-8;" 的错误写法（不区分大小写/空格）
-        if (charset.Equals("utf8", StringComparison.OrdinalIgnoreCase) ||
-            charset.Equals("utf 8", StringComparison.OrdinalIgnoreCase) ||
-            charset.Equals("utf-8;", StringComparison.OrdinalIgnoreCase))
+        // 去掉引号、分号等多余字符，并规范化空白
+        var normalized = charset.Trim().Trim('"', '\'', ';', ',').Trim();
+
+        // 去掉所有空白后忽略大小写比较 "utf8"
+        var noWhitespace = Regex.Replace(normalized, @"\s+", "");
+
+        if (noWhitespace.Equals("utf-8", StringComparison.OrdinalIgnoreCase) ||
+            noWhitespace.Equals("utf8", StringComparison.OrdinalIgnoreCase))
         {
             httpContent.Headers.ContentType.CharSet = "utf-8";
         }
@@ -759,8 +763,7 @@ public static partial class HttpRemoteExtensions
         // 检查是否启用或禁用 JSON 响应反序列化包装器
         if (httpResponseMessage?.RequestMessage?.Options.TryGetValue(
                 new HttpRequestOptionsKey<string>(Constants.ENABLE_JSON_RESPONSE_STRING_UNWRAP_KEY),
-                out var enableValue) ==
-            true)
+                out var enableValue) == true)
         {
             return enableValue == "TRUE";
         }

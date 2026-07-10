@@ -51,7 +51,9 @@ public sealed partial class HttpAssertionBuilder
     public HttpAssertionBuilder StatusCode(int expected) =>
         AddAssertion(async context =>
         {
+            // 获取 HTTP 状态码
             var actual = (int)context.StatusCode;
+
             if (actual != expected)
             {
                 await HttpAssertionException.ThrowAsync($"Expected status code to be {expected}, but found {actual}.");
@@ -80,7 +82,9 @@ public sealed partial class HttpAssertionBuilder
 
         return AddAssertion(async context =>
         {
+            // 获取 HTTP 状态码
             var actual = (int)context.StatusCode;
+
             if (!allowedStatusCodes.Contains(actual))
             {
                 await HttpAssertionException.ThrowAsync(
@@ -151,6 +155,7 @@ public sealed partial class HttpAssertionBuilder
             // 尝试从响应标头或内容标头中检查
             var exists = context.ResponseMessage.Headers.Contains(name) ||
                          context.ResponseMessage.Content.Headers.Contains(name);
+
             if (!exists)
             {
                 await HttpAssertionException.ThrowAsync(
@@ -164,7 +169,9 @@ public sealed partial class HttpAssertionBuilder
     /// </summary>
     /// <param name="name">标头名</param>
     /// <param name="expectedValue">期望值</param>
-    /// <returns></returns>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
     public HttpAssertionBuilder HeaderEquals(string name, string expectedValue)
     {
         // 空检查
@@ -200,7 +207,9 @@ public sealed partial class HttpAssertionBuilder
     /// </summary>
     /// <param name="name">标头名</param>
     /// <param name="expectedValue">期望值</param>
-    /// <returns></returns>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
     public HttpAssertionBuilder HeaderContains(string name, string expectedValue)
     {
         // 空检查
@@ -269,7 +278,9 @@ public sealed partial class HttpAssertionBuilder
 
         return AddAssertion(async context =>
         {
+            // 获取实际耗时
             var actualDuration = TimeSpan.FromMilliseconds(context.RequestDuration);
+
             if (actualDuration > maxDuration)
             {
                 await HttpAssertionException.ThrowAsync(

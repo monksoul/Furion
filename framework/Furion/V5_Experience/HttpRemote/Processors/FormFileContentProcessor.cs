@@ -64,7 +64,7 @@ public class FormFileContentProcessor : HttpContentProcessorBase
         streamContent.Headers.ContentDisposition =
             new ContentDispositionHeaderValue(context.AsFormItem ? "form-data" : "attachment")
             {
-                FileName = formFile.FileName
+                FileName = context.FileName ?? formFile.FileName
             };
 
         return streamContent;

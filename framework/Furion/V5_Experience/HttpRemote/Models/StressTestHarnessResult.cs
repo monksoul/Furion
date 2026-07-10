@@ -134,6 +134,11 @@ public sealed class StressTestHarnessResult
     public double Percentile90ResponseTime { get; private set; }
 
     /// <summary>
+    ///     P95 响应时间（毫秒）
+    /// </summary>
+    public double Percentile95ResponseTime { get; private set; }
+
+    /// <summary>
     ///     P99 响应时间（毫秒）
     /// </summary>
     public double Percentile99ResponseTime { get; private set; }
@@ -159,6 +164,7 @@ public sealed class StressTestHarnessResult
             new KeyValuePair<string, IEnumerable<string>>("P50 RT (ms)", [$"{Percentile50ResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("P75 RT (ms)", [$"{Percentile75ResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("P90 RT (ms)", [$"{Percentile90ResponseTime:N2}"]),
+            new KeyValuePair<string, IEnumerable<string>>("P95 RT (ms)", [$"{Percentile95ResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("P99 RT (ms)", [$"{Percentile99ResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("P99.99 RT (ms)", [$"{Percentile9999ResponseTime:N2}"])
         ], "Stress Test Harness Result")!;
@@ -236,6 +242,7 @@ public sealed class StressTestHarnessResult
         Percentile50ResponseTime = CalculatePercentile(sortedResponseTimes, 0.5);
         Percentile75ResponseTime = CalculatePercentile(sortedResponseTimes, 0.75);
         Percentile90ResponseTime = CalculatePercentile(sortedResponseTimes, 0.9);
+        Percentile95ResponseTime = CalculatePercentile(sortedResponseTimes, 0.95);
         Percentile99ResponseTime = CalculatePercentile(sortedResponseTimes, 0.99);
         Percentile9999ResponseTime = CalculatePercentile(sortedResponseTimes, 0.9999);
     }

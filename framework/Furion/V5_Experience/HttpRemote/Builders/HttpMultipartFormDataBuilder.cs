@@ -27,6 +27,7 @@ using Furion.Extensions;
 using Furion.Utilities;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -350,13 +351,16 @@ public sealed class HttpMultipartFormDataBuilder
         ArgumentNullException.ThrowIfNull(rawObject);
 
         // 将对象转换为字典集合再追加
-        var formDataItems = rawObject.ObjectToDictionary()!;
+        var formDataItems = rawObject.ObjectToDictionary(true)!;
 
         // 遍历字典集合并逐条追加
-        foreach (var (itemName, rawContent) in formDataItems)
+        foreach (var (itemName, itemValue) in formDataItems)
         {
             // 初始化表单名称
             var formName = itemName.ToInvariantCultureString()!;
+
+            // 获取表单的值（TODO: 未来有需要可通过 propertyInfo 解析自定义特性）
+            var rawContent = itemValue is PropertyInfo propertyInfo ? propertyInfo.GetValue(rawObject) : itemValue;
 
             switch (rawContent)
             {
@@ -566,19 +570,24 @@ public sealed class HttpMultipartFormDataBuilder
     ///     <see cref="FileInfo" />
     /// </param>
     /// <param name="name">表单名称</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="contentEncoding">内容编码</param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
-    public HttpMultipartFormDataBuilder AddFile(FileInfo fileInfo, string? name = null)
+    public HttpMultipartFormDataBuilder AddFile(FileInfo fileInfo, string? name = null, string? fileName = null,
+        string? contentType = null, Encoding? contentEncoding = null)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(fileInfo);
 
         _partContents.Add(new MultipartFormDataItem(name ?? "file")
         {
-            ContentType = Helpers.GetContentTypeOrDefault(fileInfo, MediaTypeNames.Application.Octet),
+            ContentType = contentType ?? Helpers.GetContentTypeOrDefault(fileInfo, MediaTypeNames.Application.Octet),
             RawContent = fileInfo,
-            FileName = fileInfo.Name
+            FileName = fileName ?? fileInfo.Name,
+            ContentEncoding = contentEncoding
         });
 
         return this;
@@ -1003,7 +1012,8 @@ public sealed class HttpMultipartFormDataBuilder
             new HttpContentProcessorContext(multipartFormDataItem.RawContent, contentType,
                 multipartFormDataItem.ContentEncoding)
             {
-                HttpClientName = _httpRequestBuilder.HttpClientName, AsFormItem = true
+                HttpClientName = _httpRequestBuilder.HttpClientName, AsFormItem = true,
+                FileName = multipartFormDataItem.FileName
             };
 
         // 构建 HttpContent 实例

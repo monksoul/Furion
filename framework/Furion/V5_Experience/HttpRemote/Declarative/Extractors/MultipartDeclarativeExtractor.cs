@@ -147,7 +147,8 @@ internal sealed class MultipartDeclarativeExtractor : IFrozenHttpDeclarativeExtr
                 break;
             // 检查原始请求内容是否是 FileInfo 类型
             case FileInfo fileInfo:
-                httpMultipartFormDataBuilder.AddFile(fileInfo, name);
+                httpMultipartFormDataBuilder.AddFile(fileInfo, name, multipartAttribute.FileName,
+                    multipartAttribute.ContentType, contentEncoding);
                 break;
             // 添加 HttpContent
             case HttpContent httpContent:

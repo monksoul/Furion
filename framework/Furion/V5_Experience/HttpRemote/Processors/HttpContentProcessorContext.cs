@@ -47,6 +47,11 @@ public sealed record HttpContentProcessorContext(object? RawContent, string Cont
     public bool AsFormItem { get; init; }
 
     /// <summary>
+    ///     文件的名称
+    /// </summary>
+    public string? FileName { get; init; }
+
+    /// <summary>
     ///     设置需要在请求结束后自动释放的流集合
     /// </summary>
     public List<IDisposable>? CompletionDisposables { get; set; }
