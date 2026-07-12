@@ -297,12 +297,10 @@ internal static class ObjectExtensions
                     object (property) => AliasAsUtility.GetPropertyName(property, out _),
                     object? (property) => property);
             }
-            else
-            {
-                return objType.GetProperties(bindingFlags).Where(property => property.CanRead).ToDictionary(
-                    object (property) => AliasAsUtility.GetPropertyName(property, out _),
-                    property => property.GetValue(obj));
-            }
+
+            return objType.GetProperties(bindingFlags).Where(property => property.CanRead).ToDictionary(
+                object (property) => AliasAsUtility.GetPropertyName(property, out _),
+                property => property.GetValue(obj));
         }
         catch (Exception e)
         {

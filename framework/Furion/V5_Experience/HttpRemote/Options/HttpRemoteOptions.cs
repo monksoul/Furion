@@ -126,4 +126,26 @@ public sealed class HttpRemoteOptions
     /// </summary>
     /// <value>返回多个包含实现 <see cref="IHttpDeclarativeExtractor" /> 集合的集合。</value>
     internal IReadOnlyList<Func<IEnumerable<IHttpDeclarativeExtractor>>>? HttpDeclarativeExtractors { get; set; }
+
+    /// <summary>
+    ///     自定义 <see cref="IHttpRequestPipelineHandler" /> 类型集合
+    /// </summary>
+    /// <remarks>
+    ///     <para>该列表定义了发送 HTTP 请求时执行的处理器及其顺序。</para>
+    ///     <para>顺序从外到内：列表中的第一个类型位于管道最外层（最先执行），最后一个类型位于最内层（最后执行）。</para>
+    ///     <para>TODO: 未来考虑开放拓展</para>
+    /// </remarks>
+    internal IList<Type> PipelineHandlerTypes { get; } = new List<Type>
+    {
+        typeof(ResponseAssertionPipelineHandler),
+        typeof(ResponseProfilerPipelineHandler),
+        typeof(RequestEventPipelineHandler),
+        typeof(TimeoutPipelineHandler),
+        typeof(AutoRedirectPipelineHandler),
+        typeof(StatusCodePipelineHandler),
+        typeof(ContentLengthValidationPipelineHandler),
+        typeof(RequestBuilderPipelineHandler),
+        typeof(RequestProfilerPipelineHandler),
+        typeof(SendCorePipelineHandler)
+    };
 }

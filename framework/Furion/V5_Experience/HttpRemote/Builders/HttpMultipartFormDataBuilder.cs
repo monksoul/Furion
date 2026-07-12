@@ -47,9 +47,6 @@ public sealed class HttpMultipartFormDataBuilder
     /// </summary>
     internal readonly List<MultipartFormDataItem> _partContents;
 
-    /// <inheritdoc cref="OnPreAddContent" />
-    internal Action<HttpContent, string>? _onPreAddContent;
-
     /// <summary>
     ///     多部分表单内容项排序委托
     /// </summary>
@@ -63,6 +60,9 @@ public sealed class HttpMultipartFormDataBuilder
     ///     用于处理在添加 <see cref="HttpContent" /> 表单项内容前，对表单名称进行自定义转换的转换器
     /// </summary>
     internal Func<string, string?>? FormNameTransformer;
+
+    /// <inheritdoc cref="OnPreAddContent" />
+    internal Action<HttpContent, string>? _onPreAddContent;
 
     /// <summary>
     ///     <inheritdoc cref="HttpMultipartFormDataBuilder" />
@@ -584,7 +584,8 @@ public sealed class HttpMultipartFormDataBuilder
 
         _partContents.Add(new MultipartFormDataItem(name ?? "file")
         {
-            ContentType = contentType ?? Helpers.GetContentTypeOrDefault(fileInfo, MediaTypeNames.Application.Octet),
+            ContentType =
+                contentType ?? Helpers.GetContentTypeOrDefault(fileInfo, MediaTypeNames.Application.Octet),
             RawContent = fileInfo,
             FileName = fileName ?? fileInfo.Name,
             ContentEncoding = contentEncoding
@@ -1012,7 +1013,8 @@ public sealed class HttpMultipartFormDataBuilder
             new HttpContentProcessorContext(multipartFormDataItem.RawContent, contentType,
                 multipartFormDataItem.ContentEncoding)
             {
-                HttpClientName = _httpRequestBuilder.HttpClientName, AsFormItem = true,
+                HttpClientName = _httpRequestBuilder.HttpClientName,
+                AsFormItem = true,
                 FileName = multipartFormDataItem.FileName
             };
 

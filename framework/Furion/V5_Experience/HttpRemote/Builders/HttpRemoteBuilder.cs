@@ -365,6 +365,18 @@ public sealed class HttpRemoteBuilder
                 _objectContentConverterFactoryType));
         }
 
+        // 注册请求管道处理器
+        services.TryAddSingleton<ResponseAssertionPipelineHandler>();
+        services.TryAddSingleton<ResponseProfilerPipelineHandler>();
+        services.TryAddSingleton<RequestEventPipelineHandler>();
+        services.TryAddSingleton<TimeoutPipelineHandler>();
+        services.TryAddSingleton<AutoRedirectPipelineHandler>();
+        services.TryAddSingleton<StatusCodePipelineHandler>();
+        services.TryAddSingleton<ContentLengthValidationPipelineHandler>();
+        services.TryAddSingleton<RequestBuilderPipelineHandler>();
+        services.TryAddSingleton<RequestProfilerPipelineHandler>();
+        services.TryAddSingleton<SendCorePipelineHandler>();
+
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);
     }

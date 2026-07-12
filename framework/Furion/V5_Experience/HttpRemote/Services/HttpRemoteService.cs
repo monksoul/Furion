@@ -24,14 +24,11 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
-using Furion.HttpRemote.Extensions;
 using Furion.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using System.Diagnostics;
-using System.Net;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace Furion.HttpRemote;
 
@@ -483,288 +480,81 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
             throw new InvalidOperationException("Both `sendAsyncMethod` and `sendMethod` cannot be null.");
         }
 
-        // 解析 IHttpRequestEventHandler 事件处理程序
-        var requestEventHandler =
-            (httpRequestBuilder.RequestEventHandlerType is not null
-                ? ServiceProvider.GetService(httpRequestBuilder.RequestEventHandlerType)
-                : null) as IHttpRequestEventHandler;
-
         // 创建带有默认值的 HttpClient 实例
         var httpClientPooling = CreateHttpClientWithDefaults(httpRequestBuilder);
         var httpClient = httpClientPooling.Instance;
 
-        // 构建 HttpRequestMessage 实例
-        var httpRequestMessage =
-            httpRequestBuilder.Build(_httpRemoteOptions, _httpContentProcessorFactory,
-                httpClient.BaseAddress ?? _httpRemoteOptions.FallbackBaseAddress);
+        // 统一发送请求的委托
+        var sendAsync = sendAsyncMethod ?? ((client, request, option, token) =>
+            Task.FromResult(sendMethod!(client, request, option, token)));
 
-        // 处理发送 HTTP 请求之前
-        HandlePreSendRequest(httpRequestBuilder, requestEventHandler, httpRequestMessage);
+        // 初始化 HttpRequestPipelineContext 实例
+        var httpRequestPipelineContext = new HttpRequestPipelineContext(httpRequestBuilder, httpClient,
+            completionOption, sendAsync, cancellationToken);
 
-        // 初始化 HttpRemoteAnalyzer 实例
-        HttpRemoteAnalyzer? httpRemoteAnalyzer = null;
+        // 获取所有注册的请求管道处理器类型并解析其实例
+        var pipelineHandlers = _httpRemoteOptions.PipelineHandlerTypes
+            .Select(type => (IHttpRequestPipelineHandler)ServiceProvider.GetRequiredService(type)).Reverse().ToArray();
 
-        // 检查是否启用请求分析工具
-        if (httpRequestBuilder.ProfilerEnabled)
+        // 初始化下一个处理器的委托
+        var pipeline = () => Task.FromResult<HttpResponseMessage?>(null);
+
+        // 遍历请求管道处理器并构建调用链
+        foreach (var handler in pipelineHandlers)
         {
-            // 标记已打印，解决重复打印问题
-            httpRequestMessage.Options.TryAdd(Constants.PROFILER_PRINTED_KEY, "TRUE");
+            var next = pipeline;
+            var current = handler;
 
-            // 初始化 HttpRemoteAnalyzer 实例
-            httpRemoteAnalyzer = httpRequestBuilder.ProfilerPredicate is not null ? new HttpRemoteAnalyzer() : null;
-
-            await ProfilerDelegatingHandler.LogRequestAsync(_logger, _httpRemoteOptions, httpRequestMessage,
-                httpRemoteAnalyzer, httpClient, cancellationToken);
+            // 构建下一个处理器的委托
+            pipeline = () => current.HandleAsync(httpRequestPipelineContext, next);
         }
-
-        // 创建关联的超时 Token 标识
-        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var timeoutCancellationToken = timeoutCancellationTokenSource.Token;
-
-        // 定义标志位，用于判断是否引发了超时操作
-        var isTimeoutTriggered = false;
-
-        // 设置单次请求超时时间控制（若超时时间为 TimeSpan.Zero 将立即取消请求）
-        if (httpRequestBuilder.Timeout is not null)
-        {
-            // 确保 HttpRequestBuilder 的 Timeout 属性值小于 HttpClient 的 Timeout 属性值（默认 100秒）
-            if (httpRequestBuilder.Timeout.Value > httpClient.Timeout)
-            {
-                throw new InvalidOperationException(
-                    "HttpRequestBuilder's Timeout cannot be greater than HttpClient's Timeout, which defaults to 100 seconds.");
-            }
-
-            // 调用超时发生时要执行的操作
-            if (httpRequestBuilder.TimeoutAction is not null)
-            {
-                timeoutCancellationToken.Register(httpRequestBuilder.TimeoutAction.TryInvoke);
-            }
-
-            // 注册回调，用于标记是否是超时触发的取消
-            timeoutCancellationToken.Register(() => isTimeoutTriggered = true);
-
-            // 延迟指定时间后取消任务
-            timeoutCancellationTokenSource.CancelAfter(httpRequestBuilder.Timeout.Value);
-        }
-
-        HttpResponseMessage? httpResponseMessage = null;
-        long requestDuration = 0;
-
-        // 初始化 Stopwatch 实例并开启计时操作
-        var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            // 调用发送 HTTP 请求委托
-            httpResponseMessage = sendAsyncMethod is not null
-                ? await sendAsyncMethod(httpClient, httpRequestMessage, completionOption, timeoutCancellationToken)
-                : sendMethod!(httpClient, httpRequestMessage, completionOption, timeoutCancellationToken);
+            // 执行管道（发送 HTTP 请求）
+            var httpResponseMessage = await pipeline();
 
-            // 修复无效的响应内容字符编码
-            httpResponseMessage.FixInvalidCharset();
-
-            // 初始化当前重定向次数和原始请求方法
-            var redirections = 0;
-            var originalHttpMethod = httpRequestBuilder.HttpMethod!;
-
-            // 处理请求重定向
-            while (Helpers.DetermineRedirectMethod(httpResponseMessage.StatusCode, originalHttpMethod,
-                       out var redirectMethod) && _httpRemoteOptions.AllowAutoRedirect &&
-                   redirections < _httpRemoteOptions.MaximumAutomaticRedirections)
-            {
-                // 获取重定向地址
-                var redirectUrl = httpResponseMessage.Headers.Location;
-
-                // 空检查
-                if (redirectUrl is null)
-                {
-                    break;
-                }
-
-                // 构建新的 HttpRequestMessage 实例
-                var redirectHttpRequestMessage = httpRequestBuilder
-                    .ConfigureForRedirect(
-                        redirectUrl.IsAbsoluteUri
-                            ? redirectUrl
-                            : new Uri(Helpers.ParseBaseAddress(httpRequestMessage.RequestUri), redirectUrl),
-                        redirectMethod).Build(_httpRemoteOptions, _httpContentProcessorFactory,
-                        httpClient.BaseAddress ?? _httpRemoteOptions.FallbackBaseAddress);
-
-                // 释放前一个 HttpResponseMessage 实例
-                httpResponseMessage.Dispose();
-
-                // 重新调用发送 HTTP 请求委托
-                httpResponseMessage = sendAsyncMethod is not null
-                    ? await sendAsyncMethod(httpClient, redirectHttpRequestMessage, completionOption,
-                        timeoutCancellationToken)
-                    : sendMethod!(httpClient, redirectHttpRequestMessage, completionOption, timeoutCancellationToken);
-
-                // 修复无效的响应内容字符编码
-                httpResponseMessage.FixInvalidCharset();
-
-                // 递增重定向次数
-                redirections++;
-            }
-
-            // 获取请求耗时
-            requestDuration = stopwatch.ElapsedMilliseconds;
-
-            // 调用状态码处理程序
-            if (sendAsyncMethod is not null)
-            {
-                await InvokeStatusCodeHandlersAsync(httpRequestBuilder, httpResponseMessage, timeoutCancellationToken);
-            }
-            else
-            {
-                // ReSharper disable once MethodHasAsyncOverload
-                InvokeStatusCodeHandlers(httpRequestBuilder, httpResponseMessage, timeoutCancellationToken);
-            }
-
-            // 检查 HTTP 响应内容长度是否在设定的最大缓冲区大小限制内
-            CheckContentLengthWithinLimit(httpRequestBuilder, httpResponseMessage);
-
-            // 如果 HTTP 响应的 IsSuccessStatusCode 属性是 false，则引发异常
-            if (httpRequestBuilder.EnsureSuccessStatusCodeEnabled)
-            {
-                httpResponseMessage.EnsureSuccessStatusCode();
-            }
-
-            // 执行断言委托操作
-            await ExecuteAssertionsAsync(httpRequestBuilder, httpResponseMessage, requestDuration, ServiceProvider);
-
-            return (httpResponseMessage, requestDuration);
+            return (httpResponseMessage, httpRequestPipelineContext.RequestDuration);
         }
         catch (Exception e)
         {
-            // 输出请求异常日志
-            _logger.LogError(e, "An error occurred while sending HTTP request to {Url} using {Method}.",
-                httpRequestMessage.RequestUri?.ToString() ?? "unknown", httpRequestMessage.Method);
-
-            // 处理发送 HTTP 请求发生异常
-            HandleRequestFailed(httpRequestBuilder, requestEventHandler, e, httpResponseMessage);
-
             // 检查是否启用异常抑制机制
             if (ShouldSuppressException(httpRequestBuilder.SuppressExceptionTypes, e))
             {
-                return (httpResponseMessage, requestDuration);
-            }
-
-            // 检查是否是超时导致的取消，如果是则抛出 TaskCanceledException(TimeoutException) 超时异常
-            if (e is OperationCanceledException oce && oce.CancellationToken == timeoutCancellationToken &&
-                isTimeoutTriggered)
-            {
-                throw new TaskCanceledException(
-                    $"The request was canceled due to the configured HttpRequestBuilder.Timeout of {httpRequestBuilder.Timeout?.TotalSeconds:0.###} seconds elapsing.",
-                    new TimeoutException("The operation was canceled.", oce));
+                return (httpRequestPipelineContext.ResponseMessage, httpRequestPipelineContext.RequestDuration);
             }
 
             throw;
         }
         finally
         {
-            // 停止计时
-            stopwatch.Stop();
-
-            // 处理收到 HTTP 响应之后
-            HandlePostReceiveResponse(httpRequestBuilder, requestEventHandler, httpResponseMessage);
-
             // 释放资源集合
             if (!httpRequestBuilder.HttpClientPoolingEnabled)
             {
                 httpRequestBuilder.ReleaseResources();
             }
-
-            // 检查是否启用请求分析工具
-            if (httpResponseMessage is not null && httpRequestBuilder.ProfilerEnabled)
-            {
-                await ProfilerDelegatingHandler.LogResponseAsync(_logger, _httpRemoteOptions, httpResponseMessage,
-                    requestDuration, httpRemoteAnalyzer, cancellationToken);
-
-                // 调用请求分析工具委托
-                httpRequestBuilder.ProfilerPredicate?.TryInvoke(httpRemoteAnalyzer!);
-            }
         }
     }
 
     /// <summary>
-    ///     处理发送 HTTP 请求之前
+    ///     检查是否启用异常抑制机制
     /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="requestEventHandler">
-    ///     <see cref="IHttpRequestEventHandler" />
-    /// </param>
-    /// <param name="httpRequestMessage">
-    ///     <see cref="HttpRequestMessage" />
-    /// </param>
-    internal static void HandlePreSendRequest(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, HttpRequestMessage httpRequestMessage)
-    {
-        // 空检查
-        if (requestEventHandler is not null)
-        {
-            DelegateExtensions.TryInvoke(requestEventHandler.OnPreSendRequest, httpRequestMessage);
-        }
-
-        httpRequestBuilder.OnPreSendRequest.TryInvoke(httpRequestMessage);
-    }
-
-    /// <summary>
-    ///     处理收到 HTTP 响应之后
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="requestEventHandler">
-    ///     <see cref="IHttpRequestEventHandler" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    internal static void HandlePostReceiveResponse(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, HttpResponseMessage? httpResponseMessage)
-    {
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return;
-        }
-
-        // 空检查
-        if (requestEventHandler is not null)
-        {
-            DelegateExtensions.TryInvoke(requestEventHandler.OnPostReceiveResponse, httpResponseMessage);
-        }
-
-        httpRequestBuilder.OnPostReceiveResponse.TryInvoke(httpResponseMessage);
-    }
-
-    /// <summary>
-    ///     处理发送 HTTP 请求发生异常
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="requestEventHandler">
-    ///     <see cref="IHttpRequestEventHandler" />
-    /// </param>
-    /// <param name="e">
+    /// <param name="suppressExceptionTypes">受抑制的异常类型列表</param>
+    /// <param name="exception">
     ///     <see cref="Exception" />
     /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    internal static void HandleRequestFailed(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, Exception e, HttpResponseMessage? httpResponseMessage)
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    internal static bool ShouldSuppressException(HashSet<Type>? suppressExceptionTypes, Exception? exception)
     {
         // 空检查
-        if (requestEventHandler is not null)
+        if (suppressExceptionTypes is null or { Count: 0 } || exception is null)
         {
-            DelegateExtensions.TryInvoke(requestEventHandler.OnRequestFailed, e, httpResponseMessage);
+            return false;
         }
 
-        httpRequestBuilder.OnRequestFailed.TryInvoke(e, httpResponseMessage);
+        return suppressExceptionTypes.Any(u => u.IsInstanceOfType(exception));
     }
 
     /// <summary>
@@ -861,160 +651,6 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     }
 
     /// <summary>
-    ///     检查 HTTP 响应内容长度是否在设定的最大缓冲区大小限制内
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <exception cref="HttpRequestException"></exception>
-    internal static void CheckContentLengthWithinLimit(HttpRequestBuilder httpRequestBuilder,
-        HttpResponseMessage httpResponseMessage)
-    {
-        // 空检查
-        if (httpRequestBuilder.MaxResponseContentBufferSize is null)
-        {
-            return;
-        }
-
-        // 检查响应内容长度
-        if (httpResponseMessage.Content.Headers.ContentLength is { } contentLength &&
-            contentLength > httpRequestBuilder.MaxResponseContentBufferSize)
-        {
-            throw new HttpRequestException(
-                $"Cannot write more bytes to the buffer than the configured maximum buffer size: `{httpRequestBuilder.MaxResponseContentBufferSize}`.");
-        }
-    }
-
-    /// <summary>
-    ///     调用状态码处理程序
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    internal static void InvokeStatusCodeHandlers(HttpRequestBuilder httpRequestBuilder,
-        HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() =>
-            InvokeStatusCodeHandlersAsync(httpRequestBuilder, httpResponseMessage, cancellationToken));
-
-    /// <summary>
-    ///     调用状态码处理程序
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    internal static async Task InvokeStatusCodeHandlersAsync(HttpRequestBuilder httpRequestBuilder,
-        HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken = default)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(httpRequestBuilder);
-        ArgumentNullException.ThrowIfNull(httpResponseMessage);
-
-        // 空检查
-        if (httpRequestBuilder.StatusCodeHandlers is null || httpRequestBuilder.StatusCodeHandlers.Count == 0)
-        {
-            return;
-        }
-
-        // 获取响应状态码
-        var statusCode = (int)httpResponseMessage.StatusCode;
-
-        // 查找响应状态码所有处理程序
-        var statusCodeHandlers = httpRequestBuilder.StatusCodeHandlers
-            .Where(u => u.Key.Any(code => IsMatchedStatusCode(code, statusCode)))
-            .Select(u => u.Value).ToList();
-
-        // 空检查
-        if (statusCodeHandlers.Count == 0)
-        {
-            return;
-        }
-
-        // 并行执行所有的处理程序，并等待所有任务完成
-        await Task.WhenAll(statusCodeHandlers.Select(handler =>
-            handler.TryInvokeAsync(httpResponseMessage, cancellationToken)));
-    }
-
-    /// <summary>
-    ///     检查状态码代码是否匹配响应状态码
-    /// </summary>
-    /// <param name="code">状态码代码</param>
-    /// <param name="statusCode">响应状态码</param>
-    /// <returns>
-    ///     <see cref="bool" />
-    /// </returns>
-    internal static bool IsMatchedStatusCode(object code, int statusCode)
-    {
-        switch (code)
-        {
-            // 处理正整数类型
-            case int intStatusCode when intStatusCode == statusCode:
-                return true;
-            // 处理 HttpStatusCode 枚举类型
-            case HttpStatusCode httpStatusCode when (int)httpStatusCode == statusCode:
-                return true;
-            // 处理特殊字符串
-            case "*" or '*':
-                return true;
-            // 处理字符串类型
-            case string stringStatusCode when !stringStatusCode.Contains('+') &&
-                                              int.TryParse(stringStatusCode, out var intStatusCodeResult) &&
-                                              intStatusCodeResult == statusCode:
-                return true;
-            // 处理字符串区间类型，如 200-500 或 200~500
-            case string stringStatusCode when StatusCodeRangeRegex().IsMatch(stringStatusCode):
-                // 根据 - 或 ~ 符号切割
-                var parts = stringStatusCode.Split(['-', '~'], StringSplitOptions.RemoveEmptyEntries);
-
-                // 比较状态码区间
-                if (parts.Length == 2 && int.TryParse(parts[0], out var start) && int.TryParse(parts[1], out var end))
-                {
-                    return statusCode >= start && statusCode <= end;
-                }
-
-                break;
-            // 处理包含比较符号的类型：如：>=200, <=300, <100, =100, >100
-            case string compareStatusCode when StatusCodeCompareRegex().IsMatch(compareStatusCode):
-                // 提取正则表达式内容并获取符号和数字部分
-                var match = StatusCodeCompareRegex().Match(compareStatusCode);
-                var symbolPart = match.Groups[1].Value;
-                var numberPart = match.Groups[2].Value;
-
-                // 获取状态码
-                if (!int.TryParse(numberPart, out var number))
-                {
-                    return false;
-                }
-
-                return symbolPart switch
-                {
-                    ">=" => statusCode >= number,
-                    "<=" => statusCode <= number,
-                    ">" => statusCode > number,
-                    "<" => statusCode < number,
-                    "=" => statusCode == number,
-                    _ => false
-                };
-        }
-
-        return false;
-    }
-
-    /// <summary>
     ///     动态创建 <see cref="HttpRemoteResult{TResult}" /> 实例
     /// </summary>
     /// <param name="httpRemoteResultType"><see cref="HttpRemoteResult{TResult}" /> 类型</param>
@@ -1055,13 +691,10 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
         // 获取 Result 和 RequestDuration 属性设置器
         var setResultDelegate =
-            httpRemoteResultType.CreatePropertySetter(httpRemoteResultType.GetProperty(
-                nameof(HttpRemoteResult<object>.Result),
-                bindingFlags)!);
-        var setRequestDurationDelegate =
-            httpRemoteResultType.CreatePropertySetter(httpRemoteResultType.GetProperty(
-                nameof(HttpRemoteResult<object>.RequestDuration),
-                bindingFlags)!);
+            httpRemoteResultType.CreatePropertySetter(
+                httpRemoteResultType.GetProperty(nameof(HttpRemoteResult<object>.Result), bindingFlags)!);
+        var setRequestDurationDelegate = httpRemoteResultType.CreatePropertySetter(
+            httpRemoteResultType.GetProperty(nameof(HttpRemoteResult<object>.RequestDuration), bindingFlags)!);
 
         // 设置 Result 和 RequestDuration 属性值
         setResultDelegate(httpRemoteResult, result);
@@ -1069,73 +702,4 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
         return httpRemoteResult;
     }
-
-    /// <summary>
-    ///     检查是否启用异常抑制机制
-    /// </summary>
-    /// <param name="suppressExceptionTypes">受抑制的异常类型列表</param>
-    /// <param name="exception">
-    ///     <see cref="Exception" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="bool" />
-    /// </returns>
-    internal static bool ShouldSuppressException(HashSet<Type>? suppressExceptionTypes, Exception? exception)
-    {
-        // 空检查
-        if (suppressExceptionTypes is null or { Count: 0 } || exception is null)
-        {
-            return false;
-        }
-
-        return suppressExceptionTypes.Any(u => u.IsInstanceOfType(exception));
-    }
-
-    /// <summary>
-    ///     执行断言委托操作
-    /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="requestDuration">请求耗时（毫秒）</param>
-    /// <param name="serviceProvider">
-    ///     <see cref="IServiceProvider" />
-    /// </param>
-    internal static async Task ExecuteAssertionsAsync(HttpRequestBuilder httpRequestBuilder,
-        HttpResponseMessage httpResponseMessage, long requestDuration, IServiceProvider serviceProvider)
-    {
-        // 检查断言是否启用且已配置委托集合
-        if (httpRequestBuilder is { AssertionsEnabled: true, Assertions.Count: > 0 })
-        {
-            // 初始化 HttpAssertionContext 实例
-            var httpAssertionContext = new HttpAssertionContext(httpResponseMessage, requestDuration, serviceProvider);
-
-            // 逐个调用断言委托
-            foreach (var httpAssertion in httpRequestBuilder.Assertions)
-            {
-                await httpAssertion(httpAssertionContext);
-            }
-        }
-    }
-
-    /// <summary>
-    ///     状态码区间正则表达式
-    /// </summary>
-    /// <returns>
-    ///     <see cref="Regex" />
-    /// </returns>
-    [GeneratedRegex(@"^\d+[-~]\d+$")]
-    private static partial Regex StatusCodeRangeRegex();
-
-    /// <summary>
-    ///     状态码比较正则表达式
-    /// </summary>
-    /// <returns>
-    ///     <see cref="Regex" />
-    /// </returns>
-    [GeneratedRegex(@"^([<>]=?|=|>|<)(\d+)$")]
-    private static partial Regex StatusCodeCompareRegex();
 }

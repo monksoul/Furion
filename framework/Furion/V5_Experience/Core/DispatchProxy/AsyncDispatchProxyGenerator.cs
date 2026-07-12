@@ -278,11 +278,11 @@ internal static class AsyncDispatchProxyGenerator
         public readonly AssemblyBuilder _ab;
         private readonly HashSet<string> _ignoresAccessAssemblyNames = new();
         private readonly ModuleBuilder _mb;
-        private readonly List<MethodBase> _methodsByToken = new();
 
         // Maintain a MethodBase-->int, int-->MethodBase mapping to permit generated code
         // to pass methods by token
         private readonly Dictionary<MethodBase, int> _methodToToken = new();
+        private readonly List<MethodBase> _methodsByToken = new();
         private ConstructorInfo _ignoresAccessChecksToAttributeConstructor;
         private int _typeId;
 
