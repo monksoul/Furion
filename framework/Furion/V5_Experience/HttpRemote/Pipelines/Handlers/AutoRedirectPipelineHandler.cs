@@ -48,8 +48,10 @@ internal sealed class AutoRedirectPipelineHandler(
         // 调用下一个处理器的委托
         var httpResponseMessage = await next();
 
-        // 获取当前 HttpRequestBuilder 和 HttpRemoteOptions 实例
+        // 获取当前 HttpRequestBuilder 实例
         var httpRequestBuilder = context.Builder;
+
+        // 获取 HttpRemoteOptions 实例
         var remoteOptions = httpRemoteOptions.Value;
 
         // 初始化当前重定向次数和原始请求方法

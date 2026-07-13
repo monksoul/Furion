@@ -53,7 +53,7 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
                 : null) as IHttpRequestEventHandler;
 
         // 存入上下文
-        context.Items["RequestEventHandler"] = requestEventHandler;
+        context.Items[Constants.REQUEST_EVENT_HANDLER_KEY] = requestEventHandler;
 
         try
         {

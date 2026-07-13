@@ -23,44 +23,44 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.Extensions.Options;
-using System.Text.Json;
+using System.Net;
 
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="HttpClient" /> 配置选项
+///     HTTP 请求重试上下文
 /// </summary>
-public sealed class HttpClientOptions
+public sealed class HttpRetryContext
 {
     /// <summary>
-    ///     JSON 序列化配置
+    ///     当前重试次数
     /// </summary>
-    public JsonSerializerOptions JsonSerializerOptions { get; set; } =
-        new(HttpRemoteOptions.JsonSerializerOptionsDefault);
+    /// <remarks>从 1 开始。</remarks>
+    public int Attempt { get; internal set; }
 
     /// <summary>
-    ///     指定 JSON 响应反序列化包装器
+    ///     触发重试的异常
     /// </summary>
-    /// <remarks>
-    ///     <para>使用时需明确调用 <see cref="HttpRequestBuilder.UseJsonResponseWrapper()" />。</para>
-    ///     <para>若还需对响应做额外校验或转换，可通过 <see cref="HttpAgent.JsonResponseWrapper.ResultHandler" /> 实现。</para>
-    /// </remarks>
-    public JsonResponseWrapper? JsonResponseWrapper { get; set; }
+    public Exception? Exception { get; internal set; }
 
     /// <summary>
-    ///     是否全局启用 JSON 响应反序列化包装器
+    ///     触发重试的 HTTP 状态码
     /// </summary>
-    public bool? UseJsonResponseWrapper { get; set; }
+    public HttpStatusCode? StatusCode { get; internal set; }
 
     /// <summary>
-    ///     Access Token 提供器配置
+    ///     最大重试次数
     /// </summary>
-    public IHttpAccessTokenProvider? HttpAccessTokenProvider { get; set; }
+    /// <remarks>-1 表示无限</remarks>
+    public int MaxRetries { get; internal set; }
 
     /// <summary>
-    ///     标识选项是否配置为默认值（未配置）
+    ///     是否因异常触发
     /// </summary>
-    /// <remarks>用于避免通过 <see cref="IOptionsSnapshot{TOptions}" /> 获取选项时无法确定是否已配置该选项。默认值为：<c>true</c>。</remarks>
-    internal bool IsDefault { get; set; } = true;
+    public bool IsExceptionRetry => Exception is not null;
+
+    /// <summary>
+    ///     是否因状态码触发
+    /// </summary>
+    public bool IsStatusCodeRetry => StatusCode.HasValue;
 }

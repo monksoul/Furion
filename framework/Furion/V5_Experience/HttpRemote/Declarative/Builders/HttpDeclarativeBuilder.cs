@@ -52,6 +52,7 @@ public sealed class HttpDeclarativeBuilder
         new(typeof(AcceptLanguageDeclarativeExtractor), new AcceptLanguageDeclarativeExtractor()),
         new(typeof(DisableCacheDeclarativeExtractor), new DisableCacheDeclarativeExtractor()),
         new(typeof(EnsureSuccessStatusCodeDeclarativeExtractor), new EnsureSuccessStatusCodeDeclarativeExtractor()),
+        new(typeof(RetryDeclarativeExtractor), new RetryDeclarativeExtractor()),
         new(typeof(TimeoutDeclarativeExtractor), new TimeoutDeclarativeExtractor()),
         new(typeof(PathSegmentDeclarativeExtractor), new PathSegmentDeclarativeExtractor()),
         new(typeof(QueryParamDeclarativeExtractor), new QueryParamDeclarativeExtractor()),
@@ -65,6 +66,7 @@ public sealed class HttpDeclarativeBuilder
         new(typeof(RequestEventHandlerDeclarativeExtractor), new RequestEventHandlerDeclarativeExtractor()),
         new(typeof(JsonResponseWrapperDeclarativeExtractor), new JsonResponseWrapperDeclarativeExtractor()),
         new(typeof(JsonResponseStringUnwrapDeclarativeExtractor), new JsonResponseStringUnwrapDeclarativeExtractor()),
+        new(typeof(SuppressTokenManagementDeclarativeExtractor), new SuppressTokenManagementDeclarativeExtractor()),
         new(typeof(BodyDeclarativeExtractor), new BodyDeclarativeExtractor())
     ]);
 

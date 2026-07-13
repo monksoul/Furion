@@ -114,7 +114,7 @@ public sealed class HttpRemoteOptions
     ///     <see cref="HttpRequestBuilder" /> 统一配置器
     /// </summary>
     /// <remarks>用于在构建 <see cref="HttpRequestMessage" /> 时调用。</remarks>
-    public IHttpRequestBuilderConfigurer? HttpRequestBuilderConfigurer { get; set; }
+    public IHttpRequestBuilderConfigurator? HttpRequestBuilderConfigurator { get; set; }
 
     /// <summary>
     ///     未注册日志服务时的备用日志输出委托
@@ -131,21 +131,8 @@ public sealed class HttpRemoteOptions
     ///     自定义 <see cref="IHttpRequestPipelineHandler" /> 类型集合
     /// </summary>
     /// <remarks>
-    ///     <para>该列表定义了发送 HTTP 请求时执行的处理器及其顺序。</para>
+    ///     <para>该列表定义了发送 HTTP 请求时执行的管道处理器及其顺序。</para>
     ///     <para>顺序从外到内：列表中的第一个类型位于管道最外层（最先执行），最后一个类型位于最内层（最后执行）。</para>
-    ///     <para>TODO: 未来考虑开放拓展</para>
     /// </remarks>
-    internal IList<Type> PipelineHandlerTypes { get; } = new List<Type>
-    {
-        typeof(ResponseAssertionPipelineHandler),
-        typeof(ResponseProfilerPipelineHandler),
-        typeof(RequestEventPipelineHandler),
-        typeof(TimeoutPipelineHandler),
-        typeof(AutoRedirectPipelineHandler),
-        typeof(StatusCodePipelineHandler),
-        typeof(ContentLengthValidationPipelineHandler),
-        typeof(RequestBuilderPipelineHandler),
-        typeof(RequestProfilerPipelineHandler),
-        typeof(SendCorePipelineHandler)
-    };
+    internal IReadOnlyList<Type> PipelineHandlerTypes { get; set; } = [];
 }

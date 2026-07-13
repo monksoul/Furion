@@ -39,18 +39,25 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         // 获取当前 HttpRequestBuilder 实例
         var httpRequestBuilder = context.Builder;
 
-        // 空检查
-        if (httpRequestBuilder.Timeout is null)
+        // 获取 HttpTimeoutOptions 实例（空检查）
+        if (httpRequestBuilder.TimeoutOptions is not { Timeout: not null } httpTimeoutOptions)
         {
             // 调用下一个处理器的委托
             return await next();
         }
 
-        // 确保 HttpRequestBuilder 的 Timeout 属性值小于 HttpClient 的 Timeout 属性值（默认 100秒）
-        if (httpRequestBuilder.Timeout.Value > context.HttpClient.Timeout)
+        // 如果超时设置为无限，跳过超时处理
+        if (httpTimeoutOptions.Timeout.Value == Timeout.InfiniteTimeSpan)
+        {
+            // 调用下一个处理器的委托
+            return await next();
+        }
+
+        // 确保 HttpTimeoutOptions 的 Timeout 属性值小于 HttpClient 的 Timeout 属性值（默认 100秒）
+        if (httpTimeoutOptions.Timeout.Value > context.HttpClient.Timeout)
         {
             throw new InvalidOperationException(
-                "HttpRequestBuilder's Timeout cannot be greater than HttpClient's Timeout, which defaults to 100 seconds.");
+                "HttpTimeoutOptions's Timeout cannot be greater than HttpClient's Timeout, which defaults to 100 seconds.");
         }
 
         // 创建关联的超时 Token 标识
@@ -62,16 +69,16 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         var isTimeoutTriggered = false;
 
         // 调用超时发生时要执行的操作
-        if (httpRequestBuilder.TimeoutAction is not null)
+        if (httpTimeoutOptions.OnTimeout is not null)
         {
-            timeoutCancellationToken.Register(httpRequestBuilder.TimeoutAction.TryInvoke);
+            timeoutCancellationToken.Register(httpTimeoutOptions.OnTimeout.TryInvoke);
         }
 
         // 注册回调，用于标记是否是超时触发的取消
         timeoutCancellationToken.Register(() => isTimeoutTriggered = true);
 
         // 延迟指定时间后取消任务
-        timeoutCancellationTokenSource.CancelAfter(httpRequestBuilder.Timeout.Value);
+        timeoutCancellationTokenSource.CancelAfter(httpTimeoutOptions.Timeout.Value);
 
         // 获取原始取消令牌
         var originalToken = context.CancellationToken;
@@ -88,7 +95,7 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         catch (OperationCanceledException ex) when (isTimeoutTriggered && !originalToken.IsCancellationRequested)
         {
             throw new TaskCanceledException(
-                $"The request was canceled due to the configured HttpRequestBuilder.Timeout of {httpRequestBuilder.Timeout?.TotalSeconds:0.###} seconds elapsing.",
+                $"The request was canceled due to the configured HttpRequestBuilder.Timeout of {httpTimeoutOptions.Timeout.Value.TotalSeconds:0.###} seconds elapsing.",
                 new TimeoutException("The operation was canceled.", ex));
         }
         finally

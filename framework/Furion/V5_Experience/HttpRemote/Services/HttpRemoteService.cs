@@ -516,16 +516,6 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
             return (httpResponseMessage, httpRequestPipelineContext.RequestDuration);
         }
-        catch (Exception e)
-        {
-            // 检查是否启用异常抑制机制
-            if (ShouldSuppressException(httpRequestBuilder.SuppressExceptionTypes, e))
-            {
-                return (httpRequestPipelineContext.ResponseMessage, httpRequestPipelineContext.RequestDuration);
-            }
-
-            throw;
-        }
         finally
         {
             // 释放资源集合
@@ -534,27 +524,6 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
                 httpRequestBuilder.ReleaseResources();
             }
         }
-    }
-
-    /// <summary>
-    ///     检查是否启用异常抑制机制
-    /// </summary>
-    /// <param name="suppressExceptionTypes">受抑制的异常类型列表</param>
-    /// <param name="exception">
-    ///     <see cref="Exception" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="bool" />
-    /// </returns>
-    internal static bool ShouldSuppressException(HashSet<Type>? suppressExceptionTypes, Exception? exception)
-    {
-        // 空检查
-        if (suppressExceptionTypes is null or { Count: 0 } || exception is null)
-        {
-            return false;
-        }
-
-        return suppressExceptionTypes.Any(u => u.IsInstanceOfType(exception));
     }
 
     /// <summary>

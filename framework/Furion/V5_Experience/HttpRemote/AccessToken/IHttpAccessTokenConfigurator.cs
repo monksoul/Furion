@@ -26,16 +26,19 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="HttpRequestBuilder" /> 统一配置器
+///     Access Token 配置器接口
 /// </summary>
-/// <remarks>用于在构建 <see cref="HttpRequestMessage" /> 时调用，可对 <see cref="HttpRequestBuilder" /> 实例进行统一预处理。</remarks>
-public interface IHttpRequestBuilderConfigurer
+/// <remarks>用于决定 Access Token 的注入位置（Header、Query、Cookie 等）。</remarks>
+public interface IHttpAccessTokenConfigurator
 {
     /// <summary>
-    ///     配置
+    ///     将 Access Token 配置到请求中
     /// </summary>
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
     /// </param>
-    void Configure(HttpRequestBuilder httpRequestBuilder);
+    /// <param name="httpAccessToken">
+    ///     <see cref="HttpAccessToken" />
+    /// </param>
+    void Configure(HttpRequestBuilder httpRequestBuilder, HttpAccessToken httpAccessToken);
 }

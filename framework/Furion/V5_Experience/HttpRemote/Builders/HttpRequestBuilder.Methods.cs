@@ -525,106 +525,6 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <param name="timeout">超时时间</param>
-    /// <returns>
-    ///     <see cref="HttpRequestBuilder" />
-    /// </returns>
-    public HttpRequestBuilder SetTimeout(TimeSpan? timeout)
-    {
-        Timeout = timeout;
-        TimeoutAction = null;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置永不超时
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpRequestBuilder" />
-    /// </returns>
-    public HttpRequestBuilder WithoutTimeout() => SetTimeout(System.Threading.Timeout.InfiniteTimeSpan);
-
-    /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <remarks>
-    ///     <list type="bullet">
-    ///         <item>
-    ///             <description>设置为 <c>-1</c> 表示无超时</description>
-    ///         </item>
-    ///         <item>
-    ///             <description>设置为 <c>0</c> 将立即取消请求</description>
-    ///         </item>
-    ///         <item>
-    ///             <description>负值（除 <c>-1</c> 毫秒外）将引发 <see cref="ArgumentOutOfRangeException" /></description>
-    ///         </item>
-    ///     </list>
-    /// </remarks>
-    /// <param name="timeoutMilliseconds">超时时间（毫秒）</param>
-    /// <returns>
-    ///     <see cref="HttpRequestBuilder" />
-    /// </returns>
-    public HttpRequestBuilder SetTimeout(double timeoutMilliseconds)
-    {
-        const double epsilon = 1e-9;
-        var isInfinite = Math.Abs(timeoutMilliseconds + 1) < epsilon;
-
-        // 检查参数是否小于 0 且不等于 -1
-        if (timeoutMilliseconds < 0 && !isInfinite)
-        {
-            throw new ArgumentOutOfRangeException(nameof(timeoutMilliseconds),
-                "Timeout value must be greater than or equal to -1. Use -1 for infinite timeout, 0 for immediate cancellation.");
-        }
-
-        Timeout = isInfinite
-            ? System.Threading.Timeout.InfiniteTimeSpan
-            : TimeSpan.FromMilliseconds(timeoutMilliseconds);
-        TimeoutAction = null;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <param name="timeout">超时时间</param>
-    /// <param name="onTimeout">超时发生时要执行的操作</param>
-    /// <returns>
-    ///     <see cref="HttpRequestBuilder" />
-    /// </returns>
-    public HttpRequestBuilder SetTimeout(TimeSpan? timeout, Action onTimeout)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(onTimeout);
-
-        Timeout = timeout;
-        TimeoutAction = timeout is null ? null : onTimeout;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <param name="timeoutMilliseconds">超时时间（毫秒）</param>
-    /// <param name="onTimeout">超时发生时要执行的操作</param>
-    /// <returns>
-    ///     <see cref="HttpRequestBuilder" />
-    /// </returns>
-    public HttpRequestBuilder SetTimeout(double timeoutMilliseconds, Action onTimeout)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(onTimeout);
-
-        SetTimeout(timeoutMilliseconds).TimeoutAction = onTimeout;
-
-        return this;
-    }
-
-    /// <summary>
     ///     设置路径片段
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
@@ -2031,6 +1931,19 @@ public sealed partial class HttpRequestBuilder
     public HttpRequestBuilder SetUriBuilder(Action<UriBuilder> configure)
     {
         configure.Combine(ref _uriBuilderConfigure);
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置禁用框架的 Access Token 自动管理
+    /// </summary>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder WithoutTokenManagement()
+    {
+        SuppressTokenManagement = true;
 
         return this;
     }

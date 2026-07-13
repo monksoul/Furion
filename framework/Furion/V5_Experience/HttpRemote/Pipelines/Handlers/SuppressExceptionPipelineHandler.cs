@@ -23,51 +23,48 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.Extensions.Options;
-
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     请求分析日志管道处理器
+///     异常抑制管道处理器
 /// </summary>
-/// <param name="logger">
-///     <see cref="IHttpRemoteLogger" />
-/// </param>
-/// <param name="httpRemoteOptions">
-///     <see cref="HttpRemoteOptions" />
-/// </param>
-internal sealed class RequestProfilerPipelineHandler(
-    IHttpRemoteLogger logger,
-    IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
+/// <remarks>确保该处理器位于管道最外层。</remarks>
+internal sealed class SuppressExceptionPipelineHandler : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
         Func<Task<HttpResponseMessage?>> next)
     {
-        // 获取当前 HttpRequestBuilder 实例
-        var httpRequestBuilder = context.Builder;
-
-        // 检查是否启用请求分析工具
-        if (!httpRequestBuilder.ProfilerEnabled)
+        try
         {
             // 调用下一个处理器的委托
             return await next();
         }
+        // 检查是否启用异常抑制机制
+        catch (Exception e) when (ShouldSuppressException(context.Builder.SuppressExceptionTypes, e))
+        {
+            return context.ResponseMessage;
+        }
+    }
 
-        // 标记已打印，解决重复打印问题
-        context.RequestMessage!.Options.TryAdd(Constants.PROFILER_PRINTED_KEY, "TRUE");
+    /// <summary>
+    ///     检查是否启用异常抑制机制
+    /// </summary>
+    /// <param name="suppressExceptionTypes">受抑制的异常类型列表</param>
+    /// <param name="exception">
+    ///     <see cref="Exception" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    internal static bool ShouldSuppressException(HashSet<Type>? suppressExceptionTypes, Exception? exception)
+    {
+        // 空检查
+        if (suppressExceptionTypes is null or { Count: 0 } || exception is null)
+        {
+            return false;
+        }
 
-        // 初始化 HttpRemoteAnalyzer 实例
-        var httpRemoteAnalyzer = httpRequestBuilder.ProfilerPredicate is not null ? new HttpRemoteAnalyzer() : null;
-
-        // 存入上下文
-        context.Items[Constants.PROFILER_ANALYZER_KEY] = httpRemoteAnalyzer;
-
-        // 记录请求信息
-        await ProfilerDelegatingHandler.LogRequestAsync(logger, httpRemoteOptions.Value, context.RequestMessage,
-            httpRemoteAnalyzer, context.HttpClient, context.CancellationToken);
-
-        // 调用下一个处理器的委托
-        return await next();
+        return suppressExceptionTypes.Any(u => u.IsInstanceOfType(exception));
     }
 }

@@ -64,6 +64,26 @@ public sealed class HttpRemoteBuilder
     internal HashSet<Type>? _httpDeclarativeTypes;
 
     /// <summary>
+    ///     <see cref="IHttpRequestPipelineHandler" /> 类型集合
+    /// </summary>
+    internal IList<Type> _httpRequestPipelineHandlerTypes =
+    [
+        typeof(SuppressExceptionPipelineHandler),
+        typeof(ResponseAssertionPipelineHandler),
+        typeof(ResponseProfilerPipelineHandler),
+        typeof(RequestEventPipelineHandler),
+        typeof(TimeoutPipelineHandler),
+        typeof(RetryPipelineHandler),
+        typeof(TokenManagementPipelineHandler),
+        typeof(AutoRedirectPipelineHandler),
+        typeof(StatusCodePipelineHandler),
+        typeof(ContentLengthValidationPipelineHandler),
+        typeof(RequestBuilderPipelineHandler),
+        typeof(RequestProfilerPipelineHandler),
+        typeof(SendCorePipelineHandler)
+    ];
+
+    /// <summary>
     ///     <see cref="IObjectContentConverterFactory" /> 实现类型
     /// </summary>
     internal Type? _objectContentConverterFactoryType;
@@ -299,6 +319,58 @@ public sealed class HttpRemoteBuilder
     }
 
     /// <summary>
+    ///     添加 HTTP 请求管道处理器服务
+    /// </summary>
+    /// <typeparam name="THandler">
+    ///     <see cref="IHttpRequestPipelineHandler" />
+    /// </typeparam>
+    /// <param name="index">插入位置，默认值为：0（即最前面）</param>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    public HttpRemoteBuilder AddPipelineHandler<THandler>(int index = 0)
+        where THandler : IHttpRequestPipelineHandler =>
+        AddPipelineHandler(typeof(THandler), index);
+
+    /// <summary>
+    ///     添加 HTTP 请求管道处理器服务
+    /// </summary>
+    /// <param name="handlerType">
+    ///     <see cref="IHttpRequestPipelineHandler" />
+    /// </param>
+    /// <param name="index">插入位置，默认值为：0（即最前面）</param>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRemoteBuilder AddPipelineHandler(Type handlerType, int index = 0)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(handlerType);
+
+        // 检查类型是否实现了 IHttpRequestPipelineHandler 接口
+        if (!typeof(IHttpRequestPipelineHandler).IsAssignableFrom(handlerType))
+        {
+            throw new ArgumentException(
+                $"`{handlerType}` type is not assignable from `{typeof(IHttpRequestPipelineHandler)}`.",
+                nameof(handlerType));
+        }
+
+        // 检查插入索引是否有效
+        if (index < 0 || index > _httpRequestPipelineHandlerTypes.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index),
+                $"Index must be between 0 and {_httpRequestPipelineHandlerTypes.Count}.");
+        }
+
+        //  插入到列表最前面
+        _httpRequestPipelineHandlerTypes.Insert(index, handlerType);
+
+        return this;
+    }
+
+    /// <summary>
     ///     构建模块服务
     /// </summary>
     /// <param name="services">
@@ -336,10 +408,15 @@ public sealed class HttpRemoteBuilder
         services.TryAddSingleton<IHttpRemoteLogger>(provider =>
             ActivatorUtilities.CreateInstance<HttpRemoteLogger>(provider, isLoggingRegistered));
 
+        // 对 IHttpRequestPipelineHandler 类型集合进行去重
+        // 并确保 SuppressExceptionPipelineHandler 管道处理器类型始终位于首位
+        var distinctPipelineHandlerTypes = EnsureSuppressExceptionHandlerFirst(_httpRequestPipelineHandlerTypes);
+
         // 注册并配置 HttpRemoteOptions 选项服务
         services.Configure<HttpRemoteOptions>(options =>
         {
             options.HttpDeclarativeExtractors = _httpDeclarativeExtractors?.AsReadOnly();
+            options.PipelineHandlerTypes = distinctPipelineHandlerTypes.AsReadOnly();
         });
 
         // 注册内容提供器
@@ -366,16 +443,13 @@ public sealed class HttpRemoteBuilder
         }
 
         // 注册请求管道处理器
-        services.TryAddSingleton<ResponseAssertionPipelineHandler>();
-        services.TryAddSingleton<ResponseProfilerPipelineHandler>();
-        services.TryAddSingleton<RequestEventPipelineHandler>();
-        services.TryAddSingleton<TimeoutPipelineHandler>();
-        services.TryAddSingleton<AutoRedirectPipelineHandler>();
-        services.TryAddSingleton<StatusCodePipelineHandler>();
-        services.TryAddSingleton<ContentLengthValidationPipelineHandler>();
-        services.TryAddSingleton<RequestBuilderPipelineHandler>();
-        services.TryAddSingleton<RequestProfilerPipelineHandler>();
-        services.TryAddSingleton<SendCorePipelineHandler>();
+        foreach (var pipelineHandlerType in distinctPipelineHandlerTypes)
+        {
+            services.TryAddSingleton(pipelineHandlerType);
+        }
+
+        // 注册 Access Token 管理器服务
+        services.TryAddSingleton<HttpAccessTokenManager>();
 
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);
@@ -458,5 +532,42 @@ public sealed class HttpRemoteBuilder
                 return httpDeclarative;
             });
         }
+    }
+
+    /// <summary>
+    ///     处理管道处理器列表的去重，并确保 <see cref="SuppressExceptionPipelineHandler" /> 管道处理器类型始终位于首位
+    /// </summary>
+    /// <param name="handlerTypes">原始 <see cref="IHttpRequestPipelineHandler" /> 类型集合</param>
+    /// <returns>
+    ///     <see cref="IList{T}" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    internal static IList<Type> EnsureSuppressExceptionHandlerFirst(IList<Type> handlerTypes)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(handlerTypes);
+
+        // 对 IHttpRequestPipelineHandler 类型集合进行去重
+        var distinct = handlerTypes.Distinct().ToList();
+
+        // 检查长度是否小于等于 1
+        if (distinct.Count <= 1)
+        {
+            return distinct;
+        }
+
+        // 查找 SuppressExceptionPipelineHandler 管道处理器类型的位置
+        var index = distinct.IndexOf(typeof(SuppressExceptionPipelineHandler));
+
+        // 空检查
+        // ReSharper disable once InvertIf
+        if (index > 0)
+        {
+            // 移动到首位
+            distinct.RemoveAt(index);
+            distinct.Insert(0, typeof(SuppressExceptionPipelineHandler));
+        }
+
+        return distinct;
     }
 }

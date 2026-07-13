@@ -23,44 +23,54 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.Extensions.Options;
-using System.Text.Json;
-
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="HttpClient" /> 配置选项
+///     Access Token 信息
 /// </summary>
-public sealed class HttpClientOptions
+public sealed class HttpAccessToken
 {
     /// <summary>
-    ///     JSON 序列化配置
+    ///     <inheritdoc cref="HttpAccessToken" />
     /// </summary>
-    public JsonSerializerOptions JsonSerializerOptions { get; set; } =
-        new(HttpRemoteOptions.JsonSerializerOptionsDefault);
+    /// <param name="value">Access Token 值</param>
+    /// <param name="expiresAt">Access Token 的绝对过期时间</param>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpAccessToken(string value, DateTimeOffset expiresAt)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+
+        Value = value;
+        ExpiresAt = expiresAt;
+    }
 
     /// <summary>
-    ///     指定 JSON 响应反序列化包装器
+    ///     Access Token 值
     /// </summary>
-    /// <remarks>
-    ///     <para>使用时需明确调用 <see cref="HttpRequestBuilder.UseJsonResponseWrapper()" />。</para>
-    ///     <para>若还需对响应做额外校验或转换，可通过 <see cref="HttpAgent.JsonResponseWrapper.ResultHandler" /> 实现。</para>
-    /// </remarks>
-    public JsonResponseWrapper? JsonResponseWrapper { get; set; }
+    public string Value { get; }
 
     /// <summary>
-    ///     是否全局启用 JSON 响应反序列化包装器
+    ///     Access Token 的绝对过期时间
     /// </summary>
-    public bool? UseJsonResponseWrapper { get; set; }
+    public DateTimeOffset ExpiresAt { get; }
 
     /// <summary>
-    ///     Access Token 提供器配置
+    ///     HTTP 认证方案
     /// </summary>
-    public IHttpAccessTokenProvider? HttpAccessTokenProvider { get; set; }
+    public string? Scheme { get; set; }
 
     /// <summary>
-    ///     标识选项是否配置为默认值（未配置）
+    ///     共享数据字典
     /// </summary>
-    /// <remarks>用于避免通过 <see cref="IOptionsSnapshot{TOptions}" /> 获取选项时无法确定是否已配置该选项。默认值为：<c>true</c>。</remarks>
-    internal bool IsDefault { get; set; } = true;
+    /// <remarks>用于存储与 Access Token 相关的自定义数据。</remarks>
+    public IDictionary<object, object?> Items { get; } = new Dictionary<object, object?>();
+
+    /// <summary>
+    ///     检查 Access Token 是否过期
+    /// </summary>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    public bool IsExpired() => DateTimeOffset.UtcNow >= ExpiresAt;
 }

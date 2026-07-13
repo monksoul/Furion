@@ -63,12 +63,6 @@ public sealed class HttpLongPollingBuilder
     public HttpMethod HttpMethod { get; }
 
     /// <summary>
-    ///     超时时间
-    /// </summary>
-    /// <remarks>可为单次请求设置超时时间。</remarks>
-    public TimeSpan? Timeout { get; private set; }
-
-    /// <summary>
     ///     轮询重试间隔
     /// </summary>
     /// <remarks>默认值为 2 秒。</remarks>
@@ -138,40 +132,6 @@ public sealed class HttpLongPollingBuilder
         }
 
         MaxRetries = maxRetries;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <param name="timeout">超时时间</param>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    public HttpLongPollingBuilder SetTimeout(TimeSpan timeout)
-    {
-        Timeout = timeout;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置超时时间
-    /// </summary>
-    /// <param name="timeoutMilliseconds">超时时间（毫秒）</param>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    public HttpLongPollingBuilder SetTimeout(double timeoutMilliseconds)
-    {
-        // 检查参数是否小于 0
-        if (timeoutMilliseconds < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(timeoutMilliseconds), "Timeout value must be non-negative.");
-        }
-
-        Timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds);
 
         return this;
     }
@@ -324,12 +284,6 @@ public sealed class HttpLongPollingBuilder
 
         // 初始化 HttpRequestBuilder 实例
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).DisableCache();
-
-        // 设置超时时间
-        if (Timeout is not null)
-        {
-            httpRequestBuilder.SetTimeout(Timeout.Value);
-        }
 
         // 检查是否设置了事件处理程序且该处理程序实现了 IHttpRequestEventHandler 接口，如果有则设置给 httpRequestBuilder
         if (LongPollingEventHandlerType is not null &&

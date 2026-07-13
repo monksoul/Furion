@@ -56,7 +56,7 @@ internal sealed class RequestBuilderPipelineHandler(
         context.RequestMessage = httpRequestMessage;
 
         // 解析 IHttpRequestEventHandler 事件处理程序
-        var requestEventHandler = context.Items.TryGetValue("RequestEventHandler", out var eventHandler)
+        var requestEventHandler = context.Items.TryGetValue(Constants.REQUEST_EVENT_HANDLER_KEY, out var eventHandler)
             ? eventHandler as IHttpRequestEventHandler
             : null;
 

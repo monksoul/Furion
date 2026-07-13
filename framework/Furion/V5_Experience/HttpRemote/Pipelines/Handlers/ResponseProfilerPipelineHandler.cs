@@ -69,7 +69,7 @@ internal sealed class ResponseProfilerPipelineHandler(
             if (context.ResponseMessage is not null && httpRequestBuilder.ProfilerEnabled)
             {
                 // 解析 HttpRemoteAnalyzer 实例
-                var httpRemoteAnalyzer = context.Items.TryGetValue("ProfilerAnalyzer", out var analyzer)
+                var httpRemoteAnalyzer = context.Items.TryGetValue(Constants.PROFILER_ANALYZER_KEY, out var analyzer)
                     ? analyzer as HttpRemoteAnalyzer
                     : null;
 

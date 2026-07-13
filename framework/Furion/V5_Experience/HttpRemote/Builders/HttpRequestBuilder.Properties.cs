@@ -103,12 +103,6 @@ public sealed partial class HttpRequestBuilder
     public string? Fragment { get; private set; }
 
     /// <summary>
-    ///     超时时间
-    /// </summary>
-    /// <remarks>可为单次请求设置超时时间。</remarks>
-    public TimeSpan? Timeout { get; private set; }
-
-    /// <summary>
     ///     路径片段集合
     /// </summary>
     /// <remarks>请求地址中位于主机端口之后且 <c>?</c> 符号之前的部分。</remarks>
@@ -259,6 +253,16 @@ public sealed partial class HttpRequestBuilder
     public bool OmitContentType { get; private set; }
 
     /// <summary>
+    ///     HTTP 请求重试选项
+    /// </summary>
+    public HttpRetryOptions? RetryOptions { get; private set; }
+
+    /// <summary>
+    ///     HTTP 请求超时选项
+    /// </summary>
+    public HttpTimeoutOptions? TimeoutOptions { get; private set; }
+
+    /// <summary>
     ///     如果 HTTP 响应的 <c>IsSuccessStatusCode</c> 属性是 <c>false</c>，则引发异常。
     /// </summary>
     /// <remarks>默认值为 <c>false</c>。</remarks>
@@ -336,11 +340,6 @@ public sealed partial class HttpRequestBuilder
     internal HashSet<Type>? SuppressExceptionTypes { get; private set; }
 
     /// <summary>
-    ///     超时发生时要执行的操作
-    /// </summary>
-    internal Action? TimeoutAction { get; private set; }
-
-    /// <summary>
     ///     是否开启断言功能
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>
@@ -376,4 +375,9 @@ public sealed partial class HttpRequestBuilder
     ///     配置信息将写入到 <see cref="HttpRequestMessage.Options" /> 中。默认值为：null。
     /// </remarks>
     internal bool? JsonResponseStringUnwrapEnabled { get; private set; }
+
+    /// <summary>
+    ///     表示是否跳过框架的 Access Token 自动管理
+    /// </summary>
+    internal bool SuppressTokenManagement { get; private set; }
 }
