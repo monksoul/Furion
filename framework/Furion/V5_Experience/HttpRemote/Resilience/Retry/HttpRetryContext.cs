@@ -51,7 +51,7 @@ public sealed class HttpRetryContext
     /// <summary>
     ///     最大重试次数
     /// </summary>
-    /// <remarks>-1 表示无限</remarks>
+    /// <remarks>-1 表示无限。</remarks>
     public int MaxRetries { get; internal set; }
 
     /// <summary>
