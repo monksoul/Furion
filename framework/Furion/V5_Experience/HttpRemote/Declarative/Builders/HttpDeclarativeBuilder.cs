@@ -88,9 +88,11 @@ public sealed class HttpDeclarativeBuilder
     internal static int _hasLoadedExtractors;
 
     /// <summary>
-    ///     HTTP 声明式提取器缓存
+    ///     HTTP 声明式合并后的提取器缓存
     /// </summary>
-    internal static volatile IHttpDeclarativeExtractor[]? _cachedExtractors;
+    internal static volatile Lazy<IHttpDeclarativeExtractor[]> _lazyExtractors =
+        new(() => _extractors.Values.Concat(_frozenExtractors.Values.OrderByDescending(e => e.Order)).ToArray(),
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
     /// <summary>
     ///     <inheritdoc cref="HttpDeclarativeBuilder" />
@@ -186,18 +188,16 @@ public sealed class HttpDeclarativeBuilder
                 }
             }
 
-            // 自定义提取器已变更，清空缓存
-            _cachedExtractors = null;
+            // 自定义提取器已变更，重建 Lazy 缓存
+            var newLazy = new Lazy<IHttpDeclarativeExtractor[]>(
+                () => _extractors.Values.Concat(_frozenExtractors.Values.OrderByDescending(e => e.Order)).ToArray(),
+                LazyThreadSafetyMode.ExecutionAndPublication);
+
+            Interlocked.Exchange(ref _lazyExtractors, newLazy);
         }
 
-        // 组合所有 HTTP 声明式提取器
-        var extractors = _cachedExtractors;
-        if (extractors is null)
-        {
-            var newExtractors = _extractors.Values
-                .Concat(_frozenExtractors.Values.OrderByDescending(e => e.Order).ToArray()).ToArray();
-            extractors = Interlocked.CompareExchange(ref _cachedExtractors, newExtractors, null) ?? newExtractors;
-        }
+        // 获取当前合并后的提取器列表
+        var extractors = _lazyExtractors.Value;
 
         // 遍历 HTTP 声明式提取器集合
         foreach (var extractor in extractors)

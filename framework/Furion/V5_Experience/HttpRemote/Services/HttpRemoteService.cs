@@ -53,6 +53,11 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     internal readonly IHttpRemoteLogger _logger;
 
     /// <summary>
+    ///     预构建的请求管道委托链
+    /// </summary>
+    internal readonly Lazy<Func<HttpRequestPipelineContext, Task<HttpResponseMessage?>>> _requestPipelineDelegate;
+
+    /// <summary>
     ///     <inheritdoc cref="HttpRemoteService" />
     /// </summary>
     /// <param name="serviceProvider">
@@ -94,6 +99,31 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         _httpClientFactory = httpClientFactory;
         _httpContentProcessorFactory = httpContentProcessorFactory;
         _httpContentConverterFactory = httpContentConverterFactory;
+
+        // 预构建的请求管道委托链
+        _requestPipelineDelegate = new Lazy<Func<HttpRequestPipelineContext, Task<HttpResponseMessage?>>>(() =>
+        {
+            // 获取所有注册的请求管道处理器类型并解析其实例
+            var pipelineHandlers = _httpRemoteOptions.PipelineHandlerTypes
+                .Select(type => (IHttpRequestPipelineHandler)serviceProvider.GetRequiredService(type)).Reverse()
+                .ToList();
+
+            // 构建从最内层开始的委托链
+            Func<HttpRequestPipelineContext, Task<HttpResponseMessage?>> pipeline = _ =>
+                Task.FromResult<HttpResponseMessage?>(null);
+
+            // 遍历请求管道处理器并构建调用链
+            foreach (var handler in pipelineHandlers)
+            {
+                var next = pipeline;
+                var current = handler;
+
+                // 构建下一个处理器的委托
+                pipeline = ctx => current.HandleAsync(ctx, () => next(ctx));
+            }
+
+            return pipeline;
+        });
     }
 
     /// <inheritdoc />
@@ -492,27 +522,13 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         var httpRequestPipelineContext = new HttpRequestPipelineContext(httpRequestBuilder, httpClient,
             completionOption, sendAsync, cancellationToken);
 
-        // 获取所有注册的请求管道处理器类型并解析其实例
-        var pipelineHandlers = _httpRemoteOptions.PipelineHandlerTypes
-            .Select(type => (IHttpRequestPipelineHandler)ServiceProvider.GetRequiredService(type)).Reverse().ToArray();
-
-        // 初始化下一个处理器的委托
-        var pipeline = () => Task.FromResult<HttpResponseMessage?>(null);
-
-        // 遍历请求管道处理器并构建调用链
-        foreach (var handler in pipelineHandlers)
-        {
-            var next = pipeline;
-            var current = handler;
-
-            // 构建下一个处理器的委托
-            pipeline = () => current.HandleAsync(httpRequestPipelineContext, next);
-        }
+        // 获取预构建的请求管道委托链
+        var pipeline = _requestPipelineDelegate.Value;
 
         try
         {
             // 执行管道（发送 HTTP 请求）
-            var httpResponseMessage = await pipeline();
+            var httpResponseMessage = await pipeline(httpRequestPipelineContext);
 
             return (httpResponseMessage, httpRequestPipelineContext.RequestDuration);
         }
