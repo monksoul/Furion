@@ -23,6 +23,8 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Net;
+
 namespace Furion.HttpRemote;
 
 /// <summary>
@@ -44,4 +46,22 @@ public interface IHttpAccessTokenProvider
     ///     <see cref="HttpAccessToken" />
     /// </returns>
     Task<HttpAccessToken> GetAccessTokenAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     指示是否需要强制刷新 Access Token 并重试请求
+    /// </summary>
+    /// <remarks>
+    ///     默认实现仅在状态码为 <see cref="HttpStatusCode.Unauthorized" />（401）时返回 <c>true</c>。可重写此方法以自定义刷新策略（例如检查 403、响应头、响应体等）。
+    /// </remarks>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    bool ShouldRefreshToken(HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken) =>
+        httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized;
 }
