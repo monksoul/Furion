@@ -85,7 +85,7 @@ internal sealed class TokenManagementPipelineHandler(
         // 检查是否需要强制刷新 Token 并重试（由提供器决定，默认 401）
         // ReSharper disable once InvertIf
         if (httpResponseMessage is not null &&
-            httpAccessTokenProvider.ShouldRefreshToken(httpResponseMessage, context.CancellationToken))
+            await httpAccessTokenProvider.ShouldRefreshTokenAsync(httpResponseMessage, context.CancellationToken))
         {
             // 释放前一个 HttpResponseMessage 实例
             httpResponseMessage.Dispose();

@@ -45,7 +45,7 @@ public interface IHttpAccessTokenProvider
     /// <returns>
     ///     <see cref="HttpAccessToken" />
     /// </returns>
-    Task<HttpAccessToken> GetAccessTokenAsync(CancellationToken cancellationToken);
+    Task<HttpAccessToken> GetTokenAsync(CancellationToken cancellationToken);
 
     /// <summary>
     ///     指示是否需要强制刷新 Access Token 并重试请求
@@ -62,6 +62,6 @@ public interface IHttpAccessTokenProvider
     /// <returns>
     ///     <see cref="bool" />
     /// </returns>
-    bool ShouldRefreshToken(HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken) =>
-        httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized;
+    Task<bool> ShouldRefreshTokenAsync(HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken) =>
+        Task.FromResult(httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized);
 }
