@@ -109,6 +109,17 @@ public sealed class ForwardAttribute : ActionFilterAttribute
     public bool WithResponseContentHeaders { get; set; } = true;
 
     /// <summary>
+    ///     是否重新设置 <c>Host</c> 请求标头
+    /// </summary>
+    /// <remarks>在一些目标服务器中，可能需要校验该请求标头。默认值为：<c>false</c>。</remarks>
+    public bool ResetHostRequestHeader { get; set; }
+
+    /// <summary>
+    ///     忽略在转发时需要跳过的查询参数（URL 参数）列表
+    /// </summary>
+    public string[]? IgnoreQueryParameters { get; set; }
+
+    /// <summary>
     ///     忽略在转发时需要跳过的请求标头列表
     /// </summary>
     public string[]? IgnoreRequestHeaders { get; set; }
@@ -123,10 +134,24 @@ public sealed class ForwardAttribute : ActionFilterAttribute
     public string[]? IgnoreResponseHeaders { get; set; }
 
     /// <summary>
-    ///     是否重新设置 <c>Host</c> 请求标头
+    ///     允许转发的目标主机白名单
     /// </summary>
-    /// <remarks>在一些目标服务器中，可能需要校验该请求标头。默认值为：<c>false</c>。</remarks>
-    public bool ResetHostRequestHeader { get; set; }
+    /// <remarks>
+    ///     <para>用于防范服务端请求伪造（SSRF）攻击。仅当目标地址匹配此列表中的项时，转发才会被允许。</para>
+    ///     <para>支持的格式：</para>
+    ///     <list type="bullet">
+    ///         <item><c>"example.com"</c> - 仅主机名，匹配任意协议（http/https）的默认端口（80/443）。</item>
+    ///         <item><c>"example.com:8080"</c> - 主机+端口，匹配任意协议的指定端口。</item>
+    ///         <item><c>"example.com:*"</c> - 主机+端口通配符，匹配任意协议下的任意端口。</item>
+    ///         <item><c>"https://example.com"</c> - 协议+主机，只匹配指定协议的默认端口。</item>
+    ///         <item><c>"http://example.com:8080"</c> - 协议+主机+端口，精确匹配。</item>
+    ///         <item><c>"https://example.com:*"</c> - 协议+主机+端口通配符，只匹配指定协议的任意端口。</item>
+    ///     </list>
+    ///     <para>匹配规则：忽略大小写；主机部分必须完全一致；端口部分支持数字或 <c>*</c> 通配符。</para>
+    ///     <para><b>特殊通配符</b>：若集合中包含独立的 <c>"*"</c>（不带主机），则允许转发到 <b>任意</b> 主机和协议，完全绕过验证。</para>
+    ///     <para>如果该集合为 <c>null</c> 或空，所有通过 <c>X-Forward-To</c> 请求头指定的目标地址都将被拒绝。</para>
+    /// </remarks>
+    public string[]? AllowedHosts { get; set; }
 
     /// <inheritdoc />
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -150,9 +175,11 @@ public sealed class ForwardAttribute : ActionFilterAttribute
                 WithResponseStatusCode = WithResponseStatusCode,
                 WithResponseHeaders = WithResponseHeaders,
                 WithResponseContentHeaders = WithResponseContentHeaders,
+                ResetHostRequestHeader = ResetHostRequestHeader,
+                IgnoreQueryParameters = IgnoreQueryParameters,
                 IgnoreRequestHeaders = IgnoreRequestHeaders,
                 IgnoreResponseHeaders = IgnoreResponseHeaders,
-                ResetHostRequestHeader = ResetHostRequestHeader
+                AllowedHosts = AllowedHosts
             });
 
         // 设置转发内容
