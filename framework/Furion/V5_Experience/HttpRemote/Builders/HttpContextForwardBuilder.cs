@@ -76,8 +76,8 @@ public sealed class HttpContextForwardBuilder
         HttpContext = httpContext;
         HttpMethod = httpMethod;
 
-        RequestUri = GetTargetUri(httpContext, requestUri);
         ForwardOptions = GetForwardOptions(httpContext, forwardOptions);
+        RequestUri = GetTargetUri(httpContext, ForwardOptions, requestUri);
     }
 
     /// <summary>
@@ -102,22 +102,48 @@ public sealed class HttpContextForwardBuilder
     /// <param name="httpContext">
     ///     <see cref="HttpContext" />
     /// </param>
+    /// <param name="forwardOptions">
+    ///     <see cref="HttpContextForwardOptions" />
+    /// </param>
     /// <param name="requestUri">请求地址。若为空则尝试从请求标头 <c>X-Forward-To</c> 中获取目标地址。</param>
     /// <returns>
     ///     <see cref="Uri" />
     /// </returns>
-    internal static Uri? GetTargetUri(HttpContext httpContext, Uri? requestUri = null)
+    internal static Uri? GetTargetUri(HttpContext httpContext, HttpContextForwardOptions forwardOptions,
+        Uri? requestUri = null)
     {
         // 空检查
         if (requestUri is not null)
         {
+            // 验证目标 URI 的主机是否在允许的白名单中
+            ValidateHost(requestUri, forwardOptions);
+
             return requestUri;
         }
 
         // 尝试从请求标头 X-Forward-To 中获取目标地址
         var targetUrl = httpContext.Request.Headers[Constants.X_FORWARD_TO_HEADER].ToString();
 
-        return string.IsNullOrWhiteSpace(targetUrl) ? null : new Uri(targetUrl, UriKind.RelativeOrAbsolute);
+        // 空检查
+        if (string.IsNullOrWhiteSpace(targetUrl))
+        {
+            return null;
+        }
+
+        // 初始化 Uri 实例
+        var uri = new Uri(targetUrl, UriKind.RelativeOrAbsolute);
+
+        // 检查是否是绝对 URI 地址
+        if (!uri.IsAbsoluteUri)
+        {
+            throw new InvalidOperationException(
+                "The target URL must be an absolute URI (e.g., https://api.example.com/path). Relative paths are not supported.");
+        }
+
+        // 验证目标 URI 的主机是否在允许的白名单中
+        ValidateHost(uri, forwardOptions);
+
+        return uri;
     }
 
     /// <summary>
@@ -464,5 +490,117 @@ public sealed class HttpContextForwardBuilder
         body.Position = 0;
 
         return body;
+    }
+
+    /// <summary>
+    ///     验证目标 URI 的主机是否在允许的白名单中
+    /// </summary>
+    /// <param name="uri">要验证的目标 URI</param>
+    /// <param name="forwardOptions">
+    ///     <see cref="HttpContextForwardOptions" />
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal static void ValidateHost(Uri uri, HttpContextForwardOptions forwardOptions)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(uri);
+
+        // 获取配置的允许主机列表
+        // 如果白名单未配置或为空，则拒绝所有转发请求
+        if (forwardOptions.AllowedHosts is not { Count: > 0 } allowedHosts)
+        {
+            throw new InvalidOperationException(
+                "No allowed hosts have been configured for request forwarding. To enable forwarding, add target hosts to HttpContextForwardOptions.AllowedHosts, or include `*` to allow all hosts (not recommended due to SSRF risk).");
+        }
+
+        // 如果白名单中包含 "*"，表示用户明确允许转发到任意主机
+        if (allowedHosts.Contains("*", StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // 获取目标 URI 的实际主机名和端口
+        var actualHost = uri.Host;
+        var actualPort = uri.Port;
+
+        // 遍历并逐一匹配白名单中的每一项
+        foreach (var entry in allowedHosts)
+        {
+            // 分离可能的协议前缀和剩余的主机端口部分
+            string? requiredScheme = null;
+            string hostPortPart;
+
+            // 检查是否包含协议
+            if (entry.Contains("://", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = entry.Split("://", 2);
+
+                requiredScheme = parts[0];
+                hostPortPart = parts[1];
+            }
+            else
+            {
+                hostPortPart = entry;
+            }
+
+            // 如果白名单项指定了协议，则必须与目标 URI 的协议一致
+            if (requiredScheme is not null && !uri.Scheme.Equals(requiredScheme, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // 从 hostPortPart 中分离主机和端口部分
+            string allowedHost;
+            string? allowedPortStr = null;
+
+            // 检查是否存在冒号
+            var colonIndex = hostPortPart.LastIndexOf(':');
+            if (colonIndex > 0)
+            {
+                allowedHost = hostPortPart[..colonIndex];
+                allowedPortStr = hostPortPart[(colonIndex + 1)..];
+            }
+            else
+            {
+                allowedHost = hostPortPart;
+            }
+
+            // 检查主机名是否完全匹配
+            if (!actualHost.Equals(allowedHost, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // 检查端口是否匹配
+            switch (allowedPortStr)
+            {
+                case null:
+                {
+                    // 检查是否是默认端口
+                    if (uri.IsDefaultPort)
+                    {
+                        return;
+                    }
+
+                    break;
+                }
+                case "*":
+                    return;
+                default:
+                {
+                    // 解析端口并检查是否匹配
+                    if (int.TryParse(allowedPortStr, out var allowedPort) && actualPort == allowedPort)
+                    {
+                        return;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"The target host '{actualHost}:{actualPort}' is not in the allowed forwarding list.");
     }
 }

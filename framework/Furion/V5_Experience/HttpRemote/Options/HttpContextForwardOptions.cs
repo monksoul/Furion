@@ -88,6 +88,26 @@ public sealed class HttpContextForwardOptions
     public string[]? IgnoreResponseHeaders { get; set; }
 
     /// <summary>
+    ///     允许转发的目标主机白名单
+    /// </summary>
+    /// <remarks>
+    ///     <para>用于防范服务端请求伪造（SSRF）攻击。仅当目标地址匹配此列表中的项时，转发才会被允许。</para>
+    ///     <para>支持的格式：</para>
+    ///     <list type="bullet">
+    ///         <item><c>"example.com"</c> - 仅主机名，匹配任意协议（http/https）的默认端口（80/443）。</item>
+    ///         <item><c>"example.com:8080"</c> - 主机+端口，匹配任意协议的指定端口。</item>
+    ///         <item><c>"example.com:*"</c> - 主机+端口通配符，匹配任意协议下的任意端口。</item>
+    ///         <item><c>"https://example.com"</c> - 协议+主机，只匹配指定协议的默认端口。</item>
+    ///         <item><c>"http://example.com:8080"</c> - 协议+主机+端口，精确匹配。</item>
+    ///         <item><c>"https://example.com:*"</c> - 协议+主机+端口通配符，只匹配指定协议的任意端口。</item>
+    ///     </list>
+    ///     <para>匹配规则：忽略大小写；主机部分必须完全一致；端口部分支持数字或 <c>*</c> 通配符。</para>
+    ///     <para><b>特殊通配符</b>：若集合中包含独立的 <c>"*"</c>（不带主机），则允许转发到 <b>任意</b> 主机和协议，完全绕过验证。</para>
+    ///     <para>如果该集合为 <c>null</c> 或空，所有通过 <c>X-Forward-To</c> 请求头指定的目标地址都将被拒绝。</para>
+    /// </remarks>
+    public ICollection<string>? AllowedHosts { get; set; }
+
+    /// <summary>
     ///     用于在转发响应之前执行自定义操作
     /// </summary>
     public Action<HttpContext, HttpResponseMessage>? OnForward { get; set; }
