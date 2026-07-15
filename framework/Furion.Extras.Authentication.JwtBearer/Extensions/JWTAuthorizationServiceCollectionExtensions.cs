@@ -59,14 +59,51 @@ public static class JWTAuthorizationServiceCollectionExtensions
         // 添加授权
         authenticationBuilder.AddJwtBearer(options =>
         {
-            // 反射获取全局配置
-            var jwtSettings = JWTEncryption.FrameworkApp.GetMethod("GetOptions").MakeGenericMethod(typeof(JWTSettingsOptions)).Invoke(null, new object[] { null }) as JWTSettingsOptions;
+            // 获取 JWT 配置选项
+            var jwtSettings = JWTEncryption.GetJWTSettings();
 
             // 配置 JWT 验证信息
             options.TokenValidationParameters = (tokenValidationParameters as TokenValidationParameters) ?? JWTEncryption.CreateTokenValidationParameters(jwtSettings);
 
             // 添加自定义配置
             jwtBearerConfigure?.Invoke(options);
+
+            // 检查是否配置了 TokenHeaders
+            if (jwtSettings.TokenHeaders is { Length: > 0 })
+            {
+                options.Events ??= new JwtBearerEvents();
+                var originalOnMessageReceived = options.Events.OnMessageReceived;
+
+                options.Events.OnMessageReceived = async context =>
+                {
+                    // 处理自定义 TokenHeaders
+                    foreach (var headerName in jwtSettings.TokenHeaders)
+                    {
+                        // 空检查
+                        if (string.IsNullOrWhiteSpace(headerName))
+                        {
+                            continue;
+                        }
+
+                        var headerValue = context.Request.Headers[headerName.Trim()].FirstOrDefault();
+
+                        if (!string.IsNullOrWhiteSpace(headerValue))
+                        {
+                            context.Token = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                                ? headerValue["Bearer ".Length..].Trim()
+                                : headerValue.Trim();
+
+                            break;
+                        }
+                    }
+
+                    // 调用原来的 OnMessageReceived
+                    if (originalOnMessageReceived is not null)
+                    {
+                        await originalOnMessageReceived(context);
+                    }
+                };
+            }
         });
 
         //启用全局授权

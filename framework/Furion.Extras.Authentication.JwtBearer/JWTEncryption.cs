@@ -255,7 +255,7 @@ public class JWTEncryption
     /// <param name="clockSkew"></param>
     /// <param name="onRefreshing">当刷新时触发</param>
     /// <returns></returns>
-    public static bool AutoRefreshToken(AuthorizationHandlerContext context, DefaultHttpContext httpContext, long? expiredTime = null, int refreshTokenExpiredTime = 43200, string tokenPrefix = "Bearer ", long clockSkew = 5, Action<string, string> onRefreshing = null)
+    public static bool AutoRefreshToken(AuthorizationHandlerContext context, HttpContext httpContext, long? expiredTime = null, int refreshTokenExpiredTime = 43200, string tokenPrefix = "Bearer ", long clockSkew = 5, Action<string, string> onRefreshing = null)
     {
         // 如果验证有效，则跳过刷新
         if (context.User.Identity.IsAuthenticated)
@@ -272,8 +272,14 @@ public class JWTEncryption
         // 判断是否含有匿名特性
         if (httpContext.GetEndpoint()?.Metadata?.GetMetadata<AllowAnonymousAttribute>() != null) return true;
 
+        // 获取 JWT 配置
+        var jwtSettings = GetJWTSettings();
+        var tokenHeader = jwtSettings.TokenHeaders is { Length: > 0 }
+            ? string.Join(',', jwtSettings.TokenHeaders)
+            : null;
+
         // 获取过期Token 和 刷新Token
-        var expiredToken = GetJwtBearerToken(httpContext, tokenPrefix: tokenPrefix);
+        var expiredToken = GetJwtBearerToken(httpContext, tokenHeader, tokenPrefix);
         var refreshToken = GetJwtBearerToken(httpContext, "X-Authorization", tokenPrefix: tokenPrefix);
         if (string.IsNullOrWhiteSpace(expiredToken) || string.IsNullOrWhiteSpace(refreshToken)) return false;
 
@@ -360,10 +366,10 @@ public class JWTEncryption
     /// </summary>
     /// <param name="httpContext"></param>
     /// <param name="token"></param>
-    /// <param name="headerKey"></param>
+    /// <param name="headerKey">支持多个报文头，用逗号分隔</param>
     /// <param name="tokenPrefix"></param>
     /// <returns></returns>
-    public static bool ValidateJwtBearerToken(DefaultHttpContext httpContext, out JsonWebToken token, string headerKey = "Authorization", string tokenPrefix = "Bearer ")
+    public static bool ValidateJwtBearerToken(HttpContext httpContext, out JsonWebToken token, string headerKey = "Authorization", string tokenPrefix = "Bearer ")
     {
         // 获取 token
         var accessToken = GetJwtBearerToken(httpContext, headerKey, tokenPrefix);
@@ -426,17 +432,35 @@ public class JWTEncryption
     /// 获取 JWT Bearer Token
     /// </summary>
     /// <param name="httpContext"></param>
-    /// <param name="headerKey"></param>
+    /// <param name="headerKey">支持多个报文头，用逗号分隔</param>
     /// <param name="tokenPrefix"></param>
     /// <returns></returns>
-    public static string GetJwtBearerToken(DefaultHttpContext httpContext, string headerKey = "Authorization", string tokenPrefix = "Bearer ")
+    public static string GetJwtBearerToken(HttpContext httpContext, string headerKey = "Authorization", string tokenPrefix = "Bearer ")
     {
-        // 判断请求报文头中是否有 "Authorization" 报文头
-        var bearerToken = httpContext.Request.Headers[headerKey].ToString();
-        if (string.IsNullOrWhiteSpace(bearerToken)) return default;
+        // 根据逗号分隔 headerKey，支持多个报文头
+        var keys = headerKey?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["Authorization"];
 
-        var prefixLenght = tokenPrefix.Length;
-        return bearerToken.StartsWith(tokenPrefix, true, null) && bearerToken.Length > prefixLenght ? bearerToken[prefixLenght..].Trim() : default;
+        string rawValue = null;
+        foreach (var name in keys)
+        {
+            rawValue = httpContext.Request.Headers[name].FirstOrDefault();
+
+            // 空检查
+            if (!string.IsNullOrWhiteSpace(rawValue))
+            {
+                break;
+            }
+        }
+
+        // 空检查
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return null;
+        }
+
+        return rawValue.StartsWith(tokenPrefix, StringComparison.OrdinalIgnoreCase) && rawValue.Length > tokenPrefix.Length
+            ? rawValue[tokenPrefix.Length..].Trim()
+            : rawValue.Trim();
     }
 
     /// <summary>

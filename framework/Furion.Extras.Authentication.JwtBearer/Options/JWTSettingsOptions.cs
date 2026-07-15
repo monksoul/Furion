@@ -90,4 +90,10 @@ public sealed class JWTSettingsOptions
     /// 验证过期时间，设置 false 永不过期
     /// </summary>
     public bool RequireExpirationTime { get; set; } = true;
+
+    /// <summary>
+    /// 配置获取 Token 的报文头可选值
+    /// </summary>
+    /// <remarks>默认 "Authorization"。</remarks>
+    public string[]? TokenHeaders { get; set; }
 }
