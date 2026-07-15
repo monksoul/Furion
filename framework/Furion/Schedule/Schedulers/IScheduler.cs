@@ -282,7 +282,8 @@ public interface IScheduler
     /// 手动执行作业
     /// </summary>
     /// <param name="triggerId">作业触发器 Id</param>
-    void Run(string triggerId = null);
+    /// <param name="customData">自定义数据</param>
+    void Run(string triggerId = null, IDictionary<string, object>? customData = null);
 
     /// <summary>
     /// 取消正在执行的作业

@@ -210,4 +210,9 @@ public partial class Trigger
     /// </summary>
     /// <remarks>默认为定时触发，0:定时，1:手动</remarks>
     internal int Mode { get; set; }
+
+    /// <summary>
+    /// 手动执行时传入的临时自定义数据
+    /// </summary>
+    internal IDictionary<string, object>? ManualRunCustomData { get; set; }
 }

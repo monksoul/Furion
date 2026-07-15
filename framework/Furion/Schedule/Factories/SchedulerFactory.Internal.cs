@@ -96,7 +96,7 @@ internal sealed partial class SchedulerFactory : ISchedulerFactory
     /// <summary>
     /// 不受控的作业 Id 集合
     /// </summary>
-    private readonly ConcurrentQueue<(string JobId, string TriggerId)> _manualRunJobIds = new();
+    private readonly ConcurrentQueue<(string JobId, string TriggerId, IDictionary<string, object>? CustomData)> _manualRunJobIds = new();
 
     /// <summary>
     /// 休眠 Token 的取消注册句柄
@@ -263,7 +263,7 @@ internal sealed partial class SchedulerFactory : ISchedulerFactory
                  });
 
         // 查看 立即执行 的作业
-        var runJobItems = new List<(string JobId, string TriggerId)>();
+        var runJobItems = new List<(string JobId, string TriggerId, IDictionary<string, object>? CustomData)>();
         while (_manualRunJobIds.TryDequeue(out var item))
         {
             runJobItems.Add(item);
@@ -278,6 +278,7 @@ internal sealed partial class SchedulerFactory : ISchedulerFactory
                                   .Select(t =>
                                   {
                                       t.Mode = 1;
+                                      t.ManualRunCustomData = runJob.CustomData;
                                       return t;
                                   })
                                   .ToDictionary(t => t.TriggerId, t => t))

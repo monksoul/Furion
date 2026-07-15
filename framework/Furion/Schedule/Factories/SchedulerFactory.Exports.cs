@@ -952,8 +952,9 @@ internal sealed partial class SchedulerFactory
     /// <param name="jobId">作业 Id</param>
     /// <param name="scheduler">作业计划</param>
     /// <param name="triggerId">作业触发器 Id</param>
+    /// <param name="customData">自定义数据</param>
     /// <returns><see cref="ScheduleResult"/></returns>
-    public ScheduleResult TryRunJob(string jobId, out IScheduler scheduler, string triggerId = null)
+    public ScheduleResult TryRunJob(string jobId, out IScheduler scheduler, string triggerId = null, IDictionary<string, object>? customData = null)
     {
         // 查找作业
         var scheduleResult = InternalTryGetJob(jobId, out var originScheduler, true);
@@ -964,7 +965,7 @@ internal sealed partial class SchedulerFactory
         }
 
         // 添加到待执行集合中
-        _manualRunJobIds.Enqueue((jobId, triggerId));
+        _manualRunJobIds.Enqueue((jobId, triggerId, customData));
 
         // 取消作业调度器休眠状态（强制唤醒）
         CancelSleep();
@@ -993,10 +994,11 @@ internal sealed partial class SchedulerFactory
     /// </summary>
     /// <param name="scheduler">作业计划</param>
     /// <param name="triggerId">作业触发器 Id</param>
+    /// <param name="customData">自定义数据</param>
     /// <returns><see cref="ScheduleResult"/></returns>
-    public ScheduleResult TryRunJob(IScheduler scheduler, string triggerId = null)
+    public ScheduleResult TryRunJob(IScheduler scheduler, string triggerId = null, IDictionary<string, object>? customData = null)
     {
-        return TryRunJob(scheduler?.JobId, out _, triggerId);
+        return TryRunJob(scheduler?.JobId, out _, triggerId, customData);
     }
 
     /// <summary>

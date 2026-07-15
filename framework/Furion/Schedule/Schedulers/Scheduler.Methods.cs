@@ -596,9 +596,10 @@ internal sealed partial class Scheduler
     /// 手动执行作业
     /// </summary>
     /// <param name="triggerId">作业触发器 Id</param>
-    public void Run(string triggerId = null)
+    /// <param name="customData">自定义数据</param>
+    public void Run(string triggerId = null, IDictionary<string, object>? customData = null)
     {
-        Factory?.TryRunJob(JobId, out _, triggerId);
+        Factory?.TryRunJob(JobId, out _, triggerId, customData);
     }
 
     /// <summary>

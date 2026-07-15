@@ -20,6 +20,12 @@ public class TestJob : IJob, IDisposable
 
     public async Task ExecuteAsync(JobExecutingContext context, CancellationToken stoppingToken)
     {
+        // 获取手动传递的自定义数据
+        if (context.Mode == 1 && context.Items.Count > 0)
+        {
+            Console.WriteLine($"手动触发作业，传递的自定义数据：{string.Join(", ", context.Items.Select(kv => $"{kv.Key}: {kv.Value}"))}");
+        }
+
         _logger.LogWarning($"{context}");
         await Task.CompletedTask;
     }

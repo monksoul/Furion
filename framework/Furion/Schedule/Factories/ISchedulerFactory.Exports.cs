@@ -476,8 +476,9 @@ public partial interface ISchedulerFactory : IDisposable
     /// <param name="jobId">作业 Id</param>
     /// <param name="scheduler">作业计划</param>
     /// <param name="triggerId">作业触发器 Id</param>
+    /// <param name="customData">自定义数据</param>
     /// <returns><see cref="ScheduleResult"/></returns>
-    ScheduleResult TryRunJob(string jobId, out IScheduler scheduler, string triggerId = null);
+    ScheduleResult TryRunJob(string jobId, out IScheduler scheduler, string triggerId = null, IDictionary<string, object>? customData = null);
 
     /// <summary>
     /// 手动执行作业
@@ -490,8 +491,9 @@ public partial interface ISchedulerFactory : IDisposable
     /// </summary>
     /// <param name="scheduler">作业计划</param>
     /// <param name="triggerId">作业触发器 Id</param>
+    /// <param name="customData">自定义数据</param>
     /// <returns><see cref="ScheduleResult"/></returns>
-    ScheduleResult TryRunJob(IScheduler scheduler, string triggerId = null);
+    ScheduleResult TryRunJob(IScheduler scheduler, string triggerId = null, IDictionary<string, object>? customData = null);
 
     /// <summary>
     /// 手动执行作业

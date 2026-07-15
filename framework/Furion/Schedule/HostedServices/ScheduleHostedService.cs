@@ -258,6 +258,15 @@ internal sealed class ScheduleHostedService : BackgroundService
             // 存储作业执行过程中需要传递的数据
             jobExecutingContext.Items = jobHandler.GetContextData() ?? new Dictionary<string, object>();
 
+            // 合并手动执行时传入的自定义数据
+            if (trigger.ManualRunCustomData != null)
+            {
+                foreach (var kv in trigger.ManualRunCustomData)
+                {
+                    jobExecutingContext.Items[kv.Key] = kv.Value;
+                }
+            }
+
             // 调用执行前监视器
             if (Monitor != default)
             {
@@ -408,6 +417,9 @@ internal sealed class ScheduleHostedService : BackgroundService
 
             // 重置触发模式：0:定时，1:手动
             trigger.Mode = 0;
+
+            // 清除触发器上的临时自定义数据
+            trigger.ManualRunCustomData = null;
 
             // 清空存储作业执行过程中传递的数据
             trigger.Result = null;

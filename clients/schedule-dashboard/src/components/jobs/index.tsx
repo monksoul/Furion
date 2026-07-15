@@ -18,6 +18,7 @@ import {
   Dropdown,
   Input,
   JsonViewer,
+  Modal,
   Popconfirm,
   Popover,
   Space,
@@ -149,28 +150,24 @@ function syncUrlParams(
 ) {
   const params = new URLSearchParams(window.location.search);
 
-  // tab
   if (tab && tab !== "list") {
     params.set("tab", tab);
   } else {
     params.delete("tab");
   }
 
-  // page
   if (page > 1) {
     params.set("page", String(page));
   } else {
     params.delete("page");
   }
 
-  // pageSize
   if (pageSize !== 10) {
     params.set("pageSize", String(pageSize));
   } else {
     params.delete("pageSize");
   }
 
-  // search
   if (search) {
     params.set("q", search);
   } else {
@@ -206,6 +203,13 @@ export default function Jobs({ mode }: { mode: string }) {
   const [allTimelines, setAllTimelines] = useState<TriggerTimeline[]>([]);
   const [jsonValue, setJsonValue] = useState(defaultJsonValue);
   const [submitting, setSubmitting] = useState(false);
+
+  const [manualRunModal, setManualRunModal] = useState<{
+    visible: boolean;
+    jobId: string;
+    triggerId: string;
+    json: string;
+  }>({ visible: false, jobId: "", triggerId: "", json: "" });
 
   const jsonviewerRef = useRef<JsonViewer>(null!);
 
@@ -245,17 +249,11 @@ export default function Jobs({ mode }: { mode: string }) {
     });
   }, [jobs, words]);
 
-  /**
-   * 初始化请求配置
-   */
   const { post, response } = useFetch(apiconfig.hostAddress, {
     ...apiconfig.options,
     headers: { ...apiconfig.options.headers, Authorization: auth.appSecret },
   });
 
-  /**
-   * 获取内存中所有作业
-   */
   const loadJobs = useCallback(async () => {
     try {
       const data = await post("/get-jobs");
@@ -263,14 +261,10 @@ export default function Jobs({ mode }: { mode: string }) {
         setJobs(data || []);
       }
     } catch (error) {
-      console.error("加载作业列表失败:", error);
       Toast.error({ content: "加载作业列表失败", duration: 3 });
     }
   }, [post, response]);
 
-  /**
-   * 获取内存中所有运行记录
-   */
   const loadAllTimelines = useCallback(async () => {
     try {
       const data = await post("/timelines-log");
@@ -278,13 +272,10 @@ export default function Jobs({ mode }: { mode: string }) {
         setAllTimelines(data || []);
       }
     } catch (error) {
-      console.error("加载运行记录失败:", error);
+      Toast.error({ content: "加载运行记录失败", duration: 3 });
     }
   }, [post, response]);
 
-  /**
-   * 操作作业触发器
-   */
   const callAction = useCallback(
     async (jobid: string, triggerid: string, action: string) => {
       try {
@@ -297,45 +288,80 @@ export default function Jobs({ mode }: { mode: string }) {
           throw new Error(response.statusText || "请求失败");
         }
       } catch (error: any) {
-        console.error("操作失败:", error);
         Toast.error({ content: error.message || "操作失败", duration: 3 });
       }
     },
     [post, response],
   );
 
-  /**
-   * 提交新增作业数据
-   */
+  const handleRunWithCustomData = useCallback(async () => {
+    const { jobId, triggerId, json } = manualRunModal;
+    if (!jobId || !triggerId) return;
+
+    let customData: object | null = null;
+    if (json.trim()) {
+      try {
+        customData = JSON.parse(json);
+      } catch (e) {
+        Toast.error({ content: "自定义数据 JSON 格式错误", duration: 3 });
+        return;
+      }
+    }
+
+    try {
+      const params = new URLSearchParams({
+        jobid: jobId,
+        triggerid: triggerId,
+        action: "run",
+      });
+
+      await post(`/operate-trigger?${params.toString()}`, customData!);
+
+      if (response.ok) {
+        Toast.success({ content: "手动执行成功", duration: 3 });
+      } else {
+        throw new Error(response.statusText || "请求失败");
+      }
+    } catch (error: any) {
+      Toast.error({ content: error.message || "操作失败", duration: 3 });
+    } finally {
+      setManualRunModal({ visible: false, jobId: "", triggerId: "", json: "" });
+    }
+  }, [manualRunModal, post, response]);
+
   const handleSubmitJob = useCallback(async () => {
     if (submitting) return;
 
     try {
       setSubmitting(true);
 
-      const payload = JSON.parse(jsonValue);
+      let payload: string;
+
+      try {
+        payload = JSON.parse(jsonValue);
+      } catch (e) {
+        Toast.error({ content: "数据 JSON 格式错误", duration: 3 });
+        return;
+      }
+
       const result = await post("/add-job", payload);
 
       if (response.ok) {
         Toast.success({ content: "作业添加成功", duration: 3 });
 
         var newJsonValue = getDefaultJsonValue();
-        setJsonValue(newJsonValue); // 重置表单
+        setJsonValue(newJsonValue);
         defaultJsonValue = newJsonValue;
       } else {
         throw new Error(response.statusText || "请求失败");
       }
     } catch (error: any) {
-      console.error("提交失败:", error);
       Toast.error({ content: error.message || "操作失败", duration: 3 });
     } finally {
       setSubmitting(false);
     }
   }, [post, response, jsonValue]);
 
-  /**
-   * 生成表格类型数据
-   */
   const data: JobDetail[] = useMemo(() => {
     if (!jobList?.length) return [];
 
@@ -401,9 +427,6 @@ export default function Jobs({ mode }: { mode: string }) {
     };
   }, []);
 
-  /**
-   * 展开行渲染
-   */
   const expandRowRender: ExpandedRowRender<JobDetail> = useCallback(
     (jobDetail) => {
       const scheduler = jobList.find(
@@ -411,7 +434,6 @@ export default function Jobs({ mode }: { mode: string }) {
       );
       if (!scheduler) return null;
 
-      // 构建触发器列表
       const triggerData: Data[][] =
         scheduler.triggers?.map((trigger) => {
           return Object.entries(trigger).map(
@@ -533,17 +555,20 @@ export default function Jobs({ mode }: { mode: string }) {
                           </Popconfirm>
                         </Dropdown.Item>
                         <Dropdown.Item
-                          onClick={() =>
-                            callAction(
-                              safeToString(
-                                getOValueByData("JobId", expandData),
-                              ),
-                              safeToString(
-                                getOValueByData("TriggerId", expandData),
-                              ),
-                              "run",
-                            )
-                          }
+                          onClick={() => {
+                            const jobId = safeToString(
+                              getOValueByData("JobId", expandData),
+                            );
+                            const triggerId = safeToString(
+                              getOValueByData("TriggerId", expandData),
+                            );
+                            setManualRunModal({
+                              visible: true,
+                              jobId,
+                              triggerId,
+                              json: "",
+                            });
+                          }}
                         >
                           <IconVigoLogo size="extra-large" /> 手动执行
                         </Dropdown.Item>
@@ -580,6 +605,37 @@ export default function Jobs({ mode }: { mode: string }) {
 
   return (
     <>
+      <Modal
+        title="手动执行 - 自定义数据"
+        visible={manualRunModal.visible}
+        onCancel={() =>
+          setManualRunModal({
+            visible: false,
+            jobId: "",
+            triggerId: "",
+            json: "",
+          })
+        }
+        onOk={handleRunWithCustomData}
+        okText="执行"
+        cancelText="取消"
+        closeOnEsc
+      >
+        <div style={{ marginBottom: 12 }}>
+          JobId：<Tag>{manualRunModal.jobId}</Tag> &nbsp; TriggerId：
+          <Tag>{manualRunModal.triggerId}</Tag>
+        </div>
+        <TextArea
+          placeholder="请输入 JSON 格式的自定义数据（可选）"
+          value={manualRunModal.json}
+          onChange={(value) =>
+            setManualRunModal((prev) => ({ ...prev, json: value }))
+          }
+          rows={4}
+          autosize
+        />
+      </Modal>
+
       <Tabs
         type="card"
         activeKey={activeTab}

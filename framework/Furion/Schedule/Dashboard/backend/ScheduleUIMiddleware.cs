@@ -259,8 +259,23 @@ public sealed class ScheduleUIMiddleware
                     using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
                     var jsonContent = await reader.ReadToEndAsync();
 
+                    // 空检查
+                    if (string.IsNullOrWhiteSpace(jsonContent))
+                    {
+                        // 标识状态码为 400
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+                        // 输出 JSON
+                        await context.Response.WriteAsync(SerializeToJson(new {
+                            msg = "Request body is empty.",
+                            ok = false
+                        }));
+
+                        return;
+                    }
+
                     // 添加作业
-                    var sResult = _schedulerFactory.TryAddJob(SchedulerBuilder.From(jsonContent), out _);
+                    var sResult = _schedulerFactory.TryAddJob(SchedulerBuilder.From(jsonContent.Trim()), out _);
 
                     // 处理添加识别情况
                     if (sResult != ScheduleResult.Succeed)
@@ -385,8 +400,22 @@ public sealed class ScheduleUIMiddleware
                         break;
                     // 手动执行
                     case "run":
-                        scheduler1?.Run(triggerId);
-                        break;
+                        {
+                            // 读取内容
+                            using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+                            var jsonContent = await reader.ReadToEndAsync();
+
+                            Dictionary<string, object>? customData = null;
+
+                            // 空检查
+                            if (!string.IsNullOrWhiteSpace(jsonContent))
+                            {
+                                customData = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonContent.Trim(), _jsonSerializerOptions);
+                            }
+
+                            scheduler1?.Run(triggerId, customData);
+                            break;
+                        }
                     // 获取作业触发器最近运行时间
                     case "timelines":
                         var trigger = scheduler1?.GetTrigger(triggerId);
