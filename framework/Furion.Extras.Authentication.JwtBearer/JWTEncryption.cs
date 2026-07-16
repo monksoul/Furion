@@ -29,7 +29,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Concurrent;
@@ -56,6 +55,38 @@ public class JWTEncryption
     /// 刷新 Token 身份标识
     /// </summary>
     private static readonly string[] _refreshTokenClaims = ["f", "e", "s", "l", "k"];
+
+    /// <summary>
+    /// 默认请求头键
+    /// </summary>
+    private static readonly string[] _defaultHeaderKeys = ["Authorization"];
+
+    /// <summary>
+    /// JsonWebTokenHandler 缓存实例
+    /// </summary>
+    private static readonly JsonWebTokenHandler _jsonWebTokenHandler = new();
+
+    /// <summary>
+    /// JwtSecurityTokenHandler缓存实例
+    /// </summary>
+    private static readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new();
+
+    /// <summary>
+    /// JSON 序列化缓存选项
+    /// </summary>
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    /// <summary>
+    /// HttpContext 获取委托缓存
+    /// </summary>
+    private static readonly Lazy<Func<HttpContext>> _getHttpContextDelegate = new(() =>
+    {
+        return (Func<HttpContext>)Delegate.CreateDelegate(
+            typeof(Func<HttpContext>), FrameworkApp.GetProperty("HttpContext").GetGetMethod());
+    });
 
     /// <summary>
     /// 生成 Token
@@ -88,10 +119,7 @@ public class JWTEncryption
         else
         {
             var (Payload, _) = CombinePayload(payload);
-            stringPayload = JsonSerializer.Serialize(Payload, new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+            stringPayload = JsonSerializer.Serialize(Payload, _jsonSerializerOptions);
         }
 
         return Encrypt(issuerSigningPrivateKey, stringPayload, algorithm);
@@ -114,8 +142,7 @@ public class JWTEncryption
             credentials = new SigningCredentials(securityKey, algorithm);
         }
 
-        var tokenHandler = new JsonWebTokenHandler();
-        return credentials == null ? tokenHandler.CreateToken(payload) : tokenHandler.CreateToken(payload, credentials);
+        return credentials == null ? _jsonWebTokenHandler.CreateToken(payload) : _jsonWebTokenHandler.CreateToken(payload, credentials);
     }
 
     /// <summary>
@@ -274,12 +301,30 @@ public class JWTEncryption
 
         // 获取 JWT 配置
         var jwtSettings = GetJWTSettings();
-        var tokenHeader = jwtSettings.TokenHeaders is { Length: > 0 }
-            ? string.Join(',', jwtSettings.TokenHeaders)
-            : null;
 
-        // 获取过期Token 和 刷新Token
-        var expiredToken = GetJwtBearerToken(httpContext, tokenHeader, tokenPrefix);
+        // 根据配置获取过期Token
+        string expiredToken = null;
+
+        if (jwtSettings.TokenHeaders is { Length: > 0 })
+        {
+            foreach (var headerName in jwtSettings.TokenHeaders)
+            {
+                if (string.IsNullOrWhiteSpace(headerName)) continue;
+
+                expiredToken = GetJwtBearerToken(httpContext, headerName.Trim(), tokenPrefix);
+
+                if (!string.IsNullOrWhiteSpace(expiredToken))
+                {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            expiredToken = GetJwtBearerToken(httpContext, _defaultHeaderKeys[0], tokenPrefix);
+        }
+
+        // 获取刷新Token
         var refreshToken = GetJwtBearerToken(httpContext, "X-Authorization", tokenPrefix: tokenPrefix);
         if (string.IsNullOrWhiteSpace(expiredToken) || string.IsNullOrWhiteSpace(refreshToken)) return false;
 
@@ -287,7 +332,7 @@ public class JWTEncryption
         var accessToken = Exchange(expiredToken, refreshToken, expiredTime, clockSkew);
         if (string.IsNullOrWhiteSpace(accessToken)) return false;
 
-        // 读取新的 Token Clamis
+        // 读取新的 Token Claims
         var claims = ReadJwtToken(accessToken)?.Claims;
         if (claims == null) return false;
 
@@ -313,8 +358,17 @@ public class JWTEncryption
         onRefreshing?.Invoke(accessToken, refreshAccessToken);
 
         // 处理 axios 问题
-        httpContext.Response.Headers.TryGetValue(accessControlExposeKey, out var acehs);
-        httpContext.Response.Headers[accessControlExposeKey] = string.Join(',', StringValues.Concat(acehs, new StringValues([accessTokenKey, xAccessTokenKey])).Distinct());
+        if (httpContext.Response.Headers.TryGetValue(accessControlExposeKey, out var existingHeaders))
+        {
+            var headerSet = new HashSet<string>(existingHeaders);
+            headerSet.Add(accessTokenKey);
+            headerSet.Add(xAccessTokenKey);
+            httpContext.Response.Headers[accessControlExposeKey] = string.Join(',', headerSet);
+        }
+        else
+        {
+            httpContext.Response.Headers[accessControlExposeKey] = $"{accessTokenKey},{xAccessTokenKey}";
+        }
 
         return true;
     }
@@ -341,15 +395,14 @@ public class JWTEncryption
         tokenValidationParameters.IssuerSigningKey ??= CreateSecurityKey(jwtSettings.Algorithm, jwtSettings.IssuerSigningKey);
 
         // 验证 Token
-        var tokenHandler = new JsonWebTokenHandler();
-        if (!tokenHandler.CanReadToken(accessToken))
+        if (!_jsonWebTokenHandler.CanReadToken(accessToken))
         {
             return (false, default, default);
         }
 
         try
         {
-            var tokenValidationResult = tokenHandler.ValidateToken(accessToken, tokenValidationParameters);
+            var tokenValidationResult = _jsonWebTokenHandler.ValidateToken(accessToken, tokenValidationParameters);
             if (!tokenValidationResult.IsValid) return (false, null, tokenValidationResult);
 
             var jsonWebToken = tokenValidationResult.SecurityToken as JsonWebToken;
@@ -398,13 +451,12 @@ public class JWTEncryption
             return default;
         }
 
-        var tokenHandler = new JsonWebTokenHandler();
-        if (!tokenHandler.CanReadToken(accessToken))
+        if (!_jsonWebTokenHandler.CanReadToken(accessToken))
         {
             return default;
         }
 
-        return tokenHandler.ReadJsonWebToken(accessToken);
+        return _jsonWebTokenHandler.ReadJsonWebToken(accessToken);
     }
 
     /// <summary>
@@ -419,13 +471,12 @@ public class JWTEncryption
             return default;
         }
 
-        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-        if (!jwtSecurityTokenHandler.CanReadToken(accessToken))
+        if (!_jwtSecurityTokenHandler.CanReadToken(accessToken))
         {
             return default;
         }
 
-        return jwtSecurityTokenHandler.ReadJwtToken(accessToken);
+        return _jwtSecurityTokenHandler.ReadJwtToken(accessToken);
     }
 
     /// <summary>
@@ -438,17 +489,21 @@ public class JWTEncryption
     public static string GetJwtBearerToken(HttpContext httpContext, string headerKey = "Authorization", string tokenPrefix = "Bearer ")
     {
         // 根据逗号分隔 headerKey，支持多个报文头
-        var keys = headerKey?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["Authorization"];
+        var keys = headerKey?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? _defaultHeaderKeys;
 
         string rawValue = null;
         foreach (var name in keys)
         {
-            rawValue = httpContext.Request.Headers[name].FirstOrDefault();
-
-            // 空检查
-            if (!string.IsNullOrWhiteSpace(rawValue))
+            var values = httpContext.Request.Headers[name];
+            if (values.Count > 0)
             {
-                break;
+                rawValue = values[0];
+
+                // 空检查
+                if (!string.IsNullOrWhiteSpace(rawValue))
+                {
+                    break;
+                }
             }
         }
 
@@ -458,9 +513,13 @@ public class JWTEncryption
             return null;
         }
 
-        return rawValue.StartsWith(tokenPrefix, StringComparison.OrdinalIgnoreCase) && rawValue.Length > tokenPrefix.Length
-            ? rawValue[tokenPrefix.Length..].Trim()
-            : rawValue.Trim();
+        var rawSpan = rawValue.AsSpan();
+        if (rawSpan.StartsWith(tokenPrefix, StringComparison.OrdinalIgnoreCase) && rawSpan.Length > tokenPrefix.Length)
+        {
+            return rawSpan[tokenPrefix.Length..].Trim().ToString();
+        }
+
+        return rawSpan.Trim().ToString();
     }
 
     /// <summary>
@@ -687,7 +746,7 @@ public class JWTEncryption
     /// <returns></returns>
     private static HttpContext GetCurrentHttpContext()
     {
-        return FrameworkApp.GetProperty("HttpContext").GetValue(null) as HttpContext;
+        return _getHttpContextDelegate.Value();
     }
 
     /// <summary>

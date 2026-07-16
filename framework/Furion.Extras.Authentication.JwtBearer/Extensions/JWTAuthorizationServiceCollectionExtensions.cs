@@ -85,15 +85,30 @@ public static class JWTAuthorizationServiceCollectionExtensions
                             continue;
                         }
 
-                        var headerValue = context.Request.Headers[headerName.Trim()].FirstOrDefault();
+                        var name = headerName.Trim();
+                        var headerValues = context.Request.Headers[name];
 
-                        if (!string.IsNullOrWhiteSpace(headerValue))
+                        // 空检查
+                        if (headerValues.Count > 0)
                         {
-                            context.Token = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-                                ? headerValue["Bearer ".Length..].Trim()
-                                : headerValue.Trim();
+                            var headerValue = headerValues[0];
 
-                            break;
+                            // 空检查
+                            if (!string.IsNullOrWhiteSpace(headerValue))
+                            {
+                                var rawSpan = headerValue.AsSpan();
+
+                                if (rawSpan.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    context.Token = rawSpan["Bearer ".Length..].Trim().ToString();
+                                }
+                                else
+                                {
+                                    context.Token = rawSpan.Trim().ToString();
+                                }
+
+                                break;
+                            }
                         }
                     }
 
