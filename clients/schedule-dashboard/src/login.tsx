@@ -92,6 +92,7 @@ export default function Login() {
             <Space vertical align="start">
               <Typography.Text strong>密码</Typography.Text>
               <Input
+                mode="password"
                 name="password"
                 placeholder="输入密码"
                 style={{ width: 300 }}
