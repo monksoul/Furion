@@ -195,9 +195,6 @@ internal sealed class StressTestHarnessManager
                 // 空检查
                 if (httpResponseMessage is null)
                 {
-                    // 输出调试信息
-                    Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
                     // 原子递增失败请求计数
                     Interlocked.Increment(ref totalFailedRequests);
                     return;

@@ -34,12 +34,11 @@ public class HttpResponseMessageConverter : HttpContentConverterBase<HttpRespons
     public override bool KeepsResponseAlive => true;
 
     /// <inheritdoc />
-    public override HttpResponseMessage? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        httpResponseMessage;
+    public override HttpResponseMessage? Read(HttpContentConverterContext context,
+        CancellationToken cancellationToken = default) => context.ResponseMessage;
 
     /// <inheritdoc />
-    public override Task<HttpResponseMessage?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override Task<HttpResponseMessage?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        Task.FromResult<HttpResponseMessage?>(httpResponseMessage);
+        Task.FromResult<HttpResponseMessage?>(context.ResponseMessage);
 }

@@ -33,12 +33,11 @@ namespace Furion.HttpRemote;
 public class StringContentConverter : HttpContentConverterBase<string>
 {
     /// <inheritdoc />
-    public override string? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => ReadAsync(httpResponseMessage, cancellationToken));
+    public override string? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default) =>
+        AsyncUtility.RunSync(() => ReadAsync(context, cancellationToken));
 
     /// <inheritdoc />
-    public override async Task<string?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override async Task<string?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+        await context.ResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 }

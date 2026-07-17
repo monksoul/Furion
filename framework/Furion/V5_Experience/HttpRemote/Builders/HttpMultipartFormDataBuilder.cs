@@ -70,6 +70,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
     /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpMultipartFormDataBuilder(HttpRequestBuilder httpRequestBuilder)
     {
         // 空检查
@@ -230,6 +231,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddJsonWithoutValidation(string? rawJson, string name,
         Encoding? contentEncoding = null,
         string? contentType = null)
@@ -249,6 +251,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddFormItem(object? value, string name, Encoding? contentEncoding = null)
     {
         // 空检查
@@ -267,6 +270,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddHtml(string? htmlString, string name, Encoding? contentEncoding = null,
         string? contentType = null)
     {
@@ -286,6 +290,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddXml(string? xmlString, string name, Encoding? contentEncoding = null,
         string? contentType = null)
     {
@@ -305,6 +310,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddText(string? text, string name, Encoding? contentEncoding = null,
         string? contentType = null)
     {
@@ -324,6 +330,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpMultipartFormDataBuilder AddObject(object? rawObject, string? name = null, string? contentType = null,
         Encoding? contentEncoding = null)
     {
@@ -401,7 +409,6 @@ public sealed class HttpMultipartFormDataBuilder
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
     public HttpMultipartFormDataBuilder AddFileFromRemote(string url, string name = "file", string? fileName = null,
         string? contentType = null, Encoding? contentEncoding = null,
         Action<HttpClient, HttpRequestMessage>? configure = null, HttpMethod? httpMethod = null)
@@ -431,6 +438,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     public HttpMultipartFormDataBuilder AddFileFromBase64String(string base64String, string name = "file",
         string? fileName = null, string? contentType = null, Encoding? contentEncoding = null)
@@ -467,6 +475,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="FileNotFoundException"></exception>
     public HttpMultipartFormDataBuilder AddFileAsStream(string filePath, string name = "file", string? fileName = null,
         string? contentType = null, Encoding? contentEncoding = null)
     {
@@ -502,6 +512,9 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="FileNotFoundException"></exception>
     public HttpMultipartFormDataBuilder AddFileWithProgressAsStream(string filePath,
         Channel<FileTransferProgress> progressChannel, string name = "file", string? fileName = null,
         string? contentType = null, Encoding? contentEncoding = null)
@@ -541,6 +554,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="FileNotFoundException"></exception>
     public HttpMultipartFormDataBuilder AddFileAsByteArray(string filePath, string name = "file",
         string? fileName = null, string? contentType = null, Encoding? contentEncoding = null)
     {
@@ -576,6 +591,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpMultipartFormDataBuilder AddFile(FileInfo fileInfo, string? name = null, string? fileName = null,
         string? contentType = null, Encoding? contentEncoding = null)
     {
@@ -605,6 +621,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpMultipartFormDataBuilder AddFile(MultipartFile multipartFile, string? name = null)
     {
         // 空检查
@@ -652,12 +669,14 @@ public sealed class HttpMultipartFormDataBuilder
     /// <param name="fileName">文件的名称</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="contentEncoding">内容编码</param>
-    /// <param name="disposeStreamOnRequestCompletion">是否在请求结束后自动释放流。默认值为：<c>false</c></param>
+    /// <param name="disposeResourcesOnRequestCompletion">是否在请求结束后自动释放资源。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddStream(Stream stream, string name = "file", string? fileName = null,
-        string? contentType = null, Encoding? contentEncoding = null, bool disposeStreamOnRequestCompletion = false)
+        string? contentType = null, Encoding? contentEncoding = null, bool disposeResourcesOnRequestCompletion = false)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(stream);
@@ -692,8 +711,8 @@ public sealed class HttpMultipartFormDataBuilder
             ContentType = mimeType, RawContent = stream, ContentEncoding = encoding, FileName = fileName
         });
 
-        // 是否在请求结束后自动释放流
-        if (disposeStreamOnRequestCompletion)
+        // 是否在请求结束后自动释放资源
+        if (disposeResourcesOnRequestCompletion)
         {
             _httpRequestBuilder.AddDisposable(stream);
         }
@@ -712,6 +731,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddByteArray(byte[] byteArray, string name = "file", string? fileName = null,
         string? contentType = null, Encoding? contentEncoding = null)
     {
@@ -752,6 +773,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddFormUrlEncoded(object? rawObject, string name,
         Encoding? contentEncoding = null, bool useStringContent = false, bool useUrlEncode = true)
     {
@@ -792,6 +814,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddMultipartFormData(object? rawObject, string name,
         Encoding? contentEncoding = null)
     {
@@ -820,6 +843,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder Add(HttpContent httpContent, string? name, string? contentType = null,
         Encoding? contentEncoding = null)
     {
@@ -898,6 +923,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="MultipartFormDataContent" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal MultipartFormDataContent? Build(HttpRemoteOptions httpRemoteOptions,
         IHttpContentProcessorFactory httpContentProcessorFactory, params IHttpContentProcessor[]? processors)
     {
@@ -996,6 +1022,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpContent" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     internal HttpContent? BuildHttpContent(MultipartFormDataItem multipartFormDataItem, string name,
         IHttpContentProcessorFactory httpContentProcessorFactory, params IHttpContentProcessor[]? processors)
     {
@@ -1021,7 +1049,7 @@ public sealed class HttpMultipartFormDataBuilder
         // 构建 HttpContent 实例
         var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
 
-        // 是否在请求结束后自动释放流
+        // 是否在请求结束后自动释放资源
         if (processorContext.CompletionDisposables is { } disposables)
         {
             _httpRequestBuilder.AddDisposables(disposables);

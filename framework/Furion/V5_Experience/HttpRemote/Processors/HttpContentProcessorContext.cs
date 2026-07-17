@@ -52,7 +52,7 @@ public sealed record HttpContentProcessorContext(object? RawContent, string Cont
     public string? FileName { get; init; }
 
     /// <summary>
-    ///     设置需要在请求结束后自动释放的流集合
+    ///     设置需要在请求结束后自动释放的资源集合
     /// </summary>
     public List<IDisposable>? CompletionDisposables { get; set; }
 

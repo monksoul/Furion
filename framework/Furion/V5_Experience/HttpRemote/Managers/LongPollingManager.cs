@@ -113,9 +113,6 @@ internal sealed class LongPollingManager
                 // 空检查
                 if (httpResponseMessage is null)
                 {
-                    // 输出调试信息
-                    Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
                     continue;
                 }
 
@@ -202,9 +199,6 @@ internal sealed class LongPollingManager
                 // 空检查
                 if (httpResponseMessage is null)
                 {
-                    // 输出调试信息
-                    Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
                     continue;
                 }
 
@@ -374,10 +368,9 @@ internal sealed class LongPollingManager
         {
             // 任务被取消
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            // ignored
         }
     }
 

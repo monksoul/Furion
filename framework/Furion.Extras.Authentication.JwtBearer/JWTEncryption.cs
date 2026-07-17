@@ -360,9 +360,11 @@ public class JWTEncryption
         // 处理 axios 问题
         if (httpContext.Response.Headers.TryGetValue(accessControlExposeKey, out var existingHeaders))
         {
-            var headerSet = new HashSet<string>(existingHeaders);
-            headerSet.Add(accessTokenKey);
-            headerSet.Add(xAccessTokenKey);
+            var headerSet = new HashSet<string>(existingHeaders)
+            {
+                accessTokenKey,
+                xAccessTokenKey
+            };
             httpContext.Response.Headers[accessControlExposeKey] = string.Join(',', headerSet);
         }
         else

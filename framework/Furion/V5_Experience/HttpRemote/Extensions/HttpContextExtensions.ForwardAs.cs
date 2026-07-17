@@ -131,6 +131,7 @@ public static partial class HttpContextExtensions
     /// <returns>
     ///     <typeparamref name="TResult" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static TResult? ForwardAs<TResult>(this HttpContext? httpContext, HttpMethod httpMethod,
         Uri? requestUri = null, Action<HttpRequestBuilder>? configure = null,
         HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
@@ -149,16 +150,29 @@ public static partial class HttpContextExtensions
             httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
 
         // 发送 HTTP 远程请求
-        var httpResponseMessage =
-            httpRemoteService.Send(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var (httpResponseMessage, requestDuration) =
+            httpRemoteService.SendCore(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+
+        // 空检查
+        if (httpResponseMessage is null)
+        {
+            return default;
+        }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
         ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
         // 将 HttpResponseMessage 转换为 TResult 实例
-        return httpContentConverterFactory.Read<TResult>(httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+        using var httpContentConverterResult = httpContentConverterFactory.Read<TResult>(
+            new HttpContentConverterContext(
+                httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = httpContentConverterFactory
+            },
             httpContext.RequestAborted);
+
+        return httpContentConverterResult.Result;
     }
 
     /// <summary>
@@ -258,6 +272,7 @@ public static partial class HttpContextExtensions
     /// <returns>
     ///     <typeparamref name="TResult" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static async Task<TResult?> ForwardAsAsync<TResult>(this HttpContext? httpContext, HttpMethod httpMethod,
         Uri? requestUri = null, Action<HttpRequestBuilder>? configure = null,
         HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
@@ -276,16 +291,28 @@ public static partial class HttpContextExtensions
             httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
 
         // 发送 HTTP 远程请求
-        var httpResponseMessage =
-            await httpRemoteService.SendAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var (httpResponseMessage, requestDuration) =
+            await httpRemoteService.SendCoreAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+
+        // 空检查
+        if (httpResponseMessage is null)
+        {
+            return default;
+        }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
         ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
         // 将 HttpResponseMessage 转换为 TResult 实例
-        return await httpContentConverterFactory.ReadAsync<TResult>(httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+        using var httpContentConverterResult = await httpContentConverterFactory.ReadAsync<TResult>(
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = httpContentConverterFactory
+            },
             httpContext.RequestAborted);
+
+        return httpContentConverterResult.Result;
     }
 
     /// <summary>
@@ -1147,6 +1174,7 @@ public static partial class HttpContextExtensions
     /// <returns>
     ///     <see cref="object" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static object? ForwardAs(this HttpContext? httpContext, Type resultType, HttpMethod httpMethod,
         Uri? requestUri = null, Action<HttpRequestBuilder>? configure = null,
         HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
@@ -1165,16 +1193,28 @@ public static partial class HttpContextExtensions
             httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
 
         // 发送 HTTP 远程请求
-        var httpResponseMessage =
-            httpRemoteService.Send(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var (httpResponseMessage, requestDuration) =
+            httpRemoteService.SendCore(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+
+        // 空检查
+        if (httpResponseMessage is null)
+        {
+            return null;
+        }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
         ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        return httpContentConverterFactory.Read(resultType, httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+        // 将 HttpResponseMessage 转换为 resultType 类型实例
+        using var httpContentConverterResult = httpContentConverterFactory.Read(resultType,
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = httpContentConverterFactory
+            },
             httpContext.RequestAborted);
+
+        return httpContentConverterResult.Result;
     }
 
     /// <summary>
@@ -1274,6 +1314,7 @@ public static partial class HttpContextExtensions
     /// <returns>
     ///     <see cref="object" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static async Task<object?> ForwardAsAsync(this HttpContext? httpContext, Type resultType,
         HttpMethod httpMethod, Uri? requestUri = null, Action<HttpRequestBuilder>? configure = null,
         HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
@@ -1292,15 +1333,27 @@ public static partial class HttpContextExtensions
             httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
 
         // 发送 HTTP 远程请求
-        var httpResponseMessage =
-            await httpRemoteService.SendAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var (httpResponseMessage, requestDuration) =
+            await httpRemoteService.SendCoreAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+
+        // 空检查
+        if (httpResponseMessage is null)
+        {
+            return null;
+        }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
         ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        return await httpContentConverterFactory.ReadAsync(resultType, httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+        // 将 HttpResponseMessage 转换为 resultType 类型实例
+        using var httpContentConverterResult = await httpContentConverterFactory.ReadAsync(resultType,
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = httpContentConverterFactory
+            },
             httpContext.RequestAborted);
+
+        return httpContentConverterResult.Result;
     }
 }

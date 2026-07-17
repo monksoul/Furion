@@ -153,9 +153,6 @@ internal sealed class FileDownloadManager
             // 空检查
             if (httpResponseMessage is null)
             {
-                // 输出调试信息
-                Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
                 // 设置文件传输结果信息
                 fileTransferResult.IsSuccess = false;
                 return fileTransferResult;
@@ -299,9 +296,6 @@ internal sealed class FileDownloadManager
             // 空检查
             if (httpResponseMessage is null)
             {
-                // 输出调试信息
-                Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
                 // 设置文件传输结果信息
                 fileTransferResult.IsSuccess = false;
                 return fileTransferResult;
@@ -543,9 +537,6 @@ internal sealed class FileDownloadManager
         // 空检查
         if (httpResponseMessage is null)
         {
-            // 输出调试信息
-            Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
             return;
         }
 
@@ -629,9 +620,6 @@ internal sealed class FileDownloadManager
         // 空检查
         if (httpResponseMessage is null)
         {
-            // 输出调试信息
-            Debugging.Error(Constants.HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE);
-
             return;
         }
 
@@ -852,10 +840,9 @@ internal sealed class FileDownloadManager
         {
             // 任务被取消
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            // ignored
         }
     }
 
@@ -970,9 +957,6 @@ internal sealed class FileDownloadManager
             case FileExistsBehavior.CreateNew:
                 throw new InvalidOperationException($"The destination path `{destinationPath}` already exists.");
             case FileExistsBehavior.Skip:
-                // 输出调试事件
-                Debugging.File(
-                    $"The destination path `{destinationPath}` already exists; skipping the file download operation.");
                 return false;
             case FileExistsBehavior.Overwrite:
             default:

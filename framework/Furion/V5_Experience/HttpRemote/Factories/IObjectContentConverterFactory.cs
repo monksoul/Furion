@@ -31,26 +31,26 @@ namespace Furion.HttpRemote;
 public interface IObjectContentConverterFactory
 {
     /// <summary>
-    ///     获取 <see cref="ObjectContentConverter{TResult}" /> 实例
+    ///     根据目标类型获取对应的 <see cref="IHttpContentConverter{TResult}" /> 实例
     /// </summary>
     /// <typeparam name="TResult">转换的目标类型</typeparam>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
+    /// <param name="context">
+    ///     <see cref="HttpContentConverterContext" />
     /// </param>
     /// <returns>
     ///     <see cref="IHttpContentConverter{TResult}" />
     /// </returns>
-    IHttpContentConverter<TResult> GetConverter<TResult>(HttpResponseMessage httpResponseMessage);
+    IHttpContentConverter<TResult> GetConverter<TResult>(HttpContentConverterContext context);
 
     /// <summary>
-    ///     获取 <see cref="ObjectContentConverter" /> 实例
+    ///     根据目标类型获取对应的 <see cref="IHttpContentConverter" /> 实例
     /// </summary>
     /// <param name="resultType">转换的目标类型</param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
+    /// <param name="context">
+    ///     <see cref="HttpContentConverterContext" />
     /// </param>
     /// <returns>
     ///     <see cref="IHttpContentConverter" />
     /// </returns>
-    IHttpContentConverter GetConverter(Type resultType, HttpResponseMessage httpResponseMessage);
+    IHttpContentConverter GetConverter(Type resultType, HttpContentConverterContext context);
 }

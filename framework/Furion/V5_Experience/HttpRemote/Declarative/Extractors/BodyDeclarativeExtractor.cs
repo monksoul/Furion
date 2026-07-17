@@ -69,7 +69,7 @@ internal sealed class BodyDeclarativeExtractor : IHttpDeclarativeExtractor
         {
             // 设置请求内容
             httpRequestBuilder.SetContent(value, bodyAttribute.ContentType,
-                disposeStreamOnRequestCompletion: bodyAttribute.DisposeStreamOnRequestCompletion);
+                disposeResourcesOnRequestCompletion: bodyAttribute.DisposeResourcesOnRequestCompletion);
         }
 
         // 检查是否是 application/x-www-form-urlencoded 请求内容

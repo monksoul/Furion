@@ -331,6 +331,7 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public static HttpRequestBuilder Create(string httpMethod, string? requestUri,
         Action<HttpRequestBuilder>? configure)
     {
@@ -664,6 +665,7 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     public static HttpRequestBuilder FromJson(string json, Action<HttpRequestBuilder>? configure = null)
     {
@@ -754,6 +756,7 @@ public sealed partial class HttpRequestBuilder
     /// </param>
     /// <param name="propertyName">属性名</param>
     /// <param name="action">自定义操作</param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal static void HandleJsonNode(JsonObject jsonObject, string propertyName, Action<JsonNode> action)
     {
         // 空检查

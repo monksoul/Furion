@@ -122,11 +122,6 @@ internal static class Constants
     internal const string REFERER_HEADER_BASE_ADDRESS_TEMPLATE = "{BASE_ADDRESS}";
 
     /// <summary>
-    ///     <see cref="HttpResponseMessage" /> 为 null 时输出消息
-    /// </summary>
-    internal const string HTTP_RESPONSE_MESSAGE_ISNULL_MESSAGE = "The response content was not read, as it was empty.";
-
-    /// <summary>
     ///     请求管道上下文中请求分析工具的键
     /// </summary>
     /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="HttpRemoteAnalyzer" /> 实例。</remarks>

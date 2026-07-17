@@ -503,4 +503,41 @@ public partial interface IHttpRemoteService
     /// </returns>
     Task<HttpRemoteResult<TResult>?> SendAsync<TResult>(HttpRequestBuilder httpRequestBuilder,
         HttpCompletionOption completionOption, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送 HTTP 远程请求（核心）
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="completionOption">
+    ///     <see cref="HttpCompletionOption" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Tuple{T1, T2}" />
+    /// </returns>
+    Task<(HttpResponseMessage? ResponseMessage, long RequestDuration)> SendCoreAsync(
+        HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送 HTTP 远程请求（核心）
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="completionOption">
+    ///     <see cref="HttpCompletionOption" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Tuple{T1, T2}" />
+    /// </returns>
+    (HttpResponseMessage? ResponseMessage, long RequestDuration) SendCore(HttpRequestBuilder httpRequestBuilder,
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default);
 }

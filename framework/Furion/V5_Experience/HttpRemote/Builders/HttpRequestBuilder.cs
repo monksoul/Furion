@@ -57,6 +57,7 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpRequestBuilder(HttpMethod httpMethod, Uri? requestUri)
     {
         // 空检查
@@ -79,6 +80,7 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="HttpRequestMessage" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpRequestMessage Build(HttpRemoteOptions httpRemoteOptions,
         IHttpContentProcessorFactory httpContentProcessorFactory, Uri? clientBaseAddress)
     {
@@ -136,6 +138,7 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     internal string BuildFinalRequestUri(Uri? clientBaseAddress, HttpRemoteOptions httpRemoteOptions)
     {
@@ -620,7 +623,7 @@ public sealed partial class HttpRequestBuilder
         // 构建 HttpContent 实例
         var httpContent = httpContentProcessorFactory.Build(processorContext, processors);
 
-        // 是否在请求结束后自动释放流
+        // 是否在请求结束后自动释放资源
         if (processorContext.CompletionDisposables is { } disposables)
         {
             AddDisposables(disposables);

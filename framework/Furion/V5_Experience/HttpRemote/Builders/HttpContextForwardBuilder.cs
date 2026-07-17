@@ -464,7 +464,7 @@ public sealed class HttpContextForwardBuilder
         // 添加文件流
         httpMultipartFormDataBuilder.AddStream(bufferingStream, fileMultipartSection.Name,
             fileMultipartSection.FileName,
-            fileMultipartSection.Section.ContentType, disposeStreamOnRequestCompletion: true);
+            fileMultipartSection.Section.ContentType, disposeResourcesOnRequestCompletion: true);
     }
 
     /// <summary>
@@ -576,27 +576,27 @@ public sealed class HttpContextForwardBuilder
             switch (allowedPortStr)
             {
                 case null:
-                {
-                    // 检查是否是默认端口
-                    if (uri.IsDefaultPort)
                     {
-                        return;
-                    }
+                        // 检查是否是默认端口
+                        if (uri.IsDefaultPort)
+                        {
+                            return;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case "*":
                     return;
                 default:
-                {
-                    // 解析端口并检查是否匹配
-                    if (int.TryParse(allowedPortStr, out var allowedPort) && actualPort == allowedPort)
                     {
-                        return;
-                    }
+                        // 解析端口并检查是否匹配
+                        if (int.TryParse(allowedPortStr, out var allowedPort) && actualPort == allowedPort)
+                        {
+                            return;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
         }
 

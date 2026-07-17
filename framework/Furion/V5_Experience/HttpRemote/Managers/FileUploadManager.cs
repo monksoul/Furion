@@ -250,10 +250,9 @@ internal sealed class FileUploadManager
         {
             // 任务被取消
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            // ignored
         }
     }
 

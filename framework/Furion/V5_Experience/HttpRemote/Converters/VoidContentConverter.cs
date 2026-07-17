@@ -31,11 +31,11 @@ namespace Furion.HttpRemote;
 public class VoidContentConverter : HttpContentConverterBase<VoidContent>
 {
     /// <inheritdoc />
-    public override VoidContent? Read(HttpResponseMessage httpResponseMessage,
+    public override VoidContent? Read(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) => null;
 
     /// <inheritdoc />
-    public override Task<VoidContent?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override Task<VoidContent?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
         Task.FromResult<VoidContent?>(null);
 }

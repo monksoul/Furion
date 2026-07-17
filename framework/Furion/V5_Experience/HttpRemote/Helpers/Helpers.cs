@@ -373,8 +373,21 @@ internal static class Helpers
             return baseUrl;
         }
 
-        // 检查 requestUrl 是否是绝对 URL
+        // 检查请求地址是否是绝对地址
         if (Uri.TryCreate(requestUrl, UriKind.Absolute, out _))
+        {
+            return requestUrl;
+        }
+
+        // 检查基地址是否是绝对地址
+        if (Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
+        {
+            var fullUri = new Uri(baseUri, requestUrl);
+            return fullUri.OriginalString;
+        }
+
+        // 检查请求地址是否是相对路径
+        if (requestUrl.StartsWith('/'))
         {
             return requestUrl;
         }

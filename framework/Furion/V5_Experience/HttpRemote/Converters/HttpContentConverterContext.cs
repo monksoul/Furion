@@ -23,35 +23,24 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-
-namespace Furion.AspNetCore.Extensions;
+namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="IApplicationBuilder" /> 扩展类
+///     <see cref="IHttpContentConverter" /> 内容处理器上下文
 /// </summary>
-public static class IApplicationBuilderExtensions
+/// <param name="ResponseMessage">
+///     <see cref="HttpResponseMessage" />
+/// </param>
+/// <param name="Converters"><see cref="IHttpContentConverter{TResult}" /> 集合</param>
+public sealed record HttpContentConverterContext(
+    HttpResponseMessage ResponseMessage,
+    IReadOnlyList<IHttpContentConverter>? Converters = null)
 {
     /// <summary>
-    ///     启用请求正文缓存
+    ///     请求耗时（毫秒）
     /// </summary>
-    /// <remarks>
-    ///     <para>支持 <c>HttpRequest.Body</c> 重复读取。</para>
-    ///     <para>参考文献：https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#enable-request-body-buffering</para>
-    /// </remarks>
-    /// <param name="app">
-    ///     <see cref="IApplicationBuilder" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="IApplicationBuilder" />
-    /// </returns>
-    public static IApplicationBuilder UseEnableBuffering(this IApplicationBuilder app) =>
-        app.Use(async (context, next) =>
-        {
-            context.Request.EnableBuffering();
-            context.Request.Body.Position = 0;
+    public long RequestDuration { get; init; }
 
-            await next.Invoke();
-        });
+    /// <inheritdoc cref="IHttpContentConverterFactory" />
+    public IHttpContentConverterFactory Factory { get; init; } = null!;
 }

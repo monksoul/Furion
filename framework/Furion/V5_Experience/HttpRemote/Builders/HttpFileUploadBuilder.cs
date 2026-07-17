@@ -49,6 +49,8 @@ public sealed class HttpFileUploadBuilder
     /// <param name="filePath">文件路径</param>
     /// <param name="name">表单名称</param>
     /// <param name="fileName">文件的名称</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     internal HttpFileUploadBuilder(HttpMethod httpMethod, Uri? requestUri, string filePath, string name,
         string? fileName = null)
     {
@@ -143,6 +145,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpFileUploadBuilder SetContentType(string contentType)
     {
         // 空检查
@@ -163,6 +166,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder SetAllowedFileExtensions(string[] allowedFileExtensions)
     {
         // 空检查
@@ -180,6 +184,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpFileUploadBuilder SetAllowedFileExtensions(string allowedFileExtensions)
     {
         // 空检查
@@ -219,6 +224,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     public HttpFileUploadBuilder SetProgressInterval(TimeSpan progressInterval)
     {
         // 小于或等于 0 检查
@@ -239,6 +245,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder SetOnTransferStarted(Action configure)
     {
         // 空检查
@@ -256,6 +263,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder SetOnProgressChanged(Func<FileTransferProgress, Task> configure)
     {
         // 空检查
@@ -273,6 +281,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder SetOnTransferCompleted(Action<long> configure)
     {
         // 空检查
@@ -290,6 +299,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder SetOnTransferFailed(Action<Exception> configure)
     {
         // 空检查
@@ -307,6 +317,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public HttpFileUploadBuilder SetEventHandler(Type fileTransferEventHandlerType)
     {
@@ -391,6 +402,7 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpRequestBuilder Build(HttpRemoteOptions httpRemoteOptions,
         Channel<FileTransferProgress> progressChannel)
     {
@@ -424,6 +436,7 @@ public sealed class HttpFileUploadBuilder
     /// <param name="filePath">文件路径</param>
     /// <param name="allowedFileExtensions">允许的文件扩展名</param>
     /// <param name="maxFileSizeInBytes">允许的文件大小。以字节为单位</param>
+    /// <exception cref="ArgumentException"></exception>
     internal static void EnsureLegalData(string filePath, string[]? allowedFileExtensions, long? maxFileSizeInBytes)
     {
         // 空检查

@@ -34,12 +34,11 @@ public class StreamContentConverter : HttpContentConverterBase<Stream>
     public override bool KeepsResponseAlive => true;
 
     /// <inheritdoc />
-    public override Stream? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        httpResponseMessage.Content.ReadAsStream(cancellationToken);
+    public override Stream? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default) =>
+        context.ResponseMessage.Content.ReadAsStream(cancellationToken);
 
     /// <inheritdoc />
-    public override async Task<Stream?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override async Task<Stream?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
+        await context.ResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 }

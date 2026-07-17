@@ -23,12 +23,10 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Furion.Extensions;
 using Furion.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using System.Reflection;
 
 namespace Furion.HttpRemote;
 
@@ -136,15 +134,8 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
     /// <inheritdoc />
     public HttpResponseMessage? Send(HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
-        CancellationToken cancellationToken = default)
-    {
-        // 发送 HTTP 远程请求
-        var (httpResponseMessage, _) = AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder, completionOption,
-            null, (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
-            cancellationToken));
-
-        return httpResponseMessage;
-    }
+        CancellationToken cancellationToken = default) =>
+        SendCore(httpRequestBuilder, completionOption, cancellationToken).ResponseMessage;
 
     /// <inheritdoc />
     public Task<HttpResponseMessage?> SendAsync(HttpRequestBuilder httpRequestBuilder,
@@ -153,15 +144,8 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> SendAsync(HttpRequestBuilder httpRequestBuilder,
-        HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
-    {
-        // 发送 HTTP 远程请求
-        var (httpResponseMessage, _) = await SendCoreAsync(httpRequestBuilder, completionOption,
-            (httpClient, httpRequestMessage, option, token) =>
-                httpClient.SendAsync(httpRequestMessage, option, token), null, cancellationToken);
-
-        return httpResponseMessage;
-    }
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) =>
+        (await SendCoreAsync(httpRequestBuilder, completionOption, cancellationToken)).ResponseMessage;
 
     /// <inheritdoc />
     public TResult? SendAs<TResult>(HttpRequestBuilder httpRequestBuilder,
@@ -173,43 +157,23 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         CancellationToken cancellationToken = default)
     {
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder,
-            completionOption, null,
-            (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
-            cancellationToken));
+        var (httpResponseMessage, requestDuration) = SendCore(httpRequestBuilder, completionOption, cancellationToken);
 
-        // 获取结果类型
-        var resultType = typeof(TResult);
-
-        // 检查类型是否是 HttpRemoteResult<TResult> 类型
-        if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
+        // 空检查
+        if (httpResponseMessage is null)
         {
-            // 将 HttpResponseMessage 转换为 TResult 实例
-            try
-            {
-                return _httpContentConverterFactory.Read<TResult>(httpResponseMessage,
-                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                    cancellationToken);
-            }
-            finally
-            {
-                // 释放 httpResponseMessage 实例
-                if (httpResponseMessage is not null &&
-                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
-                {
-                    httpResponseMessage.Dispose();
-                }
-            }
+            return default;
         }
 
-        // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
-        var result = _httpContentConverterFactory.Read(resultType.GetGenericArguments()[0],
-            httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-            cancellationToken);
+        // 将 HttpResponseMessage 转换为 TResult 实例
+        using var httpContentConverterResult = _httpContentConverterFactory.Read<TResult>(
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = _httpContentConverterFactory
+            }, cancellationToken);
 
-        // 动态创建 HttpRemoteResult<TResult> 实例并转换为 TResult 实例
-        return (TResult?)DynamicCreateHttpRemoteResult(resultType, httpResponseMessage, result, requestDuration);
+        return httpContentConverterResult.Result;
     }
 
     /// <inheritdoc />
@@ -250,42 +214,24 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
     {
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = await SendCoreAsync(httpRequestBuilder, completionOption,
-            (httpClient, httpRequestMessage, option, token) =>
-                httpClient.SendAsync(httpRequestMessage, option, token), null, cancellationToken);
+        var (httpResponseMessage, requestDuration) =
+            await SendCoreAsync(httpRequestBuilder, completionOption, cancellationToken);
 
-        // 获取结果类型
-        var resultType = typeof(TResult);
-
-        // 检查类型是否是 HttpRemoteResult<TResult> 类型
-        if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
+        // 空检查
+        if (httpResponseMessage is null)
         {
-            // 将 HttpResponseMessage 转换为 TResult 实例
-            try
-            {
-                return await _httpContentConverterFactory.ReadAsync<TResult>(httpResponseMessage,
-                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                    cancellationToken);
-            }
-            finally
-            {
-                // 释放 httpResponseMessage 实例
-                if (httpResponseMessage is not null &&
-                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
-                {
-                    httpResponseMessage.Dispose();
-                }
-            }
+            return default;
         }
 
-        // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
-        var result = await _httpContentConverterFactory.ReadAsync(resultType.GetGenericArguments()[0],
-            httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-            cancellationToken);
+        // 将 HttpResponseMessage 转换为 TResult 实例
+        using var httpContentConverterResult = await _httpContentConverterFactory.ReadAsync<TResult>(
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = _httpContentConverterFactory
+            }, cancellationToken);
 
-        // 动态创建 HttpRemoteResult<TResult> 实例并转换为 TResult 实例
-        return (TResult?)DynamicCreateHttpRemoteResult(resultType, httpResponseMessage, result, requestDuration);
+        return httpContentConverterResult.Result;
     }
 
     /// <inheritdoc />
@@ -328,40 +274,24 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         CancellationToken cancellationToken = default)
     {
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder,
-            completionOption, null,
-            (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
-            cancellationToken));
+        var (httpResponseMessage, requestDuration) = SendCore(httpRequestBuilder, completionOption, cancellationToken);
 
-        // 检查类型是否是 HttpRemoteResult<TResult> 类型
-        if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
+        // 空检查
+        if (httpResponseMessage is null)
         {
-            // 将 HttpResponseMessage 转换为 resultType 类型实例
-            try
-            {
-                return _httpContentConverterFactory.Read(resultType, httpResponseMessage,
-                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                    cancellationToken);
-            }
-            finally
-            {
-                // 释放 httpResponseMessage 实例
-                if (httpResponseMessage is not null &&
-                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
-                {
-                    httpResponseMessage.Dispose();
-                }
-            }
+            return null;
         }
 
-        // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
-        var result = _httpContentConverterFactory.Read(resultType.GetGenericArguments()[0],
-            httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
+        // 将 HttpResponseMessage 转换为 resultType 类型实例
+        using var httpContentConverterResult = _httpContentConverterFactory.Read(resultType,
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = _httpContentConverterFactory
+            },
             cancellationToken);
 
-        // 动态创建 HttpRemoteResult<TResult> 实例并转换为 resultType 类型实例
-        return DynamicCreateHttpRemoteResult(resultType, httpResponseMessage, result, requestDuration);
+        return httpContentConverterResult.Result;
     }
 
     /// <inheritdoc />
@@ -374,39 +304,24 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
     {
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = await SendCoreAsync(httpRequestBuilder, completionOption,
-            (httpClient, httpRequestMessage, option, token) =>
-                httpClient.SendAsync(httpRequestMessage, option, token), null, cancellationToken);
+        var (httpResponseMessage, requestDuration) =
+            await SendCoreAsync(httpRequestBuilder, completionOption, cancellationToken);
 
-        // 检查类型是否是 HttpRemoteResult<TResult> 类型
-        if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(resultType))
+        // 空检查
+        if (httpResponseMessage is null)
         {
-            // 将 HttpResponseMessage 转换为 resultType 类型实例
-            try
-            {
-                return await _httpContentConverterFactory.ReadAsync(resultType, httpResponseMessage,
-                    httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-                    cancellationToken);
-            }
-            finally
-            {
-                // 释放 httpResponseMessage 实例
-                if (httpResponseMessage is not null &&
-                    _httpContentConverterFactory.CurrentConverter?.KeepsResponseAlive == false)
-                {
-                    httpResponseMessage.Dispose();
-                }
-            }
+            return null;
         }
 
-        // 将 HttpResponseMessage 转换为 HttpRemoteResult<T> 泛型类型 T 的实例
-        var result = await _httpContentConverterFactory.ReadAsync(resultType.GetGenericArguments()[0],
-            httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(),
-            cancellationToken);
+        // 将 HttpResponseMessage 转换为 resultType 类型实例
+        using var httpContentConverterResult = await _httpContentConverterFactory.ReadAsync(resultType,
+            new HttpContentConverterContext(httpResponseMessage,
+                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
+            {
+                RequestDuration = requestDuration, Factory = _httpContentConverterFactory
+            }, cancellationToken);
 
-        // 动态创建 HttpRemoteResult<TResult> 实例并转换为 resultType 类型实例
-        return DynamicCreateHttpRemoteResult(resultType, httpResponseMessage, result, requestDuration);
+        return httpContentConverterResult.Result;
     }
 
     /// <inheritdoc />
@@ -416,32 +331,8 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
     /// <inheritdoc />
     public HttpRemoteResult<TResult>? Send<TResult>(HttpRequestBuilder httpRequestBuilder,
-        HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
-    {
-        // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder,
-            completionOption, null,
-            (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
-            cancellationToken));
-
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return null;
-        }
-
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        var result = _httpContentConverterFactory.Read<TResult>(httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(), cancellationToken);
-
-        // 初始化 HttpRemoteResult 实例
-        var httpRemoteResult = new HttpRemoteResult<TResult>(httpResponseMessage)
-        {
-            Result = result, RequestDuration = requestDuration
-        };
-
-        return httpRemoteResult;
-    }
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) =>
+        SendAs<HttpRemoteResult<TResult>>(httpRequestBuilder, completionOption, cancellationToken);
 
     /// <inheritdoc />
     public Task<HttpRemoteResult<TResult>?> SendAsync<TResult>(HttpRequestBuilder httpRequestBuilder,
@@ -449,32 +340,52 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         HttpCompletionOption.ResponseContentRead, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<HttpRemoteResult<TResult>?> SendAsync<TResult>(HttpRequestBuilder httpRequestBuilder,
-        HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
-    {
-        // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) = await SendCoreAsync(httpRequestBuilder, completionOption,
-            (httpClient, httpRequestMessage, option, token) =>
-                httpClient.SendAsync(httpRequestMessage, option, token), null, cancellationToken);
+    public Task<HttpRemoteResult<TResult>?> SendAsync<TResult>(HttpRequestBuilder httpRequestBuilder,
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) =>
+        SendAsAsync<HttpRemoteResult<TResult>>(httpRequestBuilder, completionOption, cancellationToken);
 
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return null;
-        }
+    /// <summary>
+    ///     发送 HTTP 远程请求（核心）
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="completionOption">
+    ///     <see cref="HttpCompletionOption" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Tuple{T1, T2}" />
+    /// </returns>
+    public Task<(HttpResponseMessage? ResponseMessage, long RequestDuration)> SendCoreAsync(
+        HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+        CancellationToken cancellationToken = default) =>
+        SendCoreAsync(httpRequestBuilder, completionOption,
+            (httpClient, httpRequestMessage, option, token) => httpClient.SendAsync(httpRequestMessage, option, token),
+            null, cancellationToken);
 
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        var result = await _httpContentConverterFactory.ReadAsync<TResult>(httpResponseMessage,
-            httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray(), cancellationToken);
-
-        // 初始化 HttpRemoteResult 实例
-        var httpRemoteResult = new HttpRemoteResult<TResult>(httpResponseMessage)
-        {
-            Result = result, RequestDuration = requestDuration
-        };
-
-        return httpRemoteResult;
-    }
+    /// <summary>
+    ///     发送 HTTP 远程请求（核心）
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="completionOption">
+    ///     <see cref="HttpCompletionOption" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Tuple{T1, T2}" />
+    /// </returns>
+    public (HttpResponseMessage? ResponseMessage, long RequestDuration) SendCore(HttpRequestBuilder httpRequestBuilder,
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) =>
+        AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder, completionOption, null,
+            (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
+            cancellationToken));
 
     /// <summary>
     ///     发送 HTTP 远程请求并处理 <see cref="HttpResponseMessage" /> 实例
@@ -633,58 +544,5 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
         // 设置默认 User-Agent
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
-    }
-
-    /// <summary>
-    ///     动态创建 <see cref="HttpRemoteResult{TResult}" /> 实例
-    /// </summary>
-    /// <param name="httpRemoteResultType"><see cref="HttpRemoteResult{TResult}" /> 类型</param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="result"><see cref="HttpRemoteResult{TResult}" /> 泛型类型的实例</param>
-    /// <param name="requestDuration">请求耗时（毫秒）</param>
-    /// <returns>
-    ///     <see cref="object" />
-    /// </returns>
-    /// <exception cref="ArgumentException"></exception>
-    internal static object? DynamicCreateHttpRemoteResult(Type httpRemoteResultType,
-        HttpResponseMessage? httpResponseMessage, object? result, long requestDuration)
-    {
-        // 检查类型是否是 HttpRemoteResult<TResult> 类型
-        if (!typeof(HttpRemoteResult<>).IsDefinitionEqual(httpRemoteResultType))
-        {
-            throw new ArgumentException(
-                $"`{httpRemoteResultType}` type is not assignable from `{typeof(HttpRemoteResult<>)}`.",
-                nameof(httpRemoteResultType));
-        }
-
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return null;
-        }
-
-        // 反射创建 HttpRemoteResult<TResult> 实例
-        var httpRemoteResult = Activator.CreateInstance(httpRemoteResultType, httpResponseMessage);
-
-        // 空检查
-        ArgumentNullException.ThrowIfNull(httpRemoteResult);
-
-        // 初始化反射搜索成员方式
-        const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
-        // 获取 Result 和 RequestDuration 属性设置器
-        var setResultDelegate =
-            httpRemoteResultType.CreatePropertySetter(
-                httpRemoteResultType.GetProperty(nameof(HttpRemoteResult<object>.Result), bindingFlags)!);
-        var setRequestDurationDelegate = httpRemoteResultType.CreatePropertySetter(
-            httpRemoteResultType.GetProperty(nameof(HttpRemoteResult<object>.RequestDuration), bindingFlags)!);
-
-        // 设置 Result 和 RequestDuration 属性值
-        setResultDelegate(httpRemoteResult, result);
-        setRequestDurationDelegate(httpRemoteResult, requestDuration);
-
-        return httpRemoteResult;
     }
 }

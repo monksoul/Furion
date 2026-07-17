@@ -131,18 +131,16 @@ public sealed class HttpRemoteResult<TResult> : IDisposable
     public string? HttpClientName { get; private set; }
 
     /// <inheritdoc />
-    public void Dispose() => ResponseMessage.Dispose();
+    public void Dispose()
+    {
+        // 检查目标类型的实例是否实现了 IDisposable 接口
+        if (Result is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
 
-    // /// <summary>
-    // ///     解构函数（至少包含两个 out 参数！！！）
-    // /// </summary>
-    // /// <param name="result">
-    // ///     <typeparamref name="TResult" />
-    // /// </param>
-    // public void Deconstruct(out TResult? result)
-    // {
-    //     result = Result;
-    // }
+        ResponseMessage.Dispose();
+    }
 
     /// <summary>
     ///     解构函数

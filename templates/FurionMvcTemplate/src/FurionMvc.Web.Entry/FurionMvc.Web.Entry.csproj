@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(net8)' == 'True' ">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.28">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.29">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

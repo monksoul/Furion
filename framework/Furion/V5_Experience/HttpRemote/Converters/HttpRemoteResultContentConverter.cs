@@ -23,46 +23,52 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using System.Net.Http.Json;
-
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="IAsyncEnumerable{T}" /> 内容转换器
+///     <see cref="HttpRemoteResult{TResult}" /> 内容转换器
 /// </summary>
-public class AsyncEnumerableContentConverter<T> : HttpContentConverterBase<IAsyncEnumerable<T?>>
+/// <typeparam name="TResult">转换的目标类型</typeparam>
+public class HttpRemoteResultContentConverter<TResult> : HttpContentConverterBase<HttpRemoteResult<TResult>>
 {
     /// <inheritdoc />
     public override bool KeepsResponseAlive => true;
 
     /// <inheritdoc />
-    public override IAsyncEnumerable<T?>? Read(HttpContentConverterContext context,
+    public override HttpRemoteResult<TResult>? Read(HttpContentConverterContext context,
         CancellationToken cancellationToken = default)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(context.Factory);
+
         // 获取 HttpResponseMessage 实例
         var httpResponseMessage = context.ResponseMessage;
 
-        // 解析 HttpClient 客户端对应的 JSON 序列化上下文信息
-        var jsonSerializationContext =
-            HttpRemoteUtility.ResolveJsonSerializationContext(typeof(T), httpResponseMessage, ServiceProvider);
+        // 将 HttpResponseMessage 转换为 TResult 实例
+        var httpContentConverterResult = context.Factory.Read<TResult>(context, cancellationToken);
 
-        return httpResponseMessage.Content.ReadFromJsonAsAsyncEnumerable<T>(
-            jsonSerializationContext.JsonSerializerOptions, cancellationToken);
+        return new HttpRemoteResult<TResult>(httpResponseMessage)
+        {
+            Result = httpContentConverterResult.Result, RequestDuration = context.RequestDuration
+        };
     }
 
     /// <inheritdoc />
-    public override Task<IAsyncEnumerable<T?>?> ReadAsync(HttpContentConverterContext context,
+    public override async Task<HttpRemoteResult<TResult>?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(context.Factory);
+
         // 获取 HttpResponseMessage 实例
         var httpResponseMessage = context.ResponseMessage;
 
-        // 解析 HttpClient 客户端对应的 JSON 序列化上下文信息
-        var jsonSerializationContext =
-            HttpRemoteUtility.ResolveJsonSerializationContext(typeof(T), httpResponseMessage, ServiceProvider);
+        // 将 HttpResponseMessage 转换为 TResult 实例
+        var httpContentConverterResult = await context.Factory.ReadAsync<TResult>(context, cancellationToken);
 
-        return Task.FromResult<IAsyncEnumerable<T?>?>(
-            httpResponseMessage.Content.ReadFromJsonAsAsyncEnumerable<T>(jsonSerializationContext.JsonSerializerOptions,
-                cancellationToken));
+        return new HttpRemoteResult<TResult>(httpResponseMessage)
+        {
+            Result = httpContentConverterResult.Result, RequestDuration = context.RequestDuration
+        };
     }
 }

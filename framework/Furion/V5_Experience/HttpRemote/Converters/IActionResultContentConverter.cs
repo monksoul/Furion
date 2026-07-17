@@ -37,14 +37,20 @@ namespace Furion.HttpRemote;
 public class IActionResultContentConverter : HttpContentConverterBase<IActionResult>
 {
     /// <inheritdoc />
-    public override IActionResult? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => ReadAsync(httpResponseMessage, cancellationToken));
+    public override bool KeepsResponseAlive => true;
 
     /// <inheritdoc />
-    public override async Task<IActionResult?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override IActionResult? Read(HttpContentConverterContext context,
+        CancellationToken cancellationToken = default) =>
+        AsyncUtility.RunSync(() => ReadAsync(context, cancellationToken));
+
+    /// <inheritdoc />
+    public override async Task<IActionResult?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default)
     {
+        // 获取 HttpResponseMessage 实例
+        var httpResponseMessage = context.ResponseMessage;
+
         // 尝试为无内容响应生成对应的 IActionResult
         if (TryGetEmptyContentResult(httpResponseMessage, out var statusCode, out var emptyContentResult))
         {

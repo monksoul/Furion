@@ -43,6 +43,7 @@ public sealed class HttpStressTestHarnessBuilder
     /// </summary>
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpStressTestHarnessBuilder(HttpMethod httpMethod, Uri? requestUri)
     {
         // 空检查
@@ -187,6 +188,7 @@ public sealed class HttpStressTestHarnessBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpRequestBuilder Build(HttpRemoteOptions httpRemoteOptions)
     {
         // 空检查

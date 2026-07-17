@@ -56,6 +56,7 @@ public sealed class HttpServerSentEventsBuilder
     /// </summary>
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpServerSentEventsBuilder(HttpMethod httpMethod, Uri? requestUri)
     {
         // 空检查
@@ -157,6 +158,7 @@ public sealed class HttpServerSentEventsBuilder
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpServerSentEventsBuilder SetOnOpen(Action configure)
     {
         // 空检查
@@ -174,6 +176,7 @@ public sealed class HttpServerSentEventsBuilder
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpServerSentEventsBuilder SetOnMessage(Func<ServerSentEventsData, CancellationToken, Task> configure)
     {
         // 空检查
@@ -191,6 +194,7 @@ public sealed class HttpServerSentEventsBuilder
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpServerSentEventsBuilder SetOnError(Action<Exception> configure)
     {
         // 空检查
@@ -208,6 +212,7 @@ public sealed class HttpServerSentEventsBuilder
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public HttpServerSentEventsBuilder SetEventHandler(Type serverSentEventsEventHandlerType)
     {
@@ -291,6 +296,7 @@ public sealed class HttpServerSentEventsBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpRequestBuilder Build(HttpRemoteOptions httpRemoteOptions)
     {
         // 空检查

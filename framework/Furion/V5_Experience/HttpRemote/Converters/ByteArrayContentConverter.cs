@@ -33,12 +33,11 @@ namespace Furion.HttpRemote;
 public class ByteArrayContentConverter : HttpContentConverterBase<byte[]>
 {
     /// <inheritdoc />
-    public override byte[]? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => ReadAsync(httpResponseMessage, cancellationToken));
+    public override byte[]? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default) =>
+        AsyncUtility.RunSync(() => ReadAsync(context, cancellationToken));
 
     /// <inheritdoc />
-    public override async Task<byte[]?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public override async Task<byte[]?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        await httpResponseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
+        await context.ResponseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
 }

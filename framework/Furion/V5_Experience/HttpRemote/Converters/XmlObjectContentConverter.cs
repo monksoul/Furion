@@ -40,14 +40,14 @@ public class XmlObjectContentConverter : IHttpContentConverter
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <inheritdoc />
-    public virtual object? Read(Type resultType, HttpResponseMessage httpResponseMessage,
+    public virtual object? Read(Type resultType, HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => ReadAsync(resultType, httpResponseMessage, cancellationToken));
+        AsyncUtility.RunSync(() => ReadAsync(resultType, context, cancellationToken));
 
     /// <inheritdoc />
-    public virtual async Task<object?> ReadAsync(Type resultType, HttpResponseMessage httpResponseMessage,
+    public virtual async Task<object?> ReadAsync(Type resultType, HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        DeserializeXml(resultType, await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken));
+        DeserializeXml(resultType, await context.ResponseMessage.Content.ReadAsStringAsync(cancellationToken));
 
     /// <summary>
     ///     将 XML 字符串反序列化为转换的目标类型
@@ -75,14 +75,11 @@ public class XmlObjectContentConverter : IHttpContentConverter
 public class XmlObjectContentConverter<TResult> : XmlObjectContentConverter, IHttpContentConverter<TResult>
 {
     /// <inheritdoc />
-    public virtual TResult? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        (TResult?)DeserializeXml(typeof(TResult),
-            AsyncUtility.RunSync(() => httpResponseMessage.Content.ReadAsStringAsync(cancellationToken)));
+    public virtual TResult? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default) =>
+        (TResult?)base.Read(typeof(TResult), context, cancellationToken);
 
     /// <inheritdoc />
-    public virtual async Task<TResult?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public virtual async Task<TResult?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        (TResult?)DeserializeXml(typeof(TResult),
-            await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken));
+        (TResult?)await base.ReadAsync(typeof(TResult), context, cancellationToken);
 }

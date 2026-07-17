@@ -26,32 +26,58 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     <see cref="IHttpContentConverter{TResult}" /> 内容处理器基类
+///     HTTP 内容转换结果
 /// </summary>
+/// <param name="ResponseMessage">
+///     <see cref="HttpResponseMessage" />
+/// </param>
+/// <param name="Result">
+///     <typeparamref name="TResult" />
+/// </param>
+/// <param name="Converter">
+///     <see cref="IHttpContentConverter" />
+/// </param>
 /// <typeparam name="TResult">转换的目标类型</typeparam>
-public abstract class HttpContentConverterBase<TResult> : IHttpContentConverter<TResult>, IServiceProvider
+public sealed record HttpContentConverterResult<TResult>(
+    HttpResponseMessage ResponseMessage,
+    TResult? Result,
+    IHttpContentConverter Converter) : IDisposable
 {
     /// <inheritdoc />
-    public virtual bool KeepsResponseAlive => false;
+    public void Dispose()
+    {
+        // 检查是否保持 HttpResponseMessage 存活
+        if (!Converter.KeepsResponseAlive)
+        {
+            ResponseMessage.Dispose();
+        }
+    }
+}
 
+/// <summary>
+///     HTTP 内容转换结果
+/// </summary>
+/// <param name="ResponseMessage">
+///     <see cref="HttpResponseMessage" />
+/// </param>
+/// <param name="Result">
+///     <see cref="object" />
+/// </param>
+/// <param name="Converter">
+///     <see cref="IHttpContentConverter" />
+/// </param>
+public sealed record HttpContentConverterResult(
+    HttpResponseMessage ResponseMessage,
+    object? Result,
+    IHttpContentConverter Converter) : IDisposable
+{
     /// <inheritdoc />
-    public IServiceProvider? ServiceProvider { get; set; }
-
-    /// <inheritdoc />
-    public abstract TResult? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default);
-
-    /// <inheritdoc />
-    public abstract Task<TResult?> ReadAsync(HttpContentConverterContext context,
-        CancellationToken cancellationToken = default);
-
-    /// <inheritdoc />
-    public virtual object? Read(Type resultType, HttpContentConverterContext context,
-        CancellationToken cancellationToken = default) => Read(context, cancellationToken);
-
-    /// <inheritdoc />
-    public virtual async Task<object?> ReadAsync(Type resultType, HttpContentConverterContext context,
-        CancellationToken cancellationToken = default) => await ReadAsync(context, cancellationToken);
-
-    /// <inheritdoc />
-    public object? GetService(Type serviceType) => ServiceProvider?.GetService(serviceType);
+    public void Dispose()
+    {
+        // 检查是否保持 HttpResponseMessage 存活
+        if (!Converter.KeepsResponseAlive)
+        {
+            ResponseMessage.Dispose();
+        }
+    }
 }

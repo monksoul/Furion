@@ -52,7 +52,7 @@ public class FormFileContentProcessor : HttpContentProcessorBase
         // 读取文件流（没有 using）
         var fileStream = formFile.OpenReadStream();
 
-        // 添加请求结束后自动释放的流
+        // 添加请求结束后自动释放的资源
         context.CompletionDisposables = [fileStream];
 
         // 初始化 StreamContent 实例

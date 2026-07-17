@@ -42,14 +42,17 @@ public class ObjectContentConverter : IHttpContentConverter
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <inheritdoc />
-    public virtual object? Read(Type resultType, HttpResponseMessage httpResponseMessage,
+    public virtual object? Read(Type resultType, HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => ReadAsync(resultType, httpResponseMessage, cancellationToken));
+        AsyncUtility.RunSync(() => ReadAsync(resultType, context, cancellationToken));
 
     /// <inheritdoc />
-    public virtual async Task<object?> ReadAsync(Type resultType, HttpResponseMessage httpResponseMessage,
+    public virtual async Task<object?> ReadAsync(Type resultType, HttpContentConverterContext context,
         CancellationToken cancellationToken = default)
     {
+        // 获取 HttpResponseMessage 实例
+        var httpResponseMessage = context.ResponseMessage;
+
         // 解析 HttpClient 客户端对应的 JSON 序列化上下文信息
         var jsonSerializationContext =
             HttpRemoteUtility.ResolveJsonSerializationContext(resultType, httpResponseMessage, ServiceProvider);
@@ -72,12 +75,11 @@ public class ObjectContentConverter : IHttpContentConverter
 public class ObjectContentConverter<TResult> : ObjectContentConverter, IHttpContentConverter<TResult>
 {
     /// <inheritdoc />
-    public virtual TResult? Read(HttpResponseMessage httpResponseMessage,
-        CancellationToken cancellationToken = default) =>
-        (TResult?)base.Read(typeof(TResult), httpResponseMessage, cancellationToken);
+    public virtual TResult? Read(HttpContentConverterContext context, CancellationToken cancellationToken = default) =>
+        (TResult?)base.Read(typeof(TResult), context, cancellationToken);
 
     /// <inheritdoc />
-    public virtual async Task<TResult?> ReadAsync(HttpResponseMessage httpResponseMessage,
+    public virtual async Task<TResult?> ReadAsync(HttpContentConverterContext context,
         CancellationToken cancellationToken = default) =>
-        (TResult?)await base.ReadAsync(typeof(TResult), httpResponseMessage, cancellationToken);
+        (TResult?)await base.ReadAsync(typeof(TResult), context, cancellationToken);
 }

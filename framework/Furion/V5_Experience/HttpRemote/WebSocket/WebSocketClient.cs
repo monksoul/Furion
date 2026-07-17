@@ -115,17 +115,48 @@ public sealed partial class WebSocketClient : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        // 释放底层资源
+        CleanupResources();
+
+        // 清除所有事件订阅
+        Connecting = null;
+        Connected = null;
+        Reconnecting = null;
+        Reconnected = null;
+        Closing = null;
+        Closed = null;
+        ReceivingStarted = null;
+        ReceivingStopped = null;
+        TextReceived = null;
+        BinaryReceived = null;
+    }
+
+    /// <summary>
+    ///     释放底层资源
+    /// </summary>
+    internal void CleanupResources()
+    {
         // 释放 ClientWebSocket 实例
         _clientWebSocket?.Dispose();
         _clientWebSocket = null;
 
-        // 等待接收服务器消息任务完成
+        // 停止接收
         _messageCancellationTokenSource?.Cancel();
         _messageCancellationTokenSource?.Dispose();
         _messageCancellationTokenSource = null;
 
-        _receiveMessageTask?.Wait();
-        _receiveMessageTask = null;
+        // 等待接收任务完成
+        try
+        {
+            _receiveMessageTask?.Wait();
+        }
+        catch (AggregateException)
+        {
+        }
+        finally
+        {
+            _receiveMessageTask = null;
+        }
     }
 
     /// <summary>
@@ -190,11 +221,8 @@ public sealed partial class WebSocketClient : IDisposable
         }
         catch (Exception e)
         {
-            // 释放 WebSocketClient 实例
-            Dispose();
-
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            // 释放底层资源
+            CleanupResources();
 
             // 检查是否达到了最大重连次数
             if (CurrentReconnectRetries < Options.MaxReconnectRetries)
@@ -362,10 +390,9 @@ public sealed partial class WebSocketClient : IDisposable
                 {
                     break;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    // 输出调试事件
-                    Debugging.Error(e.Message);
+                    // ignored
                 }
             }
         }
@@ -496,15 +523,15 @@ public sealed partial class WebSocketClient : IDisposable
         }
         finally
         {
-            // 释放 WebSocketClient 实例
+            // 触发关闭连接完成事件
+            var onClosed = OnClosed;
+            onClosed.TryInvoke();
+
+            // 释放所有资源
             Dispose();
 
             // 重置当前重连次数
             CurrentReconnectRetries = 0;
-
-            // 触发关闭连接成功事件
-            var onClosed = OnClosed;
-            onClosed.TryInvoke();
         }
     }
 }

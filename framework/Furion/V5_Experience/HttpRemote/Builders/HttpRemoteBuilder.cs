@@ -96,6 +96,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddHttpContentProcessors(Func<IEnumerable<IHttpContentProcessor>> configure)
     {
         // 空检查
@@ -116,6 +117,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddHttpContentConverters(Func<IEnumerable<IHttpContentConverter>> configure)
     {
         // 空检查
@@ -136,6 +138,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddGenericHttpContentConverters(Func<IEnumerable<GenericHttpContentConverter>> configure)
     {
         // 空检查
@@ -170,6 +173,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public HttpRemoteBuilder UseObjectContentConverterFactory(Type factoryType)
     {
@@ -212,6 +216,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public HttpRemoteBuilder AddHttpDeclarative(Type declarativeType)
     {
@@ -266,6 +271,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddHttpDeclarativesFromAssemblies(params IEnumerable<Assembly?> assemblies)
     {
         // 空检查
@@ -286,6 +292,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddHttpDeclarativeExtractors(Func<IEnumerable<IHttpDeclarativeExtractor>> configure)
     {
         // 空检查
@@ -306,6 +313,7 @@ public sealed class HttpRemoteBuilder
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpRemoteBuilder AddHttpDeclarativeExtractorsFromAssemblies(params IEnumerable<Assembly?> assemblies)
     {
         // 空检查
@@ -344,6 +352,7 @@ public sealed class HttpRemoteBuilder
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public HttpRemoteBuilder AddPipelineHandler(Type handlerType, int index = 0)
     {
         // 空检查
