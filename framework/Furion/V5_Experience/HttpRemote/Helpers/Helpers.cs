@@ -380,16 +380,11 @@ internal static class Helpers
         }
 
         // 检查基地址是否是绝对地址
+        // ReSharper disable once InvertIf
         if (Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
         {
             var fullUri = new Uri(baseUri, requestUrl);
             return fullUri.OriginalString;
-        }
-
-        // 检查请求地址是否是相对路径
-        if (requestUrl.StartsWith('/'))
-        {
-            return requestUrl;
         }
 
         return baseUrl.TrimEnd('/') + "/" + requestUrl.TrimStart('/');
