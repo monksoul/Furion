@@ -34,17 +34,24 @@ public sealed class UrlFormattingContext
     ///     <inheritdoc cref="UrlFormattingContext" />
     /// </summary>
     /// <param name="key">URL 参数名（键）</param>
+    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
     /// <exception cref="ArgumentException"></exception>
-    public UrlFormattingContext(string key)
+    internal UrlFormattingContext(string key, string? httpClientName)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         Key = key;
+        HttpClientName = httpClientName ?? string.Empty;
     }
 
     /// <summary>
     ///     URL 参数名（键）
     /// </summary>
     public string Key { get; }
+
+    /// <summary>
+    ///     <see cref="HttpClient" /> 实例的配置名称
+    /// </summary>
+    public string HttpClientName { get; }
 }

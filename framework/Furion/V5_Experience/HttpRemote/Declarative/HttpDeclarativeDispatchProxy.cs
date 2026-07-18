@@ -45,10 +45,17 @@ public class HttpDeclarativeDispatchProxy : DispatchProxyAsync
         RemoteService.Declarative(method, args, InterfaceType)!;
 
     /// <inheritdoc />
-    public override async Task InvokeAsync(MethodInfo method, object[] args) =>
-        _ = await InvokeAsyncT<VoidContent>(method, args);
+    public override Task InvokeAsync(MethodInfo method, object[] args) =>
+        InvokeAsyncT<VoidContent>(method, args);
 
     /// <inheritdoc />
-    public override async Task<T> InvokeAsyncT<T>(MethodInfo method, object[] args) =>
-        (await RemoteService.DeclarativeAsync<T>(method, args, InterfaceType))!;
+    public override Task<T> InvokeAsyncT<T>(MethodInfo method, object[] args) =>
+        RemoteService.DeclarativeAsync<T>(method, args, InterfaceType)!;
+
+    /// <inheritdoc />
+    public override ValueTask InvokeValueTaskAsync(MethodInfo method, object[] args) => new(InvokeAsync(method, args));
+
+    /// <inheritdoc />
+    public override ValueTask<T> InvokeValueTaskAsyncT<T>(MethodInfo method, object[] args) =>
+        new(InvokeAsyncT<T>(method, args));
 }

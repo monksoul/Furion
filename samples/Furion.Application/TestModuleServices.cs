@@ -888,6 +888,16 @@ public class LogDispatchProxy : DispatchProxyAsync, IDispatchProxy
 
         return result;
     }
+
+    public override ValueTask InvokeValueTaskAsync(MethodInfo method, object[] args)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override ValueTask<T> InvokeValueTaskAsyncT<T>(MethodInfo method, object[] args)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

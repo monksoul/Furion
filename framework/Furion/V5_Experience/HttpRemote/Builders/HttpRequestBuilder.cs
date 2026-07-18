@@ -145,12 +145,12 @@ public sealed partial class HttpRequestBuilder
         // 获取配置
         var configuration = httpRemoteOptions.Configuration;
 
-        // 替换路径或配置参数，处理非标准 HTTP URI 的应用场景（如 {url}），此时需优先解决路径或配置参数问题
+        // 替换路径或配置参数，处理非标准 HTTP URI 的应用场景（如 {url}）
         var processedRequestUri = RequestUri is null or { OriginalString: null }
             ? RequestUri
             : new Uri(ReplacePlaceholders(RequestUri.OriginalString, configuration)!, UriKind.RelativeOrAbsolute);
 
-        // 替换 BaseAddress 路径或配置参数，处理非标准 HTTP URI 的应用场景（如 {url}），此时需优先解决路径或配置参数问题
+        // 替换 BaseAddress 路径或配置参数，处理非标准 HTTP URI 的应用场景（如 {url}）
         var processedBaseAddress = BaseAddress is null or { OriginalString: null }
             ? BaseAddress
             : new Uri(ReplacePlaceholders(BaseAddress.OriginalString, configuration)!, UriKind.RelativeOrAbsolute);
@@ -163,7 +163,7 @@ public sealed partial class HttpRequestBuilder
                 : new Uri(Helpers.CombineUrl(processedBaseAddress.OriginalString, processedRequestUri.OriginalString),
                     UriKind.RelativeOrAbsolute);
 
-        // 初始化带全局（客户端） BaseAddress 的请求地址
+        // 初始化带全局（客户端）BaseAddress 的请求地址
         var requestUriWithClientBaseAddress = clientBaseAddress is null
             ? requestUriWithBaseAddress
             : requestUriWithBaseAddress is null
@@ -218,8 +218,7 @@ public sealed partial class HttpRequestBuilder
     internal void AppendPathSegments(UriBuilder uriBuilder)
     {
         // 空检查
-        if ((PathSegments == null || PathSegments.Count == 0) &&
-            (PathSegmentsToRemove == null || PathSegmentsToRemove.Count == 0))
+        if (PathSegments is null or { Count: 0 } && PathSegmentsToRemove is null or { Count: 0 })
         {
             return;
         }
@@ -269,8 +268,7 @@ public sealed partial class HttpRequestBuilder
     internal void AppendQueryParameters(UriBuilder uriBuilder, IUrlParameterFormatter? formatter)
     {
         // 空检查
-        if ((QueryParameters is null || QueryParameters.Count == 0) &&
-            (QueryParametersToRemove is null || QueryParametersToRemove.Count == 0))
+        if (QueryParameters is null or { Count: 0 } && QueryParametersToRemove is null or { Count: 0 })
         {
             return;
         }
@@ -285,8 +283,11 @@ public sealed partial class HttpRequestBuilder
         // 追加查询参数
         foreach (var (key, values) in QueryParameters.ConcatIgnoreNull([]))
         {
+            // 初始化 UrlFormattingContext 实例
+            var urlFormattingContext = new UrlFormattingContext(key, HttpClientName);
+
             queryParameters.AddRange(values.Select(value =>
-                new KeyValuePair<string, string?>(key, format(value, new UrlFormattingContext(key)))));
+                new KeyValuePair<string, string?>(key, format(value, urlFormattingContext))));
         }
 
         // 构建最终的查询参数
@@ -343,13 +344,13 @@ public sealed partial class HttpRequestBuilder
         var newString = originalString;
 
         // 空检查
-        if (!PathParameters.IsNullOrEmpty())
+        if (PathParameters is not null)
         {
             newString = newString.ReplacePlaceholders(PathParameters);
         }
 
         // 空检查
-        if (!ObjectPathParameters.IsNullOrEmpty())
+        if (ObjectPathParameters is not null)
         {
             newString = ObjectPathParameters.Aggregate(newString,
                 (current, objectPathParameter) =>
@@ -403,7 +404,7 @@ public sealed partial class HttpRequestBuilder
         }
 
         // 空检查
-        if (Headers.IsNullOrEmpty())
+        if (Headers is null or { Count: 0 })
         {
             return;
         }
@@ -478,7 +479,7 @@ public sealed partial class HttpRequestBuilder
     internal void RemoveHeaders(HttpRequestMessage httpRequestMessage)
     {
         // 空检查
-        if (HeadersToRemove.IsNullOrEmpty())
+        if (HeadersToRemove is null or { Count: 0 })
         {
             return;
         }
@@ -528,7 +529,7 @@ public sealed partial class HttpRequestBuilder
     internal void AppendCookies(HttpRequestMessage httpRequestMessage, IConfiguration? configuration)
     {
         // 空检查
-        if (Cookies.IsNullOrEmpty())
+        if (Cookies is null or { Count: 0 })
         {
             return;
         }
@@ -551,7 +552,7 @@ public sealed partial class HttpRequestBuilder
     internal void RemoveCookies(HttpRequestMessage httpRequestMessage)
     {
         // 空检查
-        if (CookiesToRemove.IsNullOrEmpty())
+        if (CookiesToRemove is null or { Count: 0 })
         {
             return;
         }
@@ -679,7 +680,7 @@ public sealed partial class HttpRequestBuilder
     internal void AppendProperties(HttpRequestMessage httpRequestMessage)
     {
         // 空检查
-        if (Properties.Count > 0)
+        if (Properties is { Count: > 0 })
         {
             // 注意：httpRequestMessage.Properties 已过时，使用 Options 替代
             httpRequestMessage.Options.AddOrUpdate(Properties);

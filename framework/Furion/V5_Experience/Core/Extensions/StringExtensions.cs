@@ -242,6 +242,7 @@ internal static partial class StringExtensions
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal static string? ReplacePlaceholders(this string? template, IDictionary<string, string?> replacementSource)
     {
         // 空检查
@@ -249,12 +250,21 @@ internal static partial class StringExtensions
 
         return template is null
             ? null
-            : PlaceholderRegex().Replace(template,
-                match => replacementSource.TryGetValue(match.Groups[1].Value.Trim(), out var replacement)
-                    // 如果找到匹配则替换
-                    ? replacement ?? string.Empty
-                    // 否则保留原样
-                    : match.ToString());
+            : PlaceholderRegex().Replace(template, match =>
+            {
+                // 获取占位符中的路径
+                var key = match.Groups[1].Value.Trim();
+                // 检查是否以 ? 结尾
+                var hasQuestionMark = match.Groups[2].Success;
+
+                // 尝试从字典中取值
+                if (replacementSource.TryGetValue(key, out var replacement))
+                {
+                    return replacement ?? string.Empty;
+                }
+
+                return hasQuestionMark ? string.Empty : match.Value;
+            });
     }
 
     /// <summary>
@@ -276,20 +286,25 @@ internal static partial class StringExtensions
         BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public) =>
         template is null
             ? null
-            : PlaceholderRegex().Replace(template,
-                match =>
-                {
-                    // 获取模板解析后的值
-                    var replacement =
-                        replacementSource.GetPropertyValueFromPath(match.Groups[1].Value.Trim(), out var isMatch,
-                            prefix, bindingFlags);
+            : PlaceholderRegex().Replace(template, match =>
+            {
+                // 获取占位符中的路径
+                var path = match.Groups[1].Value.Trim();
+                // 检查是否以 ? 结尾
+                var hasQuestionMark = match.Groups[2].Success;
 
-                    return isMatch
-                        // 如果找到匹配则替换
-                        ? replacement?.ToInvariantCultureString() ?? string.Empty
-                        // 否则保留原样
-                        : match.ToString();
-                });
+                // 根据路径从对象中获取属性值
+                var replacement =
+                    replacementSource.GetPropertyValueFromPath(path, out var isMatch, prefix, bindingFlags);
+
+                // 检查路径是否匹配成功
+                if (isMatch)
+                {
+                    return replacement?.ToInvariantCultureString() ?? string.Empty;
+                }
+
+                return hasQuestionMark ? string.Empty : match.Value;
+            });
 
     /// <summary>
     ///     替换字符串中的占位符为实际值
@@ -311,37 +326,36 @@ internal static partial class StringExtensions
 
         return template is null
             ? null
-            : ConfigurationKeyRegex().Replace(template,
-                match =>
+            : ConfigurationKeyRegex().Replace(template, match =>
+            {
+                // 获取主键、备用键、默认值和问号标记
+                var mainKey = match.Groups[1].Value.Trim();
+                var backupKeysRaw = match.Groups[2].Value.Trim();
+                var defaultValue = match.Groups[3].Success ? match.Groups[3].Value.Trim() : null;
+                var hasQuestionMark = match.Groups[4].Success;
+
+                // 分割并清理备用键列表
+                var backupKeys = backupKeysRaw.Split(['|'], StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+
+                // 合并主键和备用键列表
+                var allKeys = new List<string> { mainKey };
+                allKeys.AddRange(backupKeys);
+
+                // 逐个匹配键，一旦找到有效的配置项，立即返回并停止查找
+                foreach (var section in allKeys.Select(replacementSource.GetSection).Where(section => section.Exists()))
                 {
-                    // 获取主键、备用键和默认值
-                    var mainKey = match.Groups[1].Value.Trim();
-                    var backupKeysRaw = match.Groups[2].Value.Trim();
-                    var defaultValue = match.Groups[3].Success ? match.Groups[3].Value.Trim() : null;
+                    return section.Value!;
+                }
 
-                    // 分割并清理备用键列表
-                    var backupKeys = backupKeysRaw.Split(['|'], StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Trim())
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .ToList();
+                // 检查是否提供了默认值
+                if (!string.IsNullOrEmpty(defaultValue))
+                {
+                    return defaultValue;
+                }
 
-                    // 合并主键和备用键列表
-                    var allKeys = new List<string> { mainKey };
-                    allKeys.AddRange(backupKeys);
-
-                    // 逐个匹配键，一旦找到有效的配置项，立即返回并停止查找
-                    foreach (var section in allKeys.Select(replacementSource.GetSection)
-                                 .Where(section => section.Exists()))
-                    {
-                        return section.Value!;
-                    }
-
-                    return !string.IsNullOrEmpty(defaultValue)
-                        // 如果所有备用键都没有找到，则使用默认值
-                        ? defaultValue
-                        // 如果找不到配置项且没有默认值，则保留原样
-                        : match.Value;
-                });
+                return hasQuestionMark ? string.Empty : match.Value;
+            });
     }
 
     /// <summary>
@@ -363,6 +377,7 @@ internal static partial class StringExtensions
     /// <returns>
     ///     <see cref="bool" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     internal static bool IsUrlEncodedFormFormat(this string output)
     {
         // 空检查
@@ -473,11 +488,15 @@ internal static partial class StringExtensions
     /// <summary>
     ///     占位符匹配正则表达式
     /// </summary>
-    /// <remarks>占位符格式：<c>{Key}</c> 或 <c>{Key.Property}</c> 或 <c>{Key.Property.NestProperty}</c>。</remarks>
+    /// <remarks>
+    ///     占位符格式：<c>{Key}</c> 或 <c>{Key.Property}</c> 或 <c>{Key.Property.NestProperty}</c>。结尾可添加 <c>?</c>
+    ///     表示值不存在时替换为空字符串，例如 <c>{Key?}</c>。占位符开头可添加 <c>**</c> 前缀，该前缀在解析时会被忽略，
+    ///     例如 <c>{**Key}</c> 等同于 <c>{Key}</c>。
+    /// </remarks>
     /// <returns>
     ///     <see cref="Regex" />
     /// </returns>
-    [GeneratedRegex(@"\{\s*(\w+\s*(\.\s*\w+\s*)*)\s*\}")]
+    [GeneratedRegex(@"\{\s*(?:\*\*)?\s*(\w+(?:\s*\.\s*\w+)*)\s*(\?)?\s*\}")]
     private static partial Regex PlaceholderRegex();
 
     /// <summary>
@@ -485,14 +504,18 @@ internal static partial class StringExtensions
     /// </summary>
     /// <remarks>
     ///     占位符格式：<c>[[Key]]</c> 或 <c>[[Key:Sub]]</c> 或 <c>[[Key:Sub:Nest]]</c> 或 <c>[[Key | Key2 | Key3]]</c> 或
-    ///     <c>[Key | Key2 || 默认值]]</c>。
+    ///     <c>[[Key | Key2 || 默认值]]</c>。结尾可添加 <c>?</c> 表示所有键都不存在且无默认值时替换为空字符串，
+    ///     例如 <c>[[Key?]]</c>。占位符开头可添加 <c>**</c> 前缀，该前缀在解析时会被忽略，例如 <c>[[**Key]]</c> 等同于 <c>[[Key]]</c>。
     /// </remarks>
     /// <returns>
     ///     <see cref="Regex" />
     /// </returns>
-    [GeneratedRegex(@"\[\[\s*([\w\-:]+)((?:\s*\|\s*[\w\-:]+)*)\s*(?:\|\|\s*([^\]]*))?\s*\]\]")]
+    [GeneratedRegex(@"\[\[\s*(?:\*\*)?\s*([\w\-:]+)((?:\s*\|\s*[\w\-:]+)*)\s*(?:\|\|\s*([^\]]*))?\s*(\?)?\s*\]\]")]
     private static partial Regex ConfigurationKeyRegex();
 
+    /// <summary>
+    ///     URL 编码格式验证正则表达式
+    /// </summary>
     [GeneratedRegex(
         "^(?:(?:[a-zA-Z0-9-._~]|%[0-9A-Fa-f]{2})+=(?:[a-zA-Z0-9-._~+]|%[0-9A-Fa-f]{2})*)(?:&(?:[a-zA-Z0-9-._~]|%[0-9A-Fa-f]{2})+=(?:[a-zA-Z0-9-._~+]|%[0-9A-Fa-f]{2})*)*$",
         RegexOptions.IgnorePatternWhitespace)]

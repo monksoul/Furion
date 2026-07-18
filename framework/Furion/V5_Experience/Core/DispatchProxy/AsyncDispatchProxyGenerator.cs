@@ -228,6 +228,39 @@ internal static class AsyncDispatchProxyGenerator
         }
     }
 
+    // Async ValueTask invocation – direct call to abstract InvokeValueTaskAsync
+    public static ValueTask InvokeValueTaskAsync(object[] args)
+    {
+        var context = Resolve(args);
+        try
+        {
+            Debug.Assert(context.Packed.DispatchProxy != null);
+            return context.Packed.DispatchProxy.InvokeValueTaskAsync((MethodInfo)context.Method, context.Packed.Args);
+        }
+        catch (TargetInvocationException tie)
+        {
+            ExceptionDispatchInfo.Capture(tie.InnerException!).Throw();
+            return default; // unreachable
+        }
+    }
+
+    // Async ValueTask<T> invocation – direct call to abstract InvokeValueTaskAsyncT<T>
+    public static ValueTask<T> InvokeValueTaskAsyncT<T>(object[] args)
+    {
+        var context = Resolve(args);
+        try
+        {
+            Debug.Assert(context.Packed.DispatchProxy != null);
+            return context.Packed.DispatchProxy.InvokeValueTaskAsyncT<T>((MethodInfo)context.Method,
+                context.Packed.Args);
+        }
+        catch (TargetInvocationException tie)
+        {
+            ExceptionDispatchInfo.Capture(tie.InnerException!).Throw();
+            return default; // unreachable
+        }
+    }
+
     private class ProxyMethodResolverContext(PackedArgs packed, MethodBase method)
     {
         public PackedArgs Packed { get; } = packed;
@@ -470,6 +503,14 @@ internal static class AsyncDispatchProxyGenerator
             typeof(AsyncDispatchProxyGenerator).GetMethod("InvokeAsyncT",
                 BindingFlags.Public | BindingFlags.Static)!;
 
+        private static readonly MethodInfo s_invokeValueTaskAsyncMethod =
+            typeof(AsyncDispatchProxyGenerator).GetMethod("InvokeValueTaskAsync",
+                BindingFlags.Public | BindingFlags.Static)!;
+
+        private static readonly MethodInfo s_invokeValueTaskAsyncTMethod =
+            typeof(AsyncDispatchProxyGenerator).GetMethod("InvokeValueTaskAsyncT",
+                BindingFlags.Public | BindingFlags.Static)!;
+
         private static readonly OpCode[] s_convOpCodes =
         {
             OpCodes.Nop, //Empty = 0,
@@ -556,6 +597,25 @@ internal static class AsyncDispatchProxyGenerator
             while (current != null)
             {
                 if (current.GetTypeInfo().IsGenericType && current.GetGenericTypeDefinition() == typeof(Task<>))
+                {
+                    return true;
+                }
+
+                current = current.GetTypeInfo().BaseType;
+            }
+
+            return false;
+        }
+
+        private static bool IsValueTaskType(Type type) => type == typeof(ValueTask);
+
+        private static bool IsGenericValueTask(Type type)
+        {
+            var current = type;
+            while (current != null)
+            {
+                if (current.GetTypeInfo().IsGenericType &&
+                    current.GetGenericTypeDefinition() == typeof(ValueTask<>))
                 {
                     return true;
                 }
@@ -803,12 +863,21 @@ internal static class AsyncDispatchProxyGenerator
                 var returnTypes = mi.ReturnType.GetGenericArguments();
                 invokeMethodToCall = s_invokeAsyncTMethod.MakeGenericMethod(returnTypes);
             }
+            else if (IsValueTaskType(mi.ReturnType))
+            {
+                invokeMethodToCall = s_invokeValueTaskAsyncMethod;
+            }
+            else if (IsGenericValueTask(mi.ReturnType))
+            {
+                var returnTypes = mi.ReturnType.GetGenericArguments();
+                invokeMethodToCall = s_invokeValueTaskAsyncTMethod.MakeGenericMethod(returnTypes);
+            }
             else
             {
                 invokeMethodToCall = s_invokeMethod;
             }
 
-            // Call AsyncDispatchProxyGenerator.Invoke(object[]), InvokeAsync or InvokeAsyncT (direct static call)
+            // Call AsyncDispatchProxyGenerator.Invoke(object[]), InvokeAsync, InvokeAsyncT, InvokeValueTaskAsync or InvokeValueTaskAsyncT (direct static call)
             packedArr.Load();
             il.Emit(OpCodes.Call, invokeMethodToCall);
 

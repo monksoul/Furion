@@ -76,7 +76,7 @@ public static class FileUtility
         validFileExtensions = null;
 
         // 空检查
-        if (allowedFileExtensions.IsNullOrEmpty())
+        if (allowedFileExtensions is null or { Length: 0 })
         {
             return true;
         }

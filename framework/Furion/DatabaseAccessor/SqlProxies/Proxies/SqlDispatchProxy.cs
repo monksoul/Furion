@@ -529,4 +529,16 @@ public class SqlDispatchProxy : DispatchProxyAsync, IDispatchProxy
             onInterceptor(sqlProxyMethod);
         }
     }
+
+    /// <inheritdoc/>
+    public override ValueTask InvokeValueTaskAsync(MethodInfo method, object[] args)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask<T> InvokeValueTaskAsyncT<T>(MethodInfo method, object[] args)
+    {
+        throw new NotImplementedException();
+    }
 }

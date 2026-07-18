@@ -443,7 +443,7 @@ public sealed class HttpFileUploadBuilder
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
         // 空检查
-        if (!allowedFileExtensions.IsNullOrEmpty())
+        if (allowedFileExtensions is { Length: > 0 })
         {
             FileUtility.ValidateExtension(filePath, allowedFileExtensions);
         }
