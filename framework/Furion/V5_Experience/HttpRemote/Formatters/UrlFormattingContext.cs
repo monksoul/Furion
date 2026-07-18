@@ -34,6 +34,7 @@ public sealed class UrlFormattingContext
     ///     <inheritdoc cref="UrlFormattingContext" />
     /// </summary>
     /// <param name="key">URL 参数名（键）</param>
+    /// <exception cref="ArgumentException"></exception>
     public UrlFormattingContext(string key)
     {
         // 空检查

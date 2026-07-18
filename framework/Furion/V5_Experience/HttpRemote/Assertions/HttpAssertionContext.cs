@@ -47,6 +47,7 @@ public sealed class HttpAssertionContext
     /// <param name="serviceProvider">
     ///     <see cref="IServiceProvider" />
     /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal HttpAssertionContext(HttpResponseMessage httpResponseMessage, long requestDuration,
         IServiceProvider serviceProvider)
     {

@@ -50,6 +50,7 @@ internal sealed class LongPollingManager
     /// <param name="httpLongPollingBuilder">
     ///     <see cref="HttpLongPollingBuilder" />
     /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal LongPollingManager(IHttpRemoteService httpRemoteService, HttpLongPollingBuilder httpLongPollingBuilder)
     {
         // 空检查

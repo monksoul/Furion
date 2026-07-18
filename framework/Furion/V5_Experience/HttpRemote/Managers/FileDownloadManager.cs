@@ -69,6 +69,7 @@ internal sealed class FileDownloadManager
     /// <param name="httpFileDownloadBuilder">
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal FileDownloadManager(IHttpRemoteService httpRemoteService, HttpFileDownloadBuilder httpFileDownloadBuilder)
     {
         // 空检查

@@ -37,7 +37,7 @@ public interface IHttpRequestPipelineHandler
     /// <param name="context">
     ///     <see cref="HttpRequestPipelineContext" />
     /// </param>
-    /// <param name="next">调用下一个处理器的委托</param>
+    /// <param name="next">下一个处理器的委托</param>
     /// <returns>
     ///     <see cref="HttpResponseMessage" />
     /// </returns>

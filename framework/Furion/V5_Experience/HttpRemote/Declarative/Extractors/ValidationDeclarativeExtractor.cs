@@ -38,7 +38,8 @@ internal sealed class ValidationDeclarativeExtractor : IHttpDeclarativeExtractor
     public void Extract(HttpRequestBuilder httpRequestBuilder, HttpDeclarativeExtractorContext context)
     {
         // 检查方法或接口是否贴有 [SuppressValidation] 特性
-        if (context.IsMethodDefined<SuppressValidationAttribute>(out _, true))
+        if (context.IsMethodDefined<SuppressValidationAttribute>(out var suppressValidationAttribute, true) &&
+            suppressValidationAttribute.Enabled)
         {
             return;
         }

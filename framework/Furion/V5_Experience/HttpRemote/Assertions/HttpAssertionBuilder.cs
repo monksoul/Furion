@@ -49,6 +49,7 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpAssertionBuilder AddAssertion(HttpAssertion assertion)
     {
         // 空检查

@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.HttpRemote.Extensions;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -703,13 +704,15 @@ public sealed partial class HttpRequestBuilder
         var httpRequestBuilder = Create(methodValue.ToString(), jsonObject["url"]?.GetValue<string?>());
 
         // 处理可选字段
-        HandleJsonNode(jsonObject, "baseAddress", node => httpRequestBuilder.SetBaseAddress(node.GetValue<string>()));
-        HandleJsonNode(jsonObject, "headers", node => httpRequestBuilder.WithHeaders(node));
-        HandleJsonNode(jsonObject, "queries", node => httpRequestBuilder.WithQueryParameters(node));
-        HandleJsonNode(jsonObject, "cookies", node => httpRequestBuilder.WithCookies(node));
-        HandleJsonNode(jsonObject, "timeout", node => httpRequestBuilder.SetTimeout(node.GetValue<double>()));
-        HandleJsonNode(jsonObject, "client", node => httpRequestBuilder.SetHttpClientName(node.GetValue<string?>()));
-        HandleJsonNode(jsonObject, "profiler", node => httpRequestBuilder.Profiler(node.GetValue<bool>()));
+        TryProcessJsonProperty(jsonObject, "baseAddress",
+            node => httpRequestBuilder.SetBaseAddress(node.GetValue<string>()));
+        TryProcessJsonProperty(jsonObject, "headers", node => httpRequestBuilder.WithHeaders(node));
+        TryProcessJsonProperty(jsonObject, "queries", node => httpRequestBuilder.WithQueryParameters(node));
+        TryProcessJsonProperty(jsonObject, "cookies", node => httpRequestBuilder.WithCookies(node));
+        TryProcessJsonProperty(jsonObject, "timeout", node => httpRequestBuilder.SetTimeout(node.GetValue<double>()));
+        TryProcessJsonProperty(jsonObject, "client",
+            node => httpRequestBuilder.SetHttpClientName(node.GetValue<string?>()));
+        TryProcessJsonProperty(jsonObject, "profiler", node => httpRequestBuilder.Profiler(node.GetValue<bool>()));
 
         // 处理请求内容
         if (jsonObject.TryGetPropertyValue("data", out var dataNode))
@@ -722,15 +725,11 @@ public sealed partial class HttpRequestBuilder
             }
 
             // 设置请求内容
-            httpRequestBuilder
-                .SetContent(
-                    dataNode?.ToJsonString(new JsonSerializerOptions
-                    {
-                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    }), contentTypeValue.ToString()).AddStringContentForFormUrlEncodedContentProcessor();
+            httpRequestBuilder.SetContent(HttpRemoteExtensions.ToJsonString(dataNode), contentTypeValue.ToString())
+                .AddStringContentForFormUrlEncodedContentProcessor();
 
             // 设置内容编码
-            HandleJsonNode(jsonObject, "encoding",
+            TryProcessJsonProperty(jsonObject, "encoding",
                 node => httpRequestBuilder.SetContentEncoding(node.GetValue<string>()));
         }
 
@@ -738,8 +737,8 @@ public sealed partial class HttpRequestBuilder
         if (jsonObject.TryGetPropertyValue("multipart", out var multipartNode))
         {
             // 设置多部分表单内容
-            httpRequestBuilder.SetMultipartContent(multipart => multipart.AddJson(multipartNode?.AsObject()
-                .ToJsonString(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping })));
+            httpRequestBuilder.SetMultipartContent(multipart =>
+                multipart.AddJson(HttpRemoteExtensions.ToJsonString(multipartNode?.AsObject())));
         }
 
         // 调用自定义配置委托
@@ -749,7 +748,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     处理 <see cref="JsonNode" />
+    ///     尝试从 <see cref="JsonObject" /> 中获取指定名称的属性节点
     /// </summary>
     /// <param name="jsonObject">
     ///     <see cref="JsonObject" />
@@ -757,7 +756,7 @@ public sealed partial class HttpRequestBuilder
     /// <param name="propertyName">属性名</param>
     /// <param name="action">自定义操作</param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal static void HandleJsonNode(JsonObject jsonObject, string propertyName, Action<JsonNode> action)
+    internal static void TryProcessJsonProperty(JsonObject jsonObject, string propertyName, Action<JsonNode> action)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(jsonObject);

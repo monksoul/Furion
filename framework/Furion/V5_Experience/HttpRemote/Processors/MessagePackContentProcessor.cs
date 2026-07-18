@@ -59,8 +59,7 @@ public class MessagePackContentProcessor : HttpContentProcessorBase
         var serializeMethod = messagePackSerializerType.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .SingleOrDefault(u =>
                 u is { Name: "Serialize", IsGenericMethod: true } && u.ReturnType == typeof(byte[]) &&
-                u.GetParameters().Length == 3 &&
-                u.GetGenericArguments().Length == 1)!;
+                u.GetParameters().Length == 3 && u.GetGenericArguments().Length == 1)!;
 
         // 返回调用委托
         return CreateSerializerDelegate(serializeMethod);
@@ -104,6 +103,7 @@ public class MessagePackContentProcessor : HttpContentProcessorBase
     /// <returns>
     ///     <see cref="Func{T1, T2}" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal static Func<object, byte[]> CreateSerializerDelegate(MethodInfo serializeMethod)
     {
         // 空检查

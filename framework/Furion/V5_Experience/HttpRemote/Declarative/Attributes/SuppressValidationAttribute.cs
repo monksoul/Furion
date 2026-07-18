@@ -30,4 +30,24 @@ namespace Furion.HttpRemote;
 /// </summary>
 /// <remarks>将该特性应用于接口时，将禁用该接口所有方法的参数数据验证；应用于具体方法时，则仅禁用该方法的参数验证。</remarks>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
-public sealed class SuppressValidationAttribute : Attribute;
+public sealed class SuppressValidationAttribute : Attribute
+{
+    /// <summary>
+    ///     <inheritdoc cref="SuppressValidationAttribute" />
+    /// </summary>
+    public SuppressValidationAttribute()
+        : this(true)
+    {
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="SuppressValidationAttribute" />
+    /// </summary>
+    /// <param name="enabled">是否启用</param>
+    public SuppressValidationAttribute(bool enabled) => Enabled = enabled;
+
+    /// <summary>
+    ///     是否启用
+    /// </summary>
+    public bool Enabled { get; set; }
+}

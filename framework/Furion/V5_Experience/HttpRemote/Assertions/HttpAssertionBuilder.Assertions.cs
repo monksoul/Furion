@@ -48,6 +48,7 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder StatusCode(int expected) =>
         AddAssertion(async context =>
         {
@@ -67,7 +68,9 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder StatusCodeIn(params int[] allowedStatusCodes)
     {
         // 空检查
@@ -99,6 +102,7 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder IsSuccessStatusCode() =>
         AddAssertion(async context =>
         {
@@ -119,6 +123,8 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder ContentContains(string expectedSubstring, CancellationToken cancellationToken = default)
     {
         // 空检查
@@ -145,6 +151,8 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder HeaderExists(string name)
     {
         // 空检查
@@ -172,6 +180,9 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder HeaderEquals(string name, string expectedValue)
     {
         // 空检查
@@ -210,6 +221,8 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder HeaderContains(string name, string expectedValue)
     {
         // 空检查
@@ -268,6 +281,8 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
     public HttpAssertionBuilder DurationUnder(TimeSpan maxDuration)
     {
         // 小于或等于 0 检查

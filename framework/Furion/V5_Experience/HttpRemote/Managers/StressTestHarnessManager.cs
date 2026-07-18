@@ -50,6 +50,7 @@ internal sealed class StressTestHarnessManager
     /// <param name="httpStressTestHarnessBuilder">
     ///     <see cref="HttpStressTestHarnessBuilder" />
     /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     internal StressTestHarnessManager(IHttpRemoteService httpRemoteService,
         HttpStressTestHarnessBuilder httpStressTestHarnessBuilder)
     {
