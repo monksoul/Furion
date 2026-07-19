@@ -213,20 +213,26 @@ public sealed class HttpRemoteBuilder
     /// <param name="declarativeType">
     ///     <see cref="IHttpDeclarative" />
     /// </param>
+    /// <param name="requireIHttpDeclarative">是否要求类型实现 <see cref="IHttpDeclarative"/> 接口，默认值为：<c>true</c></param>
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
-    public HttpRemoteBuilder AddHttpDeclarative(Type declarativeType)
+    public HttpRemoteBuilder AddHttpDeclarative(Type declarativeType, bool requireIHttpDeclarative = true)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(declarativeType);
 
-        // 检查类型是否是接口且实现了 IHttpDeclarative 接口
-        if (!declarativeType.IsInterface ||
-            declarativeType is { IsGenericType: true, ContainsGenericParameters: true } ||
-            !typeof(IHttpDeclarative).IsAssignableFrom(declarativeType))
+        // 类型必须是接口且不能是开放泛型
+        if (!declarativeType.IsInterface || declarativeType is { IsGenericType: true, ContainsGenericParameters: true })
+        {
+            throw new ArgumentException($"The type `{declarativeType}` must be a closed or non-generic interface.",
+                nameof(declarativeType));
+        }
+
+        // 当要求实现接口时，额外检查 IHttpDeclarative
+        if (requireIHttpDeclarative && !typeof(IHttpDeclarative).IsAssignableFrom(declarativeType))
         {
             throw new ArgumentException(
                 $"The type `{declarativeType}` must be a closed or non-generic interface that implements `{typeof(IHttpDeclarative)}`.",

@@ -404,4 +404,13 @@ public partial interface IHttpRemoteService
     ///     <typeparamref name="T" />
     /// </returns>
     Task<T?> SendAsAsync<T>(HttpDeclarativeBuilder httpDeclarativeBuilder);
+
+    /// <summary>
+    ///     解析服务
+    /// </summary>
+    /// <typeparam name="T">服务类型</typeparam>
+    /// <returns>
+    ///     <typeparamref name="T" />
+    /// </returns>
+    T For<T>() where T : notnull;
 }

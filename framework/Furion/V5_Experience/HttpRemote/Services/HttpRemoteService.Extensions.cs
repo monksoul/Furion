@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace Furion.HttpRemote;
@@ -168,4 +169,7 @@ internal sealed partial class HttpRemoteService
     /// <inheritdoc />
     public Task<T?> SendAsAsync<T>(HttpDeclarativeBuilder httpDeclarativeBuilder) =>
         new DeclarativeManager(this, httpDeclarativeBuilder).StartAsync<T>();
+
+    /// <inheritdoc />
+    public T For<T>() where T : notnull => ServiceProvider.GetRequiredService<T>();
 }
