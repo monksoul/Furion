@@ -33,12 +33,11 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     HTTP 远程请求结果
 /// </summary>
-/// <remarks>用于将原始的 <see cref="HttpResponseMessage" /> 进行包装转换。</remarks>
-/// <typeparam name="TResult">转换的目标类型</typeparam>
-public sealed class HttpRemoteResult<TResult> : IDisposable
+/// <remarks>用于将原始的 <see cref="HttpResponseMessage" /> 进行包装。</remarks>
+public class HttpRemoteResult : IDisposable
 {
     /// <summary>
-    ///     <inheritdoc cref="HttpRemoteResult{TResult}" />
+    ///     <inheritdoc cref="HttpRemoteResult" />
     /// </summary>
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
@@ -100,12 +99,6 @@ public sealed class HttpRemoteResult<TResult> : IDisposable
     public bool IsSuccessStatusCode { get; private set; }
 
     /// <summary>
-    ///     <typeparamref name="TResult" />
-    /// </summary>
-    /// <remarks>注意 <c>HEAD</c> 请求不包含响应体。</remarks>
-    public TResult? Result { get; internal init; }
-
-    /// <summary>
     ///     请求耗时（毫秒）
     /// </summary>
     public long RequestDuration { get; internal init; }
@@ -131,68 +124,10 @@ public sealed class HttpRemoteResult<TResult> : IDisposable
     public string? HttpClientName { get; private set; }
 
     /// <inheritdoc />
-    public void Dispose()
+    public virtual void Dispose()
     {
-        // 检查目标类型的实例是否实现了 IDisposable 接口
-        if (Result is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
+        GC.SuppressFinalize(this);
         ResponseMessage.Dispose();
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="isSuccessStatusCode">是否请求成功</param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
-        out bool isSuccessStatusCode)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-        isSuccessStatusCode = IsSuccessStatusCode;
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="isSuccessStatusCode">是否请求成功</param>
-    /// <param name="statusCode">响应状态码</param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
-        out bool isSuccessStatusCode, out HttpStatusCode statusCode)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-        isSuccessStatusCode = IsSuccessStatusCode;
-        statusCode = StatusCode;
     }
 
     /// <summary>
@@ -281,5 +216,91 @@ public sealed class HttpRemoteResult<TResult> : IDisposable
             [new KeyValuePair<string, IEnumerable<string>>("Request Duration (ms)", [$"{RequestDuration:N2}"])]);
 
         return Helpers.JoinNonEmptyLines(requestEntry, generalAndResponseEntry);
+    }
+}
+
+/// <inheritdoc cref="HttpRemoteResult" />
+/// <typeparam name="TResult">转换的目标类型</typeparam>
+public sealed class HttpRemoteResult<TResult> : HttpRemoteResult
+{
+    /// <summary>
+    ///     <inheritdoc cref="HttpRemoteResult{TResult}" />
+    /// </summary>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    public HttpRemoteResult(HttpResponseMessage httpResponseMessage) : base(httpResponseMessage)
+    {
+    }
+
+    /// <summary>
+    ///     <typeparamref name="TResult" />
+    /// </summary>
+    /// <remarks>注意 <c>HEAD</c> 请求不包含响应体。</remarks>
+    public TResult? Result { get; internal init; }
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        // 检查目标类型的实例是否实现了 IDisposable 接口
+        if (Result is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        base.Dispose();
+    }
+
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage)
+    {
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+    }
+
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="isSuccessStatusCode">是否请求成功</param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
+        out bool isSuccessStatusCode)
+    {
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+        isSuccessStatusCode = IsSuccessStatusCode;
+    }
+
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="isSuccessStatusCode">是否请求成功</param>
+    /// <param name="statusCode">响应状态码</param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
+        out bool isSuccessStatusCode, out HttpStatusCode statusCode)
+    {
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+        isSuccessStatusCode = IsSuccessStatusCode;
+        statusCode = StatusCode;
     }
 }

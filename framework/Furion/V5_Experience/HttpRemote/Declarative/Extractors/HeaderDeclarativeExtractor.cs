@@ -59,7 +59,7 @@ internal sealed class HeaderDeclarativeExtractor : IHttpDeclarativeExtractor
                 if (headerAttribute.HasSetValue)
                 {
                     httpRequestBuilder.WithHeader(headerName, headerAttribute.Value, headerAttribute.Escape,
-                        headerAttribute.Replace);
+                        headerAttribute.Replace, headerAttribute.Format);
                 }
                 else
                 {
@@ -111,8 +111,8 @@ internal sealed class HeaderDeclarativeExtractor : IHttpDeclarativeExtractor
                 // 检查类型是否是基本类型或枚举类型或由它们组成的数组或集合类型
                 if (parameter.ParameterType.IsBaseTypeOrEnumOrCollection())
                 {
-                    httpRequestBuilder.WithHeader(parameterName, value ?? headerAttribute.Value,
-                        headerAttribute.Escape, headerAttribute.Replace);
+                    httpRequestBuilder.WithHeader(parameterName, value ?? headerAttribute.Value, headerAttribute.Escape,
+                        headerAttribute.Replace, headerAttribute.Format);
 
                     continue;
                 }

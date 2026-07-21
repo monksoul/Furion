@@ -35,11 +35,15 @@ namespace Furion.HttpRemote;
 /// <param name="serviceProvider">
 ///     <see cref="IServiceProvider" />
 /// </param>
+/// <param name="logger">
+///     <see cref="IHttpRemoteLogger" />
+/// </param>
 /// <param name="accessTokenManager">
 ///     <see cref="HttpAccessTokenManager" />
 /// </param>
 internal sealed class TokenManagementPipelineHandler(
     IServiceProvider serviceProvider,
+    IHttpRemoteLogger logger,
     HttpAccessTokenManager accessTokenManager) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
@@ -87,6 +91,11 @@ internal sealed class TokenManagementPipelineHandler(
         if (httpResponseMessage is not null &&
             await httpAccessTokenProvider.ShouldRefreshTokenAsync(httpResponseMessage, context.CancellationToken))
         {
+            // 输出重试日志
+            logger.LogWarning(
+                "Access token refresh triggered due to HTTP {StatusCode}. Refreshing token and retrying request for HttpClient '{HttpClientName}'.",
+                (int)httpResponseMessage.StatusCode, httpClientName);
+
             // 释放前一个 HttpResponseMessage 实例
             httpResponseMessage.Dispose();
 

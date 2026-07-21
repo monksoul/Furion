@@ -428,16 +428,24 @@ public sealed partial class HttpRequestBuilder
     /// <param name="value">值</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
     /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <param name="format">要使用的格式，仅当 <paramref name="value" /> 实现 <see cref="IFormattable" /> 时有效</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpRequestBuilder WithHeader(string key, object? value, bool escape = false, bool replace = false)
+    public HttpRequestBuilder WithHeader(string key, object? value, bool escape = false, bool replace = false,
+        string? format = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        return WithHeaders(new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, value } }, escape,
+        // 尝试使用 format 格式化值
+        var formattedValue = !string.IsNullOrWhiteSpace(format) && value is IFormattable formattable
+            ? formattable.ToString(format, null)
+            : value;
+
+        return WithHeaders(
+            new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, formattedValue } }, escape,
             replace);
     }
 
@@ -608,18 +616,25 @@ public sealed partial class HttpRequestBuilder
     /// <param name="value">值</param>
     /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
     /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="format">要使用的格式，仅当 <paramref name="value" /> 实现 <see cref="IFormattable" /> 时有效</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     public HttpRequestBuilder WithQueryParameter(string key, object? value, bool replace = false,
-        bool ignoreNullValues = false)
+        bool ignoreNullValues = false, string? format = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        return WithQueryParameters(new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, value } },
-            replace, ignoreNullValues);
+        // 尝试使用 format 格式化值
+        var formattedValue = !string.IsNullOrWhiteSpace(format) && value is IFormattable formattable
+            ? formattable.ToString(format, null)
+            : value;
+
+        return WithQueryParameters(
+            new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, formattedValue } }, replace,
+            ignoreNullValues);
     }
 
     /// <summary>
@@ -859,16 +874,23 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
+    /// <param name="format">要使用的格式，仅当 <paramref name="value" /> 实现 <see cref="IFormattable" /> 时有效</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpRequestBuilder WithCookie(string key, object? value)
+    public HttpRequestBuilder WithCookie(string key, object? value, string? format = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        return WithCookies(new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, value } });
+        // 尝试使用 format 格式化值
+        var formattedValue = !string.IsNullOrWhiteSpace(format) && value is IFormattable formattable
+            ? formattable.ToString(format, null)
+            : value;
+
+        return WithCookies(
+            new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, formattedValue } });
     }
 
     /// <summary>
@@ -1988,6 +2010,22 @@ public sealed partial class HttpRequestBuilder
     public HttpRequestBuilder WithoutTokenManagement()
     {
         SuppressTokenManagement = true;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置 HTTP 完成选项
+    /// </summary>
+    /// <param name="completionOption">
+    ///     <see cref="HttpCompletionOption" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder SetCompletionOption(HttpCompletionOption? completionOption)
+    {
+        CompletionOption = completionOption;
 
         return this;
     }

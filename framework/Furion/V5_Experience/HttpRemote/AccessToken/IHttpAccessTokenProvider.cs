@@ -39,6 +39,7 @@ public interface IHttpAccessTokenProvider
     /// <summary>
     ///     获取 Access Token
     /// </summary>
+    /// <remarks>用于首次获取或常规获取。</remarks>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -46,6 +47,20 @@ public interface IHttpAccessTokenProvider
     ///     <see cref="HttpAccessToken" />
     /// </returns>
     Task<HttpAccessToken> GetTokenAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     刷新 Access Token
+    /// </summary>
+    /// <remarks>默认实现直接调用 <see cref="GetTokenAsync" />。若认证流程中“首次获取 Token”与“刷新 Token”使用不同的接口（如登录接口 vs 刷新专用接口），可重写此方法并提供专用的刷新逻辑。</remarks>
+    /// <param name="currentToken">当前已缓存的 <see cref="HttpAccessToken" /></param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAccessToken" />
+    /// </returns>
+    Task<HttpAccessToken> RefreshTokenAsync(HttpAccessToken? currentToken, CancellationToken cancellationToken) =>
+        GetTokenAsync(cancellationToken);
 
     /// <summary>
     ///     指示是否需要强制刷新 Access Token 并重试请求

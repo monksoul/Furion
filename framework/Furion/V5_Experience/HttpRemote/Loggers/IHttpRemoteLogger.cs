@@ -37,35 +37,43 @@ public interface IHttpRemoteLogger
     /// </summary>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogInformation(string message, params object?[] args);
+    void LogInformation(string? message, params object?[] args);
 
     /// <summary>
     ///     输出 Trace 日志
     /// </summary>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogTrace(string message, params object?[] args);
+    void LogTrace(string? message, params object?[] args);
 
     /// <summary>
     ///     输出 Debug 日志
     /// </summary>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogDebug(string message, params object?[] args);
+    void LogDebug(string? message, params object?[] args);
 
     /// <summary>
     ///     输出 Warning 日志
     /// </summary>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogWarning(string message, params object?[] args);
+    void LogWarning(string? message, params object?[] args);
+
+    /// <summary>
+    ///     输出 Warning 日志
+    /// </summary>
+    /// <param name="exception">异常信息</param>
+    /// <param name="message">日志消息</param>
+    /// <param name="args">结构化参数</param>
+    void LogWarning(Exception? exception, string? message, params object?[] args);
 
     /// <summary>
     ///     输出 Critical 日志
     /// </summary>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogCritical(string message, params object?[] args);
+    void LogCritical(string? message, params object?[] args);
 
     /// <summary>
     ///     输出 Error 日志
@@ -73,7 +81,7 @@ public interface IHttpRemoteLogger
     /// <param name="exception">异常信息</param>
     /// <param name="message">日志消息</param>
     /// <param name="args">结构化参数</param>
-    void LogError(Exception exception, string message, params object?[] args);
+    void LogError(Exception? exception, string? message, params object?[] args);
 
     /// <summary>
     ///     输出日志

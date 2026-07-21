@@ -23,39 +23,13 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Furion.Extensions;
-using System.Globalization;
-
 namespace Furion.HttpRemote;
 
-/// <inheritdoc cref="IUrlParameterFormatter" />
-public class UrlParameterFormatter : IUrlParameterFormatter
-{
-    /// <inheritdoc />
-    public virtual string? Format(object? value, UrlFormattingContext context) => DefaultFormatter(value, context);
-
-    /// <summary>
-    ///     默认格式化
-    /// </summary>
-    /// <param name="value">参数值</param>
-    /// <param name="context">
-    ///     <see cref="UrlFormattingContext" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="string" />
-    /// </returns>
-    public static string? DefaultFormatter(object? value, UrlFormattingContext context)
-    {
-        // 检查值是否为委托，如果是则获取实际值
-        var resolvedValue = value switch
-        {
-            // 处理 () => value; 情况
-            Func<object?> valueProvider => valueProvider(),
-            // 处理 context => value; 情况
-            Func<UrlFormattingContext, object?> valueProvider => valueProvider(context),
-            _ => value
-        };
-
-        return resolvedValue?.ToInvariantCultureString();
-    }
-}
+/// <summary>
+///     HTTP 请求的响应结果
+/// </summary>
+/// <param name="ResponseMessage">
+///     <see cref="HttpResponseMessage" />
+/// </param>
+/// <param name="RequestDuration">请求耗时（毫秒）</param>
+public sealed record HttpResponseResult(HttpResponseMessage? ResponseMessage, long RequestDuration);

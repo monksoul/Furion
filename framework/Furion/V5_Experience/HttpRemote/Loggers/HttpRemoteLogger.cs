@@ -78,22 +78,27 @@ internal sealed class HttpRemoteLogger(
     });
 
     /// <inheritdoc />
-    public void LogInformation(string message, params object?[] args) => Log(LogLevel.Information, null, message, args);
+    public void LogInformation(string? message, params object?[] args) =>
+        Log(LogLevel.Information, null, message, args);
 
     /// <inheritdoc />
-    public void LogTrace(string message, params object?[] args) => Log(LogLevel.Trace, null, message, args);
+    public void LogTrace(string? message, params object?[] args) => Log(LogLevel.Trace, null, message, args);
 
     /// <inheritdoc />
-    public void LogDebug(string message, params object?[] args) => Log(LogLevel.Debug, null, message, args);
+    public void LogDebug(string? message, params object?[] args) => Log(LogLevel.Debug, null, message, args);
 
     /// <inheritdoc />
-    public void LogWarning(string message, params object?[] args) => Log(LogLevel.Warning, null, message, args);
+    public void LogWarning(string? message, params object?[] args) => Log(LogLevel.Warning, null, message, args);
 
     /// <inheritdoc />
-    public void LogCritical(string message, params object?[] args) => Log(LogLevel.Critical, null, message, args);
+    public void LogWarning(Exception? exception, string? message, params object?[] args) =>
+        Log(LogLevel.Warning, exception, message, args);
 
     /// <inheritdoc />
-    public void LogError(Exception exception, string message, params object?[] args) =>
+    public void LogCritical(string? message, params object?[] args) => Log(LogLevel.Critical, null, message, args);
+
+    /// <inheritdoc />
+    public void LogError(Exception? exception, string? message, params object?[] args) =>
         Log(LogLevel.Error, exception, message, args);
 
     /// <inheritdoc />

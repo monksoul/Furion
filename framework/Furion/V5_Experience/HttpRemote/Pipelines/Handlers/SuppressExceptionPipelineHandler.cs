@@ -29,7 +29,10 @@ namespace Furion.HttpRemote;
 ///     异常抑制管道处理器
 /// </summary>
 /// <remarks>确保该处理器位于管道最外层。</remarks>
-internal sealed class SuppressExceptionPipelineHandler : IHttpRequestPipelineHandler
+/// <param name="logger">
+///     <see cref="IHttpRemoteLogger" />
+/// </param>
+internal sealed class SuppressExceptionPipelineHandler(IHttpRemoteLogger logger) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -43,6 +46,9 @@ internal sealed class SuppressExceptionPipelineHandler : IHttpRequestPipelineHan
         // 检查是否启用异常抑制机制
         catch (Exception e) when (ShouldSuppressException(context.Builder.SuppressExceptionTypes, e))
         {
+            // 记录异常抑制日志
+            logger.LogWarning(e, "An exception occurred but was suppressed by SuppressExceptionPipelineHandler.");
+
             return context.ResponseMessage;
         }
     }

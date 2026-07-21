@@ -48,12 +48,12 @@ public sealed class HttpAccessToken
     /// <summary>
     ///     Access Token 值
     /// </summary>
-    public string Value { get; }
+    public string Value { get; set; }
 
     /// <summary>
     ///     Access Token 的绝对过期时间
     /// </summary>
-    public DateTimeOffset ExpiresAt { get; }
+    public DateTimeOffset ExpiresAt { get; set; }
 
     /// <summary>
     ///     HTTP 认证方案

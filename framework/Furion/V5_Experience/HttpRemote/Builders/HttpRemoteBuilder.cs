@@ -213,7 +213,7 @@ public sealed class HttpRemoteBuilder
     /// <param name="declarativeType">
     ///     <see cref="IHttpDeclarative" />
     /// </param>
-    /// <param name="requireIHttpDeclarative">是否要求类型实现 <see cref="IHttpDeclarative"/> 接口，默认值为：<c>true</c></param>
+    /// <param name="requireIHttpDeclarative">是否要求类型实现 <see cref="IHttpDeclarative" /> 接口，默认值为：<c>true</c></param>
     /// <returns>
     ///     <see cref="HttpRemoteBuilder" />
     /// </returns>

@@ -31,7 +31,10 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     请求重试管道处理器
 /// </summary>
-internal sealed class RetryPipelineHandler : IHttpRequestPipelineHandler
+/// <param name="logger">
+///     <see cref="IHttpRemoteLogger" />
+/// </param>
+internal sealed class RetryPipelineHandler(IHttpRemoteLogger logger) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -65,7 +68,7 @@ internal sealed class RetryPipelineHandler : IHttpRequestPipelineHandler
         }
 
         // 获取每次重试前的回调委托
-        var onRetry = httpRetryOptions.OnRetry;
+        var onRetry = httpRetryOptions.OnRetry ?? DefaultOnRetry;
 
         // 当前尝试次数
         var attempt = 0;
@@ -197,4 +200,30 @@ internal sealed class RetryPipelineHandler : IHttpRequestPipelineHandler
     /// </returns>
     internal static bool ShouldRetryOnStatusCode(HashSet<HttpStatusCode>? statusCodes, HttpStatusCode statusCode) =>
         statusCodes is not (null or { Count: 0 }) && statusCodes.Contains(statusCode);
+
+    /// <summary>
+    ///     默认的重试日志回调
+    /// </summary>
+    /// <param name="retryContext">
+    ///     <see cref="HttpRetryContext" />
+    /// </param>
+    internal void DefaultOnRetry(HttpRetryContext retryContext)
+    {
+        // 格式化最大重试次数（无限重试时显示为 ∞）
+        var maxRetriesDisplay = retryContext.MaxRetries == -1 ? "∞" : retryContext.MaxRetries.ToString();
+
+        // 检查是否因异常触发
+        if (retryContext.IsExceptionRetry)
+        {
+            logger.LogWarning(retryContext.Exception,
+                "Request is being retried due to exception. Attempt {Attempt}/{MaxRetries}.", retryContext.Attempt,
+                maxRetriesDisplay);
+        }
+        // 检查是否因状态码触发
+        else if (retryContext.IsStatusCodeRetry)
+        {
+            logger.LogWarning("Request is being retried. Attempt {Attempt}/{MaxRetries}. Status code: {StatusCode}.",
+                retryContext.Attempt, maxRetriesDisplay, retryContext.StatusCode);
+        }
+    }
 }

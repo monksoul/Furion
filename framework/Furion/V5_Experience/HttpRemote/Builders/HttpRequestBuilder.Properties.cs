@@ -253,6 +253,12 @@ public sealed partial class HttpRequestBuilder
     public bool OmitContentType { get; private set; }
 
     /// <summary>
+    ///     HTTP 完成选项
+    /// </summary>
+    /// <remarks>控制发送请求返回响应的时机。</remarks>
+    public HttpCompletionOption? CompletionOption { get; private set; }
+
+    /// <summary>
     ///     HTTP 请求重试选项
     /// </summary>
     public HttpRetryOptions? RetryOptions { get; private set; }

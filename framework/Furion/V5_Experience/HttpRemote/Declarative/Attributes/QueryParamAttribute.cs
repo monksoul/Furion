@@ -113,6 +113,12 @@ public sealed class QueryParamAttribute : Attribute
     public bool IgnoreNullValues { get; set; }
 
     /// <summary>
+    ///     要使用的格式
+    /// </summary>
+    /// <remarks>仅当 <see cref="Value" /> 实现 <see cref="IFormattable" /> 时有效。</remarks>
+    public string? Format { get; set; }
+
+    /// <summary>
     ///     是否设置了值
     /// </summary>
     internal bool HasSetValue { get; private set; }

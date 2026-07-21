@@ -357,14 +357,13 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1, T2}" />
+    ///     <see cref="HttpResponseResult" />
     /// </returns>
-    public Task<(HttpResponseMessage? ResponseMessage, long RequestDuration)> SendCoreAsync(
-        HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
-        CancellationToken cancellationToken = default) =>
-        SendCoreAsync(httpRequestBuilder, completionOption,
-            (httpClient, httpRequestMessage, option, token) => httpClient.SendAsync(httpRequestMessage, option, token),
-            null, cancellationToken);
+    public Task<HttpResponseResult> SendCoreAsync(HttpRequestBuilder httpRequestBuilder,
+        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) => SendCoreAsync(
+        httpRequestBuilder, completionOption,
+        (httpClient, httpRequestMessage, option, token) => httpClient.SendAsync(httpRequestMessage, option, token),
+        null, cancellationToken);
 
     /// <summary>
     ///     发送 HTTP 远程请求（核心）
@@ -379,13 +378,13 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1, T2}" />
+    ///     <see cref="HttpResponseResult" />
     /// </returns>
-    public (HttpResponseMessage? ResponseMessage, long RequestDuration) SendCore(HttpRequestBuilder httpRequestBuilder,
-        HttpCompletionOption completionOption, CancellationToken cancellationToken = default) =>
-        AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder, completionOption, null,
-            (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
-            cancellationToken));
+    public HttpResponseResult SendCore(HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+        CancellationToken cancellationToken = default) => AsyncUtility.RunSync(() => SendCoreAsync(httpRequestBuilder,
+        completionOption, null,
+        (httpClient, httpRequestMessage, option, token) => httpClient.Send(httpRequestMessage, option, token),
+        cancellationToken));
 
     /// <summary>
     ///     发送 HTTP 远程请求并处理 <see cref="HttpResponseMessage" /> 实例
@@ -402,11 +401,11 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1, T2}" />
+    ///     <see cref="HttpResponseResult" />
     /// </returns>
     /// <exception cref="InvalidOperationException"></exception>
-    internal async Task<(HttpResponseMessage? ResponseMessage, long RequestDuration)> SendCoreAsync(
-        HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+    internal async Task<HttpResponseResult> SendCoreAsync(HttpRequestBuilder httpRequestBuilder,
+        HttpCompletionOption completionOption,
         Func<HttpClient, HttpRequestMessage, HttpCompletionOption, CancellationToken, Task<HttpResponseMessage>>?
             sendAsyncMethod,
         Func<HttpClient, HttpRequestMessage, HttpCompletionOption, CancellationToken, HttpResponseMessage>? sendMethod,
@@ -431,7 +430,7 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
         // 初始化 HttpRequestPipelineContext 实例
         var httpRequestPipelineContext = new HttpRequestPipelineContext(httpRequestBuilder, httpClient,
-            completionOption, sendAsync, cancellationToken);
+            httpRequestBuilder.CompletionOption ?? completionOption, sendAsync, cancellationToken);
 
         // 获取预构建的请求管道委托链
         var pipeline = _requestPipelineDelegate.Value;
@@ -441,7 +440,7 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
             // 执行管道（发送 HTTP 请求）
             var httpResponseMessage = await pipeline(httpRequestPipelineContext);
 
-            return (httpResponseMessage, httpRequestPipelineContext.RequestDuration);
+            return new HttpResponseResult(httpResponseMessage, httpRequestPipelineContext.RequestDuration);
         }
         finally
         {

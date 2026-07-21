@@ -517,10 +517,9 @@ public partial interface IHttpRemoteService
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1, T2}" />
+    ///     <see cref="HttpResponseResult" />
     /// </returns>
-    Task<(HttpResponseMessage? ResponseMessage, long RequestDuration)> SendCoreAsync(
-        HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+    Task<HttpResponseResult> SendCoreAsync(HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -536,8 +535,8 @@ public partial interface IHttpRemoteService
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1, T2}" />
+    ///     <see cref="HttpResponseResult" />
     /// </returns>
-    (HttpResponseMessage? ResponseMessage, long RequestDuration) SendCore(HttpRequestBuilder httpRequestBuilder,
-        HttpCompletionOption completionOption, CancellationToken cancellationToken = default);
+    HttpResponseResult SendCore(HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
+        CancellationToken cancellationToken = default);
 }
