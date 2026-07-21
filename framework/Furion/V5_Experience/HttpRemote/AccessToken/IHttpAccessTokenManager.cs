@@ -26,41 +26,37 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     Access Token 请求上下文
+///     Access Token 管理器接口
 /// </summary>
-public sealed class HttpAccessTokenContext
+public interface IHttpAccessTokenManager
 {
     /// <summary>
-    ///     <inheritdoc cref="HttpAccessTokenContext" />
+    ///     设置 Access Token
     /// </summary>
+    /// <remarks>用于首次获取或常规获取。</remarks>
     /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
-    /// <param name="httpAccessTokenProvider"><see cref="IHttpAccessTokenProvider" /> 实例</param>
-    /// <exception cref="ArgumentNullException"></exception>
-    internal HttpAccessTokenContext(string? httpClientName, IHttpAccessTokenProvider httpAccessTokenProvider)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(httpAccessTokenProvider);
-
-        HttpClientName = httpClientName ?? string.Empty;
-        HttpAccessTokenProvider = httpAccessTokenProvider;
-    }
-
-    /// <summary>
-    ///     <see cref="HttpClient" /> 实例的配置名称
-    /// </summary>
-    public string HttpClientName { get; }
+    /// <param name="httpAccessToken">
+    ///     <see cref="HttpAccessToken" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Task" />
+    /// </returns>
+    Task SetTokenAsync(string? httpClientName, HttpAccessToken httpAccessToken,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     共享数据字典
+    ///     获取当前缓存的 Access Token
     /// </summary>
-    /// <remarks>
-    ///     <para>用于存储与 Access Token 相关的自定义数据。</para>
-    ///     <para>可通过 <c>HttpRequestBuilder.WithAccessTokenData</c> 方法进行设置。</para>
-    /// </remarks>
-    public IDictionary<object, object?> Items { get; } = new Dictionary<object, object?>();
-
-    /// <summary>
-    ///     <see cref="IHttpAccessTokenProvider" /> 实例
-    /// </summary>
-    internal IHttpAccessTokenProvider HttpAccessTokenProvider { get; }
+    /// <remarks>此方法不会触发刷新操作。</remarks>
+    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAccessToken" />
+    /// </returns>
+    Task<HttpAccessToken?> GetTokenAsync(string? httpClientName, CancellationToken cancellationToken = default);
 }

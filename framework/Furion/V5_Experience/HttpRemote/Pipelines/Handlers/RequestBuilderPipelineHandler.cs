@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Furion.HttpRemote;
@@ -31,6 +32,9 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     构建 <see cref="HttpRequestMessage" /> 管道处理器
 /// </summary>
+/// <param name="serviceProvider">
+///     <see cref="IServiceProvider" />
+/// </param>
 /// <param name="httpContentProcessorFactory">
 ///     <see cref="IHttpContentProcessorFactory" />
 /// </param>
@@ -38,6 +42,7 @@ namespace Furion.HttpRemote;
 ///     <see cref="HttpRemoteOptions" />
 /// </param>
 internal sealed class RequestBuilderPipelineHandler(
+    IServiceProvider serviceProvider,
     IHttpContentProcessorFactory httpContentProcessorFactory,
     IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
 {
@@ -55,13 +60,20 @@ internal sealed class RequestBuilderPipelineHandler(
         // 更新上下文
         context.RequestMessage = httpRequestMessage;
 
+        // 获取当前 HttpClient 实例的配置名称的配置选项
+        var httpClientOptions = serviceProvider.GetService<IOptionsMonitor<HttpClientOptions>>()
+            ?.Get(httpRequestBuilder.HttpClientName);
+
+        // 获取全局的 IHttpRequestEventHandler 事件处理程序
+        var globalEventHandler = httpClientOptions?.HttpRequestEventHandler;
+
         // 解析 IHttpRequestEventHandler 事件处理程序
         var requestEventHandler = context.Items.TryGetValue(Constants.REQUEST_EVENT_HANDLER_KEY, out var eventHandler)
             ? eventHandler as IHttpRequestEventHandler
             : null;
 
         // 处理发送 HTTP 请求之前
-        HandlePreSendRequest(httpRequestBuilder, requestEventHandler, httpRequestMessage);
+        HandlePreSendRequest(httpRequestBuilder, globalEventHandler, requestEventHandler, httpRequestMessage);
 
         // 调用下一个处理器的委托
         return await next();
@@ -73,6 +85,7 @@ internal sealed class RequestBuilderPipelineHandler(
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
     /// </param>
+    /// <param name="globalEventHandler"><see cref="HttpClientOptions" /> 配置 <see cref="IHttpRequestEventHandler" /></param>
     /// <param name="requestEventHandler">
     ///     <see cref="IHttpRequestEventHandler" />
     /// </param>
@@ -80,8 +93,15 @@ internal sealed class RequestBuilderPipelineHandler(
     ///     <see cref="HttpRequestMessage" />
     /// </param>
     internal static void HandlePreSendRequest(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, HttpRequestMessage httpRequestMessage)
+        IHttpRequestEventHandler? globalEventHandler, IHttpRequestEventHandler? requestEventHandler,
+        HttpRequestMessage httpRequestMessage)
     {
+        // 空检查
+        if (globalEventHandler is not null)
+        {
+            DelegateExtensions.TryInvoke(globalEventHandler.OnPreSendRequest, httpRequestMessage);
+        }
+
         // 空检查
         if (requestEventHandler is not null)
         {

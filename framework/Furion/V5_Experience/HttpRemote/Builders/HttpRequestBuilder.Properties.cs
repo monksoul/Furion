@@ -42,6 +42,9 @@ public sealed partial class HttpRequestBuilder
         typeof(HttpRequestBuilder).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                                  BindingFlags.DeclaredOnly));
 
+    /// <inheritdoc cref="OnPostReceiveResponse" />
+    internal Action<HttpResponseMessage>? _onPostReceiveResponse;
+
     /// <inheritdoc cref="OnPreSendRequest" />
     internal Action<HttpRequestMessage>? _onPreSendRequest;
 
@@ -234,7 +237,11 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在收到 HTTP 响应之后的操作
     /// </summary>
-    public Action<HttpResponseMessage>? OnPostReceiveResponse { get; private set; }
+    public Action<HttpResponseMessage>? OnPostReceiveResponse
+    {
+        get => _onPostReceiveResponse;
+        private set => _onPostReceiveResponse = value;
+    }
 
     /// <summary>
     ///     用于处理在发送 HTTP 请求发生异常时的操作
@@ -267,6 +274,12 @@ public sealed partial class HttpRequestBuilder
     ///     HTTP 请求超时选项
     /// </summary>
     public HttpTimeoutOptions? TimeoutOptions { get; private set; }
+
+    /// <summary>
+    ///     获取 Access Token 时传递的自定义数据
+    /// </summary>
+    /// <remarks>该数据将被复制到 <see cref="HttpAccessTokenContext.Items" /> 中，供 <see cref="IHttpAccessTokenProvider" /> 使用。</remarks>
+    public IDictionary<string, object?>? AccessTokenData { get; private set; }
 
     /// <summary>
     ///     如果 HTTP 响应的 <c>IsSuccessStatusCode</c> 属性是 <c>false</c>，则引发异常。

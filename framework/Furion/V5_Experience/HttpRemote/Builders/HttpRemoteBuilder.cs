@@ -465,6 +465,8 @@ public sealed class HttpRemoteBuilder
 
         // 注册 Access Token 管理器服务
         services.TryAddSingleton<HttpAccessTokenManager>();
+        services.TryAddSingleton<IHttpAccessTokenManager>(serviceProvider =>
+            serviceProvider.GetRequiredService<HttpAccessTokenManager>());
 
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);

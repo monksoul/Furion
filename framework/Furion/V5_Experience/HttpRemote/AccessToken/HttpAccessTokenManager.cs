@@ -30,12 +30,47 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     Access Token 管理器
 /// </summary>
-internal sealed class HttpAccessTokenManager
+internal sealed class HttpAccessTokenManager : IHttpAccessTokenManager
 {
     /// <summary>
     ///     <see cref="HttpClient" /> 实例的配置名称的 Access Token 缓存字典
     /// </summary>
     internal readonly ConcurrentDictionary<string, AccessTokenCache> _httpClientNameCaches = new();
+
+    /// <inheritdoc />
+    public async Task SetTokenAsync(string? httpClientName, HttpAccessToken httpAccessToken,
+        CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(httpAccessToken);
+
+        // 获取或创建与 HttpClient 实例的配置名称对应的 Access Token 缓存项
+        var accessTokenCache =
+            _httpClientNameCaches.GetOrAdd(httpClientName ?? string.Empty, _ => new AccessTokenCache());
+
+        await accessTokenCache.SetAsync(httpAccessToken, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<HttpAccessToken?> GetTokenAsync(string? httpClientName, CancellationToken cancellationToken = default)
+    {
+        // 检查 HttpClient 实例的配置名称是否存在 Access Token 缓存项
+        if (!_httpClientNameCaches.TryGetValue(httpClientName ?? string.Empty, out var accessTokenCache))
+        {
+            return Task.FromResult<HttpAccessToken?>(null);
+        }
+
+        // 获取当前缓存的 Access Token
+        var current = accessTokenCache.Current;
+
+        // 检查缓存项目是否存在且未过期
+        if (current is not null && !current.IsExpired())
+        {
+            return Task.FromResult<HttpAccessToken?>(current);
+        }
+
+        return Task.FromResult<HttpAccessToken?>(null);
+    }
 
     /// <summary>
     ///     获取或刷新指定 <see cref="HttpClient" /> 实例的配置名称的 Access Token
@@ -50,7 +85,7 @@ internal sealed class HttpAccessTokenManager
     ///     <see cref="HttpAccessToken" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public async Task<HttpAccessToken> GetOrRefreshAsync(HttpAccessTokenContext context,
+    public async Task<HttpAccessToken?> GetOrRefreshAsync(HttpAccessTokenContext context,
         CancellationToken cancellationToken)
     {
         // 空检查
@@ -81,7 +116,7 @@ internal sealed class HttpAccessTokenManager
     ///     <see cref="HttpAccessToken" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public async Task<HttpAccessToken> ForceRefreshAsync(HttpAccessTokenContext context,
+    public async Task<HttpAccessToken?> ForceRefreshAsync(HttpAccessTokenContext context,
         CancellationToken cancellationToken)
     {
         // 空检查
@@ -115,6 +150,33 @@ internal sealed class HttpAccessTokenManager
         internal HttpAccessToken? Current => _current;
 
         /// <summary>
+        ///     设置 Access Token
+        /// </summary>
+        /// <param name="httpAccessToken">
+        ///     <see cref="HttpAccessToken" />
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     <see cref="CancellationToken" />
+        /// </param>
+        internal async Task SetAsync(HttpAccessToken httpAccessToken,
+            CancellationToken cancellationToken)
+        {
+            // 等待进入互斥区
+            await _refreshLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                // 更新缓存
+                _current = httpAccessToken;
+            }
+            finally
+            {
+                // 释放锁
+                _refreshLock.Release();
+            }
+        }
+
+        /// <summary>
         ///     获取或刷新 Access Token
         /// </summary>
         /// <param name="context">
@@ -126,7 +188,7 @@ internal sealed class HttpAccessTokenManager
         /// <returns>
         ///     <see cref="HttpAccessToken" />
         /// </returns>
-        internal async Task<HttpAccessToken> GetOrRefreshAsync(HttpAccessTokenContext context,
+        internal async Task<HttpAccessToken?> GetOrRefreshAsync(HttpAccessTokenContext context,
             CancellationToken cancellationToken)
         {
             // 等待进入互斥区
@@ -141,7 +203,8 @@ internal sealed class HttpAccessTokenManager
                 }
 
                 // 获取新的 Access Token
-                var httpAccessToken = await context.HttpAccessTokenProvider.GetTokenAsync(cancellationToken);
+                var httpAccessToken =
+                    await context.HttpAccessTokenProvider.RefreshTokenAsync(context, _current, cancellationToken);
 
                 // 更新缓存
                 _current = httpAccessToken;
@@ -167,7 +230,7 @@ internal sealed class HttpAccessTokenManager
         /// <returns>
         ///     <see cref="HttpAccessToken" />
         /// </returns>
-        internal async Task<HttpAccessToken> ForceRefreshAsync(HttpAccessTokenContext context,
+        internal async Task<HttpAccessToken?> ForceRefreshAsync(HttpAccessTokenContext context,
             CancellationToken cancellationToken)
         {
             // 等待进入互斥区
@@ -175,12 +238,9 @@ internal sealed class HttpAccessTokenManager
 
             try
             {
-                // 获取当前旧的 Access Token
-                var currentToken = _current;
-
                 // 刷新 Access Token
                 var httpAccessToken =
-                    await context.HttpAccessTokenProvider.RefreshTokenAsync(_current, cancellationToken);
+                    await context.HttpAccessTokenProvider.RefreshTokenAsync(context, _current, cancellationToken);
 
                 // 更新缓存
                 _current = httpAccessToken;

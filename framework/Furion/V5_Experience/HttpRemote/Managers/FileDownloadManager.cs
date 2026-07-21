@@ -529,7 +529,8 @@ internal sealed class FileDownloadManager
         FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
     {
         // 克隆 HttpRequestBuilder 并设置 Range 头
-        var httpRequestBuilder = RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}");
+        var httpRequestBuilder =
+            RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}", replace: true);
 
         // 发送 HTTP 远程请求
         using var httpResponseMessage = await _httpRemoteService.SendAsync(httpRequestBuilder,
@@ -612,7 +613,8 @@ internal sealed class FileDownloadManager
         FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
     {
         // 克隆 HttpRequestBuilder 并设置 Range 头
-        var httpRequestBuilder = RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}");
+        var httpRequestBuilder =
+            RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}", replace: true);
 
         // 发送 HTTP 远程请求
         using var httpResponseMessage = _httpRemoteService.Send(httpRequestBuilder,

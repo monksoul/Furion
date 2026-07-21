@@ -24,6 +24,8 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Furion.HttpRemote;
 
@@ -46,6 +48,13 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
         // 获取当前 HttpRequestBuilder 实例
         var httpRequestBuilder = context.Builder;
 
+        // 获取当前 HttpClient 实例的配置名称的配置选项
+        var httpClientOptions = serviceProvider.GetService<IOptionsMonitor<HttpClientOptions>>()
+            ?.Get(httpRequestBuilder.HttpClientName);
+
+        // 获取全局的 IHttpRequestEventHandler 事件处理程序
+        var globalEventHandler = httpClientOptions?.HttpRequestEventHandler;
+
         // 解析 IHttpRequestEventHandler 事件处理程序
         var requestEventHandler =
             (httpRequestBuilder.RequestEventHandlerType is not null
@@ -67,14 +76,16 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
                 context.RequestMessage?.RequestUri?.ToString() ?? "unknown", context.RequestMessage?.Method);
 
             // 处理发送 HTTP 请求发生异常
-            HandleRequestFailed(httpRequestBuilder, requestEventHandler, e, context.ResponseMessage);
+            HandleRequestFailed(httpRequestBuilder, globalEventHandler, requestEventHandler, e,
+                context.ResponseMessage);
 
             throw;
         }
         finally
         {
             // 处理收到 HTTP 响应之后
-            HandlePostReceiveResponse(httpRequestBuilder, requestEventHandler, context.ResponseMessage);
+            HandlePostReceiveResponse(httpRequestBuilder, globalEventHandler, requestEventHandler,
+                context.ResponseMessage);
         }
     }
 
@@ -84,6 +95,7 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
     /// </param>
+    /// <param name="globalEventHandler"><see cref="HttpClientOptions" /> 配置 <see cref="IHttpRequestEventHandler" /></param>
     /// <param name="requestEventHandler">
     ///     <see cref="IHttpRequestEventHandler" />
     /// </param>
@@ -94,8 +106,15 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
     ///     <see cref="HttpResponseMessage" />
     /// </param>
     internal static void HandleRequestFailed(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, Exception e, HttpResponseMessage? httpResponseMessage)
+        IHttpRequestEventHandler? globalEventHandler, IHttpRequestEventHandler? requestEventHandler, Exception e,
+        HttpResponseMessage? httpResponseMessage)
     {
+        // 空检查
+        if (globalEventHandler is not null)
+        {
+            DelegateExtensions.TryInvoke(globalEventHandler.OnRequestFailed, e, httpResponseMessage);
+        }
+
         // 空检查
         if (requestEventHandler is not null)
         {
@@ -111,6 +130,7 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
     /// </param>
+    /// <param name="globalEventHandler"><see cref="HttpClientOptions" /> 配置 <see cref="IHttpRequestEventHandler" /></param>
     /// <param name="requestEventHandler">
     ///     <see cref="IHttpRequestEventHandler" />
     /// </param>
@@ -118,12 +138,19 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
     ///     <see cref="HttpResponseMessage" />
     /// </param>
     internal static void HandlePostReceiveResponse(HttpRequestBuilder httpRequestBuilder,
-        IHttpRequestEventHandler? requestEventHandler, HttpResponseMessage? httpResponseMessage)
+        IHttpRequestEventHandler? globalEventHandler, IHttpRequestEventHandler? requestEventHandler,
+        HttpResponseMessage? httpResponseMessage)
     {
         // 空检查
         if (httpResponseMessage is null)
         {
             return;
+        }
+
+        // 空检查
+        if (globalEventHandler is not null)
+        {
+            DelegateExtensions.TryInvoke(globalEventHandler.OnPostReceiveResponse, httpResponseMessage);
         }
 
         // 空检查

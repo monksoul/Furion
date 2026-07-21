@@ -76,20 +76,34 @@ internal sealed class TokenManagementPipelineHandler(
         // 初始化 HttpAccessTokenContext 实例
         var httpAccessTokenContext = new HttpAccessTokenContext(httpClientName, httpAccessTokenProvider);
 
+        // 将 HttpRequestBuilder 中携带的 Access Token 自定义数据复制到上下文中
+        if (httpRequestBuilder.AccessTokenData is { Count: > 0 })
+        {
+            foreach (var (key, value) in httpRequestBuilder.AccessTokenData)
+            {
+                httpAccessTokenContext.Items[key] = value;
+            }
+        }
+
         // 获取或刷新指定 HttpClient 实例的配置名称的 Access Token
         var httpAccessToken =
             await accessTokenManager.GetOrRefreshAsync(httpAccessTokenContext, context.CancellationToken);
 
-        // 申请将 Access Token 添加到 HttpRequestBuilder 中
-        ApplyAccessToken(httpRequestBuilder, httpAccessTokenProvider, httpAccessToken);
+        // 空检查
+        if (httpAccessToken is not null)
+        {
+            // 申请将 Access Token 添加到 HttpRequestBuilder 中
+            ApplyAccessToken(httpRequestBuilder, httpAccessTokenProvider, httpAccessToken);
+        }
 
         // 调用下一个处理器的委托
         var httpResponseMessage = await next();
 
         // 检查是否需要强制刷新 Token 并重试（由提供器决定，默认 401）
         // ReSharper disable once InvertIf
-        if (httpResponseMessage is not null &&
-            await httpAccessTokenProvider.ShouldRefreshTokenAsync(httpResponseMessage, context.CancellationToken))
+        if (httpResponseMessage is not null && httpAccessToken is not null &&
+            await httpAccessTokenProvider.ShouldRefreshTokenAsync(httpAccessTokenContext, httpResponseMessage,
+                context.CancellationToken))
         {
             // 输出重试日志
             logger.LogWarning(
@@ -103,14 +117,12 @@ internal sealed class TokenManagementPipelineHandler(
             var newHttpAccessTokenToken =
                 await accessTokenManager.ForceRefreshAsync(httpAccessTokenContext, context.CancellationToken);
 
-            //  克隆新的 HttpRequestBuilder 实例
-            var cloneHttpRequestBuilder = httpRequestBuilder.Clone();
-
-            // 申请将 Access Token 添加到 HttpRequestBuilder 中
-            ApplyAccessToken(cloneHttpRequestBuilder, httpAccessTokenProvider, newHttpAccessTokenToken);
-
-            // 更新上下文
-            context.Builder = cloneHttpRequestBuilder;
+            // 空检查
+            if (newHttpAccessTokenToken is not null)
+            {
+                // 申请将 Access Token 添加到 HttpRequestBuilder 中
+                ApplyAccessToken(httpRequestBuilder, httpAccessTokenProvider, newHttpAccessTokenToken);
+            }
 
             // 调用下一个处理器的委托
             httpResponseMessage = await next();

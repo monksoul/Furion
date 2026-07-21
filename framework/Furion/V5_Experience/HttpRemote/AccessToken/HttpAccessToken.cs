@@ -31,6 +31,11 @@ namespace Furion.HttpRemote;
 public sealed class HttpAccessToken
 {
     /// <summary>
+    ///     刷新 Token 常量
+    /// </summary>
+    internal const string RefreshTokenKey = "refresh_token";
+
+    /// <summary>
     ///     <inheritdoc cref="HttpAccessToken" />
     /// </summary>
     /// <param name="value">Access Token 值</param>
@@ -59,6 +64,27 @@ public sealed class HttpAccessToken
     ///     HTTP 认证方案
     /// </summary>
     public string? Scheme { get; set; }
+
+    /// <summary>
+    ///     刷新 Token（可选）
+    /// </summary>
+    /// <remarks>内部是 <c>Items["refresh_token"]</c> 的便捷访问器。如果不需要，可保持为 <c>null</c>。</remarks>
+    public string? RefreshToken
+    {
+        get => Items.TryGetValue(RefreshTokenKey, out var refreshToken) ? refreshToken?.ToString() : null;
+        set
+        {
+            // 空检查
+            if (value is null)
+            {
+                Items.Remove(RefreshTokenKey);
+            }
+            else
+            {
+                Items[RefreshTokenKey] = value;
+            }
+        }
+    }
 
     /// <summary>
     ///     共享数据字典

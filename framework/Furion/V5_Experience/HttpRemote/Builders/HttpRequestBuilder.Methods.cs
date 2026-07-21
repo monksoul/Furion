@@ -1116,17 +1116,14 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     设置在收到 HTTP 响应之后执行的操作
     /// </summary>
+    /// <remarks>支持多次调用。</remarks>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
     public HttpRequestBuilder SetOnPostReceiveResponse(Action<HttpResponseMessage> configure)
     {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        OnPostReceiveResponse = configure;
+        configure.Combine(ref _onPostReceiveResponse);
 
         return this;
     }
@@ -2010,6 +2007,50 @@ public sealed partial class HttpRequestBuilder
     public HttpRequestBuilder WithoutTokenManagement()
     {
         SuppressTokenManagement = true;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置获取 Access Token 时传递的自定义数据
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRequestBuilder WithAccessTokenData(string key, object? value)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        return WithAccessTokenData(
+            new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, value } });
+    }
+
+    /// <summary>
+    ///     批量设置获取 Access Token 时传递的自定义数据
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="data">数据字典</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpRequestBuilder WithAccessTokenData(IDictionary<string, object?> data)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(data);
+
+        AccessTokenData ??= new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+
+        // 遍历数据字典并添加或更新
+        foreach (var (key, value) in data)
+        {
+            AccessTokenData[key] = value;
+        }
 
         return this;
     }

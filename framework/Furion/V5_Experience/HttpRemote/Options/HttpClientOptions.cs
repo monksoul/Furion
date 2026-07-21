@@ -59,6 +59,11 @@ public sealed class HttpClientOptions
     public IHttpAccessTokenProvider? HttpAccessTokenProvider { get; set; }
 
     /// <summary>
+    ///     事件处理程序提供器配置
+    /// </summary>
+    public IHttpRequestEventHandler? HttpRequestEventHandler { get; set; }
+
+    /// <summary>
     ///     标识选项是否配置为默认值（未配置）
     /// </summary>
     /// <remarks>用于避免通过 <see cref="IOptionsSnapshot{TOptions}" /> 获取选项时无法确定是否已配置该选项。默认值为：<c>true</c>。</remarks>
