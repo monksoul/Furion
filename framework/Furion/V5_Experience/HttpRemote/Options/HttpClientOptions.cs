@@ -44,7 +44,7 @@ public sealed class HttpClientOptions
     /// </summary>
     /// <remarks>
     ///     <para>使用时需明确调用 <see cref="HttpRequestBuilder.UseJsonResponseWrapper()" />。</para>
-    ///     <para>若还需对响应做额外校验或转换，可通过 <see cref="HttpAgent.JsonResponseWrapper.ResultHandler" /> 实现。</para>
+    ///     <para>若还需对响应做额外校验或转换，可通过 <see cref="JsonResponseWrapper.ResultHandler" /> 实现。</para>
     /// </remarks>
     public JsonResponseWrapper? JsonResponseWrapper { get; set; }
 
