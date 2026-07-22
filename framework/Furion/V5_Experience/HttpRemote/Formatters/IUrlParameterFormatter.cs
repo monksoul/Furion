@@ -33,12 +33,12 @@ public interface IUrlParameterFormatter
     /// <summary>
     ///     格式化
     /// </summary>
-    /// <param name="value">参数值</param>
     /// <param name="context">
     ///     <see cref="UrlFormattingContext" />
     /// </param>
-    /// <returns>
-    ///     <see cref="string" />
-    /// </returns>
-    string? Format(object? value, UrlFormattingContext context);
+    /// <param name="key">参数名</param>
+    /// <param name="values">参数值集合</param>
+    /// <returns><see cref="KeyValuePair{TKey,TValue}" /> 集合</returns>
+    IEnumerable<KeyValuePair<string, string?>>? Format(UrlFormattingContext context, string key,
+        IEnumerable<object?> values);
 }

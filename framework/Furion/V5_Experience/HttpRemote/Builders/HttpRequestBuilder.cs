@@ -262,10 +262,10 @@ public sealed partial class HttpRequestBuilder
     /// <param name="uriBuilder">
     ///     <see cref="UriBuilder" />
     /// </param>
-    /// <param name="formatter">
+    /// <param name="urlParameterFormatter">
     ///     <see cref="IUrlParameterFormatter" />
     /// </param>
-    internal void AppendQueryParameters(UriBuilder uriBuilder, IUrlParameterFormatter? formatter)
+    internal void AppendQueryParameters(UriBuilder uriBuilder, IUrlParameterFormatter? urlParameterFormatter)
     {
         // 空检查
         if (QueryParameters is null or { Count: 0 } && QueryParametersToRemove is null or { Count: 0 })
@@ -274,36 +274,58 @@ public sealed partial class HttpRequestBuilder
         }
 
         // 解析 URL 中的查询字符串为键值对列表
-        var queryParameters = uriBuilder.Query.ParseFormatKeyValueString(['&'], '?');
+        var originalPairs = uriBuilder.Query.ParseFormatKeyValueString(['&'], '?');
 
-        // 初始化 URL 参数格式化委托
-        Func<object?, UrlFormattingContext, string?> format =
-            formatter is not null ? formatter.Format : UrlParameterFormatter.DefaultFormatter;
-
-        // 追加查询参数
-        foreach (var (key, values) in QueryParameters.ConcatIgnoreNull([]))
+        // 从原始 URL 参数中移除需要排除的键
+        if (QueryParametersToRemove is { Count: > 0 })
         {
-            // 初始化 UrlFormattingContext 实例
-            var urlFormattingContext = new UrlFormattingContext(key, HttpClientName);
-
-            queryParameters.AddRange(values.Select(value =>
-                new KeyValuePair<string, string?>(key, format(value, urlFormattingContext))));
+            originalPairs.RemoveAll(u => QueryParametersToRemove.Contains(u.Key));
         }
 
-        // 构建最终的查询参数
-        var finalQueryParameters = queryParameters
-            // 过滤已标记为移除的查询参数键
-            .WhereIf(QueryParametersToRemove is { Count: > 0 },
-                u => QueryParametersToRemove?.TryGetValue(u.Key, out _) == false).Select(u => $"{u.Key}={u.Value}")
-            .ToArray();
+        // 初始化 URL 参数格式化程序实例
+        var formatter = urlParameterFormatter ?? new UrlParameterFormatter();
+
+        // 将原始 URL 参数按参数名分组
+        var originalGroups = originalPairs.GroupBy(u => u.Key).Select(g => (g.Key, g.Select(object? (u) => u.Value)));
+
+        // 初始化收集所有最终键值对实例
+        var allPairs = new List<KeyValuePair<string, string?>>();
+
+        /*
+         * 原始 URL 参数可能以 key[]、key[index]、key[][] 等格式存在，
+         * 合并原始参数与用户参数会破坏原始分组结构，导致最终 URL 不正确，
+         * 分开两个 foreach 循环，分别处理原始参数和用户参数，确保各自结构独立。
+         */
+
+        // 处理原始 URL 参数
+        foreach (var (key, values) in originalGroups)
+        {
+            // 格式化后追加
+            allPairs.AddRange(formatter.Format(new UrlFormattingContext(key, HttpClientName) { IsOriginal = true }, key,
+                values) ?? []);
+        }
+
+        // 追加用户设置的查询参数
+        foreach (var (key, values) in QueryParameters.ConcatIgnoreNull([]))
+        {
+            // 跳过需要移除的键
+            if (QueryParametersToRemove?.Contains(key) == true)
+            {
+                continue;
+            }
+
+            // 格式化后追加
+            allPairs.AddRange(formatter.Format(new UrlFormattingContext(key, HttpClientName), key, values) ?? []);
+        }
 
         // 调用查询参数排序委托
-        var sortedQueryParameters = QueryParametersSorter?.Invoke(finalQueryParameters) ?? finalQueryParameters;
+        var sortedPairs = QueryParametersSorter?.Invoke(allPairs) ?? allPairs;
 
-        // 构建查询字符串赋值给 UriBuilder 的 Query 属性
-        uriBuilder.Query = sortedQueryParameters.Length == 0
-            ? string.Empty
-            : '?' + string.Join('&', sortedQueryParameters);
+        // 构建查询字符串
+        var queryString = string.Join("&", sortedPairs.Select(u => $"{u.Key}={u.Value}"));
+
+        // 将查询字符串赋值给 UriBuilder 的 Query 属性
+        uriBuilder.Query = string.IsNullOrEmpty(queryString) ? string.Empty : "?" + queryString;
     }
 
     /// <summary>

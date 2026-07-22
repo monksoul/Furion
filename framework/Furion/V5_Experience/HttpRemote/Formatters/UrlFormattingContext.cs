@@ -46,7 +46,7 @@ public sealed class UrlFormattingContext
     }
 
     /// <summary>
-    ///     URL 参数名（键）
+    ///     URL 参数名
     /// </summary>
     public string Key { get; }
 
@@ -54,4 +54,9 @@ public sealed class UrlFormattingContext
     ///     <see cref="HttpClient" /> 实例的配置名称
     /// </summary>
     public string HttpClientName { get; }
+
+    /// <summary>
+    ///     是否为原始 URL 参数
+    /// </summary>
+    public bool IsOriginal { get; internal init; }
 }

@@ -24,7 +24,6 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
-using System.Globalization;
 
 namespace Furion.HttpRemote;
 
@@ -32,30 +31,26 @@ namespace Furion.HttpRemote;
 public class UrlParameterFormatter : IUrlParameterFormatter
 {
     /// <inheritdoc />
-    public virtual string? Format(object? value, UrlFormattingContext context) => DefaultFormatter(value, context);
+    public virtual IEnumerable<KeyValuePair<string, string?>>? Format(UrlFormattingContext context, string key,
+        IEnumerable<object?> values) =>
+        values.Select(value => FormatValue(context, value)).OfType<string>()
+            .Select(formattedValue => new KeyValuePair<string, string?>(key, formattedValue));
 
     /// <summary>
-    ///     默认格式化
+    ///     格式化单个参数值
     /// </summary>
-    /// <param name="value">参数值</param>
     /// <param name="context">
     ///     <see cref="UrlFormattingContext" />
     /// </param>
+    /// <param name="value">参数值</param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    public static string? DefaultFormatter(object? value, UrlFormattingContext context)
-    {
-        // 检查值是否为委托，如果是则获取实际值
-        var resolvedValue = value switch
+    public static string? FormatValue(UrlFormattingContext context, object? value) =>
+        (value switch
         {
-            // 处理 () => value; 情况
             Func<object?> valueProvider => valueProvider(),
-            // 处理 context => value; 情况
             Func<UrlFormattingContext, object?> valueProvider => valueProvider(context),
             _ => value
-        };
-
-        return resolvedValue?.ToInvariantCultureString();
-    }
+        })?.ToInvariantCultureString();
 }
