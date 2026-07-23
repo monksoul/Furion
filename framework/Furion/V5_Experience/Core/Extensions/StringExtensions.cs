@@ -25,10 +25,10 @@
 
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
@@ -253,14 +253,21 @@ internal static partial class StringExtensions
             : PlaceholderRegex().Replace(template, match =>
             {
                 // 获取占位符中的路径
-                var key = match.Groups[1].Value.Trim();
+                var path = match.Groups[1].Value.Trim();
                 // 检查是否以 ? 结尾
                 var hasQuestionMark = match.Groups[2].Success;
 
-                // 尝试从字典中取值
-                if (replacementSource.TryGetValue(key, out var replacement))
+                // 尝试将完整路径作为键直接查找
+                if (replacementSource.TryGetValue(path, out var replacement))
                 {
                     return replacement ?? string.Empty;
+                }
+
+                // 若直接查找失败，则按 . 和 [index] 逐级解析（支持索引及嵌套 JSON 对象/数组）
+                var resolved = ResolveNestedPathFromDictionary(path, replacementSource);
+                if (resolved is not null)
+                {
+                    return resolved;
                 }
 
                 return hasQuestionMark ? string.Empty : match.Value;
@@ -295,7 +302,7 @@ internal static partial class StringExtensions
 
                 // 根据路径从对象中获取属性值
                 var replacement =
-                    replacementSource.GetPropertyValueFromPath(path, out var isMatch, prefix, bindingFlags);
+                    replacementSource.ResolveNestedPathFromObject(path, out var isMatch, prefix, bindingFlags);
 
                 // 检查路径是否匹配成功
                 if (isMatch)
@@ -486,17 +493,453 @@ internal static partial class StringExtensions
     }
 
     /// <summary>
+    ///     从字典中按路径逐级解析值
+    /// </summary>
+    /// <param name="path">占位符路径</param>
+    /// <param name="replacementSource">
+    ///     <see cref="IDictionary{TKey,TValue}" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string? ResolveNestedPathFromDictionary(string path, IDictionary<string, string?> replacementSource)
+    {
+        var index = 0;
+
+        // 读取路径的第一个标识符
+        var firstKey = ReadIdentifier(path, ref index);
+
+        // 检查读取失败，或字典中不存在该键，或值为空
+        if (firstKey is null || !replacementSource.TryGetValue(firstKey, out var current) || current is null)
+        {
+            return null;
+        }
+
+        // 逐段解析后续属性或索引
+        while (index < path.Length)
+        {
+            // 跳过空白字符
+            while (index < path.Length && char.IsWhiteSpace(path[index]))
+            {
+                index++;
+            }
+
+            if (index >= path.Length)
+            {
+                break;
+            }
+
+            if (path[index] == '.')
+            {
+                index++;
+
+                // 读取属性名
+                var prop = ReadIdentifier(path, ref index);
+
+                // 空检查
+                if (prop is null)
+                {
+                    return null;
+                }
+
+                // 尝试将字符串解析为 JsonNode
+                var node = TryParseJsonNode(current);
+
+                // 检查是否是 JsonObject
+                if (node is JsonObject jsonObject && jsonObject.TryGetPropertyValue(prop, out var propNode))
+                {
+                    current = NodeToRawString(propNode);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (path[index] == '[')
+            {
+                index++;
+
+                // 读取索引值
+                var arrIndex = ReadInteger(path, ref index);
+
+                // 小于 0 检查
+                if (arrIndex < 0)
+                {
+                    return null;
+                }
+
+                // 跳过数字后可能存在的空格
+                while (index < path.Length && char.IsWhiteSpace(path[index]))
+                {
+                    index++;
+                }
+
+                // 检查索引后面是否跟着 ']'
+                if (index >= path.Length || path[index] != ']')
+                {
+                    return null;
+                }
+
+                index++;
+
+                // 尝试将字符串解析为 JsonNode
+                var node = TryParseJsonNode(current);
+
+                // 检查是否是 JsonArray 且索引不越界
+                if (node is JsonArray jsonArray && arrIndex < jsonArray.Count)
+                {
+                    current = NodeToRawString(jsonArray[arrIndex]);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return current;
+    }
+
+    /// <summary>
+    ///     从对象中按路径逐级解析值
+    /// </summary>
+    /// <param name="source">源对象</param>
+    /// <param name="path">占位符路径</param>
+    /// <param name="isMatch">是否成功匹配</param>
+    /// <param name="prefix">路径前缀</param>
+    /// <param name="bindingFlags">
+    ///     <see cref="BindingFlags" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="object" />
+    /// </returns>
+    internal static object? ResolveNestedPathFromObject(this object? source, string path, out bool isMatch,
+        string prefix, BindingFlags bindingFlags)
+    {
+        isMatch = false;
+
+        // 空检查
+        if (source is null || string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        var index = 0;
+
+        // 处理前缀
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            // 读取路径的第一个标识符
+            var first = ReadIdentifier(path, ref index);
+
+            // 检查是否第一个标识符不存在，或者与 prefix 不匹配
+            if (first is null || !string.Equals(first, prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            // 检查是否路径只有前缀
+            if (index >= path.Length)
+            {
+                isMatch = true;
+                return source;
+            }
+        }
+
+        var current = source;
+
+        // 处理后续的每一段
+        while (index < path.Length)
+        {
+            // 跳过空白字符
+            while (index < path.Length && char.IsWhiteSpace(path[index]))
+            {
+                index++;
+            }
+
+            if (index >= path.Length)
+            {
+                break;
+            }
+
+            // 空检查
+            if (current is null)
+            {
+                return null;
+            }
+
+            if (path[index] == '.')
+            {
+                index++;
+
+                // 读取属性名
+                var propName = ReadIdentifier(path, ref index);
+
+                // 空检查
+                if (propName is null)
+                {
+                    return null;
+                }
+
+                // 获取属性信息（忽略大小写）
+                var prop = current.GetType().GetProperty(propName, bindingFlags) ?? current.GetType()
+                    .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+
+                if (prop is not null)
+                {
+                    // 读取属性值
+                    current = prop.GetValue(current);
+                }
+                else
+                {
+                    // 通过字符串键从字典中获取值
+                    var dictValue = GetDictionaryValue(current, propName);
+
+                    // 空检查
+                    if (dictValue is null)
+                    {
+                        return null;
+                    }
+
+                    current = dictValue;
+                }
+            }
+            else if (path[index] == '[')
+            {
+                index++;
+
+                var arrIndex = ReadInteger(path, ref index);
+
+                // 小于 0 检查
+                if (arrIndex < 0)
+                {
+                    return null;
+                }
+
+                // 跳过空白字符
+                while (index < path.Length && char.IsWhiteSpace(path[index]))
+                {
+                    index++;
+                }
+
+                if (index >= path.Length || path[index] != ']')
+                {
+                    return null;
+                }
+
+                index++;
+
+                // 通过索引访问集合元素
+                current = GetIndexValue(current, arrIndex);
+
+                // 空检查
+                if (current is null)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        isMatch = true;
+        return current;
+    }
+
+    /// <summary>
+    ///     读取路径的第一个标识符
+    /// </summary>
+    /// <param name="path">路径字符串</param>
+    /// <param name="index">当前读取位置，读取后指向标识符末尾</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string? ReadIdentifier(string path, ref int index)
+    {
+        // 跳过空白字符
+        while (index < path.Length && char.IsWhiteSpace(path[index]))
+        {
+            index++;
+        }
+
+        // 首字符必须是字母、数字或下划线
+        if (index >= path.Length || (!char.IsLetterOrDigit(path[index]) && path[index] != '_'))
+        {
+            return null;
+        }
+
+        var start = index;
+
+        // 读取连续的有效字符
+        while (index < path.Length && (char.IsLetterOrDigit(path[index]) || path[index] == '_'))
+        {
+            index++;
+        }
+
+        return path[start..index];
+    }
+
+    /// <summary>
+    ///     从 <paramref name="path" /> 的当前位置读取一个非负整数
+    /// </summary>
+    /// <remarks>失败返回 -1。</remarks>
+    /// <param name="path">路径字符串</param>
+    /// <param name="index">当前读取位置，读取后指向数字末尾</param>
+    /// <returns>
+    ///     <see cref="int" />
+    /// </returns>
+    internal static int ReadInteger(string path, ref int index)
+    {
+        // 跳过空白字符
+        while (index < path.Length && char.IsWhiteSpace(path[index]))
+        {
+            index++;
+        }
+
+        // 首字符必须是数字
+        if (index >= path.Length || !char.IsDigit(path[index]))
+        {
+            return -1;
+        }
+
+        var value = 0;
+
+        // 逐位累加
+        while (index < path.Length && char.IsDigit(path[index]))
+        {
+            value = (value * 10) + (path[index] - '0');
+            index++;
+        }
+
+        return value;
+    }
+
+    /// <summary>
+    ///     尝试将字符串解析为 <see cref="JsonNode" />
+    /// </summary>
+    /// <param name="value">JSON 字符串</param>
+    /// <returns>
+    ///     <see cref="JsonNode" />
+    /// </returns>
+    internal static JsonNode? TryParseJsonNode(string? value)
+    {
+        // 空检查
+        if (value is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            // 尝试解析 JSON 字符串
+            return JsonNode.Parse(value);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     将 <see cref="JsonNode" /> 转换为字符串
+    /// </summary>
+    /// <param name="node">
+    ///     <see cref="JsonNode" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string? NodeToRawString(JsonNode? node) =>
+        node switch
+        {
+            null => null,
+            JsonValue jsonValue when jsonValue.GetValueKind() == JsonValueKind.String => jsonValue.GetValue<string>(),
+            JsonValue jsonValue => jsonValue.ToString(),
+            _ => node.ToJsonString()
+        };
+
+    /// <summary>
+    ///     通过索引访问集合元素
+    /// </summary>
+    /// <remarks>支持按整数索引获取集合中的元素。</remarks>
+    /// <param name="source">集合对象</param>
+    /// <param name="index">索引位置</param>
+    /// <returns>
+    ///     <see cref="object" />
+    /// </returns>
+    internal static object? GetIndexValue(object source, int index) =>
+        source switch
+        {
+            IList list when index >= 0 && index < list.Count => list[index],
+            Array array when index >= 0 && index < array.Length => array.GetValue(index),
+            IEnumerable enumerable => enumerable.Cast<object?>().ElementAtOrDefault(index),
+            _ => null
+        };
+
+    /// <summary>
+    ///     通过字符串键从字典中获取值
+    /// </summary>
+    /// <param name="source">字典对象</param>
+    /// <param name="key">字符串键</param>
+    /// <returns>
+    ///     <see cref="object" />
+    /// </returns>
+    internal static object? GetDictionaryValue(object source, string key)
+    {
+        // 处理非泛型 IDictionary（如 Hashtable）类型
+        if (source is IDictionary dict && dict.Contains(key))
+        {
+            return dict[key];
+        }
+
+        var type = source.GetType();
+
+        // 反射获取泛型字典（如 Dictionary<string, T>）的 ContainsKey 方法
+        var containsKeyMethod = type.GetMethod("ContainsKey", [typeof(string)]);
+
+        // 调用 ContainsKey 方法检查
+        if (containsKeyMethod is not null && !(bool)containsKeyMethod.Invoke(source, [key])!)
+        {
+            return null;
+        }
+
+        // 尝试获取泛型字典 Item 属性（索引器）
+        var indexerProperty = type.GetProperty("Item", [typeof(string)]);
+
+        // 空检查
+        if (indexerProperty is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return indexerProperty.GetValue(source, [key]);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     ///     占位符匹配正则表达式
     /// </summary>
     /// <remarks>
-    ///     占位符格式：<c>{Key}</c> 或 <c>{Key.Property}</c> 或 <c>{Key.Property.NestProperty}</c>。结尾可添加 <c>?</c>
-    ///     表示值不存在时替换为空字符串，例如 <c>{Key?}</c>。占位符开头可添加 <c>**</c> 前缀，该前缀在解析时会被忽略，
-    ///     例如 <c>{**Key}</c> 等同于 <c>{Key}</c>。
+    ///     占位符格式：<c>{Key}</c> 或 <c>{Key.Property}</c> 或 <c>{Key.Property.NestProperty}</c> 或 <c>{list[0]}</c> 或
+    ///     <c>{user.names[0]}</c>。结尾可添加 <c>?</c> 表示值不存在时替换为空字符串，例如 <c>{Key?}</c>。占位符开头可添加 <c>**</c> 前缀，该前缀在解析时会被忽略，例如
+    ///     <c>{**Key}</c> 等同于 <c>{Key}</c>。
     /// </remarks>
     /// <returns>
     ///     <see cref="Regex" />
     /// </returns>
-    [GeneratedRegex(@"\{\s*(?:\*\*)?\s*(\w+(?:\s*\.\s*\w+)*)\s*(\?)?\s*\}")]
+    [GeneratedRegex(@"\{\s*(?:\*\*)?\s*(\w+(?:\s*\.\s*\w+|\s*\[\s*\d+\s*\])*)\s*(\?)?\s*\}")]
     private static partial Regex PlaceholderRegex();
 
     /// <summary>
