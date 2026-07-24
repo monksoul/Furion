@@ -661,14 +661,14 @@ public sealed partial class HttpRequestBuilder
     ///     从 JSON 中创建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="json">JSON 字符串</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="jsonProcess">自定义 JSON 解析委托</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public static HttpRequestBuilder FromJson(string json, Action<HttpRequestBuilder>? configure = null)
+    public static HttpRequestBuilder FromJson(string json, Action<JsonObject>? jsonProcess = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -741,8 +741,8 @@ public sealed partial class HttpRequestBuilder
                 multipart.AddJson(HttpRemoteExtensions.ToJsonString(multipartNode?.AsObject())));
         }
 
-        // 调用自定义配置委托
-        configure?.Invoke(httpRequestBuilder);
+        // 调用自定义 JSON 解析委托
+        jsonProcess?.Invoke(jsonObject);
 
         return httpRequestBuilder;
     }

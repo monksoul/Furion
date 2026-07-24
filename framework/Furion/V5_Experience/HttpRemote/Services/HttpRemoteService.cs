@@ -442,6 +442,16 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
             return new HttpResponseResult(httpResponseMessage, httpRequestPipelineContext.RequestDuration);
         }
+        catch (Exception e)
+        {
+            // 将响应信息附加到异常数据中
+            if (httpRequestPipelineContext.ResponseMessage is { } httpResponseMessage)
+            {
+                e.Data[nameof(HttpResponseMessage)] = httpResponseMessage;
+            }
+
+            throw;
+        }
         finally
         {
             // 释放资源集合

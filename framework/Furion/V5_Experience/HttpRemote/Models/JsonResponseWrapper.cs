@@ -84,9 +84,13 @@ public sealed record JsonResponseWrapperContext(object? Instance, object? Result
     /// <exception cref="InvalidOperationException"></exception>
     internal static Func<object, object?> BuildPropertyGetter(Type concreteType, string propertyName)
     {
-        // 获取属性对象
-        var property = concreteType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)
-                       ?? throw new InvalidOperationException(
+        // 初始化反射搜索成员方式
+        const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Instance;
+
+        // 获取属性对象（忽略大小写）
+        var property = concreteType.GetProperty(propertyName, bindingFlags) ??
+                       concreteType.GetProperty(propertyName, bindingFlags | BindingFlags.IgnoreCase) ??
+                       throw new InvalidOperationException(
                            $"Property '{propertyName}' not found on type '{concreteType}'.");
 
         // 构建 instance => instance.属性名 表达式

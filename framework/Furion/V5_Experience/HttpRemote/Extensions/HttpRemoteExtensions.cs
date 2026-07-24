@@ -707,6 +707,24 @@ public static partial class HttpRemoteExtensions
             : httpClientName;
 
     /// <summary>
+    ///     获取与异常关联的 <see cref="HttpResponseMessage" />
+    /// </summary>
+    /// <param name="exception">
+    ///     <see cref="Exception" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpResponseMessage" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static HttpResponseMessage? GetResponseMessage(this Exception exception)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return exception.Data[nameof(HttpResponseMessage)] as HttpResponseMessage;
+    }
+
+    /// <summary>
     ///     将对象转换为 JSON 字符串
     /// </summary>
     /// <param name="obj">
