@@ -202,6 +202,20 @@ public partial interface IHttpRemoteService
     /// <summary>
     ///     发送 Server-Sent Events 请求
     /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    IAsyncEnumerable<ServerSentEventsData> ServerSentEventsAsAsyncEnumerable(string? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送 Server-Sent Events 请求
+    /// </summary>
     /// <param name="httpServerSentEventsBuilder">
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </param>
@@ -223,6 +237,22 @@ public partial interface IHttpRemoteService
     ///     <see cref="Task" />
     /// </returns>
     Task SendAsync(HttpServerSentEventsBuilder httpServerSentEventsBuilder,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送 Server-Sent Events 请求
+    /// </summary>
+    /// <param name="httpServerSentEventsBuilder">
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    IAsyncEnumerable<ServerSentEventsData> SendAsAsyncEnumerable(
+        HttpServerSentEventsBuilder httpServerSentEventsBuilder,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -333,6 +363,20 @@ public partial interface IHttpRemoteService
     /// <summary>
     ///     发送长轮询请求
     /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    IAsyncEnumerable<HttpResponseMessage> LongPollingAsAsyncEnumerable(string? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送长轮询请求
+    /// </summary>
     /// <param name="httpLongPollingBuilder">
     ///     <see cref="HttpLongPollingBuilder" />
     /// </param>
@@ -354,6 +398,21 @@ public partial interface IHttpRemoteService
     ///     <see cref="Task" />
     /// </returns>
     Task SendAsync(HttpLongPollingBuilder httpLongPollingBuilder, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     发送长轮询请求
+    /// </summary>
+    /// <param name="httpLongPollingBuilder">
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    IAsyncEnumerable<HttpResponseMessage> SendAsAsyncEnumerable(HttpLongPollingBuilder httpLongPollingBuilder,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     发送 HTTP 声明式请求

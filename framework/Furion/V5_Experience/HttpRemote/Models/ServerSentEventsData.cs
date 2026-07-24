@@ -71,12 +71,31 @@ public sealed class ServerSentEventsData
     ///     消息
     /// </summary>
     /// <remarks>消息的数据字段。当 <c>EventSource</c> 接收到多个以 <c>data</c>: 开头的连续行时，会将它们连接起来，在它们之间插入一个换行符。末尾的换行符会被删除。</remarks>
-    public string Data => _cachedData ??= _dataBuffer.ToString();
+    public string Data
+    {
+        get
+        {
+            // 空检查
+            if (_cachedData is not null)
+            {
+                return _cachedData;
+            }
+
+            var data = _dataBuffer.ToString();
+
+            // 移除末尾的换行符
+            _cachedData = data.Length > 0 && data[^1] == '\n'
+                ? data[..^1]
+                : data;
+
+            return _cachedData;
+        }
+    }
 
     /// <summary>
     ///     事件 ID
     /// </summary>
-    /// <remarks>事件 ID，会成为当前 <c>EventSource</c> 对象的内部属性“最后一个事件 ID 的属性值。</remarks>
+    /// <remarks>事件 ID，会成为当前 <c>EventSource</c> 对象的内部属性最后一个事件 ID 的属性值。</remarks>
     public string? Id { get; internal set; }
 
     /// <summary>
@@ -98,6 +117,7 @@ public sealed class ServerSentEventsData
     internal void AppendData(string? value)
     {
         _dataBuffer.Append(value);
+        _dataBuffer.Append('\n');
         _cachedData = null;
     }
 

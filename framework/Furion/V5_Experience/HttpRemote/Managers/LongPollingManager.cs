@@ -24,8 +24,10 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using Furion.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace Furion.HttpRemote;
@@ -93,83 +95,7 @@ internal sealed class LongPollingManager
     /// </param>
     /// <exception cref="InvalidOperationException"></exception>
     internal void Start(CancellationToken cancellationToken = default)
-    {
-        // 初始化数据接收传输的通道
-        var dataChannel = Channel.CreateUnbounded<HttpResponseMessage>(new UnboundedChannelOptions
-        {
-            SingleWriter = true, SingleReader = true, AllowSynchronousContinuations = true
-        });
-
-        // 初始化接收服务器响应数据任务
-        var fetchResponseTask = FetchResponseAsync(dataChannel, cancellationToken);
-
-        try
-        {
-            // 循环读取数据直到取消请求或读取完毕
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                // 发送 HTTP 远程请求
-                var httpResponseMessage = _httpRemoteService.Send(RequestBuilder, cancellationToken);
-
-                // 空检查
-                if (httpResponseMessage is null)
-                {
-                    continue;
-                }
-
-                // 初始化否应该终止长轮询和是否请求成功变量
-                var shouldTerminate = ShouldTerminatePolling(httpResponseMessage);
-                var isSuccess = httpResponseMessage.IsSuccessStatusCode;
-
-                // 发送响应数据对象到通道
-                if (!dataChannel.Writer.TryWrite(httpResponseMessage))
-                {
-                    httpResponseMessage.Dispose();
-                }
-
-                // 检查是否应该终止长轮询
-                if (shouldTerminate)
-                {
-                    break;
-                }
-
-                // 检查是否请求成功
-                if (isSuccess)
-                {
-                    // 重置当前重试次数
-                    CurrentRetries = 0;
-                }
-            }
-        }
-        // 任务被取消
-        catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            // 检查是否达到了最大当前重试次数
-            if (CurrentRetries < _httpLongPollingBuilder.MaxRetries)
-            {
-                // 重新开始接收
-                Retry(cancellationToken);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Failed to establish server connection after `{_httpLongPollingBuilder.MaxRetries}` attempts.",
-                    e);
-            }
-        }
-        finally
-        {
-            // 关闭通道
-            dataChannel.Writer.Complete();
-
-            // 等待接收服务器响应数据任务完成
-            fetchResponseTask.Wait(cancellationToken);
-        }
-    }
+        => AsyncUtility.RunSync(() => StartAsync(cancellationToken));
 
     /// <summary>
     ///     开始请求
@@ -191,73 +117,13 @@ internal sealed class LongPollingManager
 
         try
         {
-            // 循环读取数据直到取消请求或读取完毕
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                // 发送 HTTP 远程请求
-                var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder, cancellationToken);
-
-                // 空检查
-                if (httpResponseMessage is null)
-                {
-                    continue;
-                }
-
-                // 初始化否应该终止长轮询和是否请求成功变量
-                var shouldTerminate = ShouldTerminatePolling(httpResponseMessage);
-                var isSuccess = httpResponseMessage.IsSuccessStatusCode;
-
-                // 发送响应数据对象到通道
-                try
-                {
-                    await dataChannel.Writer.WriteAsync(httpResponseMessage, cancellationToken);
-                }
-                catch
-                {
-                    // 释放 httpResponseMessage
-                    httpResponseMessage.Dispose();
-
-                    throw;
-                }
-
-                // 检查是否应该终止长轮询
-                if (shouldTerminate)
-                {
-                    break;
-                }
-
-                // 检查是否请求成功
-                if (isSuccess)
-                {
-                    // 重置当前重试次数
-                    CurrentRetries = 0;
-                }
-            }
-        }
-        // 任务被取消
-        catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            // 检查是否达到了最大当前重试次数
-            if (CurrentRetries < _httpLongPollingBuilder.MaxRetries)
-            {
-                // 重新开始接收
-                await RetryAsync(cancellationToken);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Failed to establish server connection after `{_httpLongPollingBuilder.MaxRetries}` attempts.",
-                    e);
-            }
+            // 开始接收（核心）
+            await StartCoreAsync(dataChannel.Writer, cancellationToken);
         }
         finally
         {
-            // 关闭通道
-            dataChannel.Writer.Complete();
+            // 关闭通道，通知接收任务结束
+            dataChannel.Writer.TryComplete();
 
             // 等待接收服务器响应数据任务完成
             await fetchResponseTask;
@@ -265,39 +131,138 @@ internal sealed class LongPollingManager
     }
 
     /// <summary>
-    ///     重新开始请求
+    ///     开始请求
     /// </summary>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
-    internal void Retry(CancellationToken cancellationToken = default)
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    internal async IAsyncEnumerable<HttpResponseMessage> StartAsAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // 递增当前重试次数
-        CurrentRetries++;
+        // 初始化数据接收传输的通道
+        var dataChannel = Channel.CreateUnbounded<HttpResponseMessage>(new UnboundedChannelOptions
+        {
+            SingleWriter = true, SingleReader = true, AllowSynchronousContinuations = true
+        });
 
-        // 根据配置的重新连接的间隔时间延迟重新开始请求
-        Task.Delay(_httpLongPollingBuilder.RetryInterval, cancellationToken).Wait(cancellationToken);
+        // 开始接收（核心）
+        var producerTask = StartCoreAsync(dataChannel.Writer, cancellationToken);
 
-        // 重新开始接收
-        Start(cancellationToken);
+        try
+        {
+            // 从通道中读取响应
+            await foreach (var httpResponseMessage in dataChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                yield return httpResponseMessage;
+            }
+        }
+        finally
+        {
+            // 关闭通道，通知接收任务结束
+            dataChannel.Writer.TryComplete();
+
+            // 等待接收服务器响应数据任务完成
+            await producerTask;
+        }
     }
 
     /// <summary>
-    ///     重新开始请求
+    ///     开始接收（核心）
     /// </summary>
+    /// <param name="writer">
+    ///     <see cref="ChannelWriter{T}" />
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
-    internal async Task RetryAsync(CancellationToken cancellationToken = default)
+    private async Task StartCoreAsync(ChannelWriter<HttpResponseMessage> writer, CancellationToken cancellationToken)
     {
-        // 递增当前重试次数
-        CurrentRetries++;
+        try
+        {
+            // 循环读取数据直到取消请求或读取完毕
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    // 发送 HTTP 远程请求
+                    var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder, cancellationToken);
 
-        // 根据配置的重新连接的间隔时间延迟重新开始请求
-        await Task.Delay(_httpLongPollingBuilder.RetryInterval, cancellationToken);
+                    // 空检查
+                    if (httpResponseMessage is null)
+                    {
+                        continue;
+                    }
 
-        // 重新开始接收
-        await StartAsync(cancellationToken);
+                    // 初始化否应该终止长轮询和是否请求成功变量
+                    var shouldTerminate = ShouldTerminatePolling(httpResponseMessage);
+                    var isSuccess = httpResponseMessage.IsSuccessStatusCode;
+
+                    // 检查是否应该终止长轮询
+                    if (shouldTerminate)
+                    {
+                        // 检查响应标头中是否存在长轮询结束符
+                        if (httpResponseMessage.Headers.TryGetValues(Constants.X_END_OF_STREAM_HEADER, out _))
+                        {
+                            await HandleEndOfStreamAsync(httpResponseMessage, cancellationToken);
+                        }
+
+                        // 释放 httpResponseMessage
+                        httpResponseMessage.Dispose();
+
+                        break;
+                    }
+
+                    // 发送响应数据对象到通道
+                    try
+                    {
+                        await writer.WriteAsync(httpResponseMessage, cancellationToken);
+                    }
+                    catch
+                    {
+                        // 释放 httpResponseMessage
+                        httpResponseMessage.Dispose();
+
+                        throw;
+                    }
+
+                    // 检查是否请求成功
+                    if (isSuccess)
+                    {
+                        // 重置当前重试次数
+                        CurrentRetries = 0;
+                    }
+                }
+                // 任务被取消
+                catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    // 检查是否达到了最大当前重试次数
+                    if (CurrentRetries >= _httpLongPollingBuilder.MaxRetries)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to establish server connection after `{_httpLongPollingBuilder.MaxRetries}` attempts.",
+                            e);
+                    }
+
+                    // 递增当前重试次数
+                    CurrentRetries++;
+
+                    // 延迟并重试
+                    await Task.Delay(_httpLongPollingBuilder.RetryInterval, cancellationToken);
+                }
+            }
+        }
+        finally
+        {
+            // 关闭通道，通知接收任务结束
+            writer.TryComplete();
+        }
     }
 
     /// <summary>
@@ -389,14 +354,6 @@ internal sealed class LongPollingManager
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpResponseMessage);
-
-        // 检查响应标头中是否存在长轮询结束符
-        if (httpResponseMessage.Headers.TryGetValues(Constants.X_END_OF_STREAM_HEADER, out _))
-        {
-            await HandleEndOfStreamAsync(httpResponseMessage, cancellationToken);
-
-            return;
-        }
 
         // 处理服务器返回 200~299 状态码的数据
         if (httpResponseMessage.IsSuccessStatusCode)

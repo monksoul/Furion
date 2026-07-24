@@ -24,9 +24,10 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using Furion.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 
@@ -104,100 +105,7 @@ internal sealed class ServerSentEventsManager
     /// </param>
     /// <exception cref="InvalidOperationException"></exception>
     internal void Start(CancellationToken cancellationToken = default)
-    {
-        // 初始化事件消息传输的通道
-        var messageChannel = Channel.CreateUnbounded<ServerSentEventsData>(new UnboundedChannelOptions
-        {
-            SingleWriter = true, SingleReader = true, AllowSynchronousContinuations = true
-        });
-
-        // 初始化接收事件消息任务
-        var receiveDataTask = ReceiveDataAsync(messageChannel, cancellationToken);
-
-        // 处理与事件源的连接打开
-        HandleOpen();
-
-        try
-        {
-            // 发送 HTTP 远程请求
-            using var httpResponseMessage = _httpRemoteService.Send(RequestBuilder,
-                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-            // 空检查
-            if (httpResponseMessage is null)
-            {
-                return;
-            }
-
-            // 获取 HTTP 响应体中的内容流
-            using var stream = httpResponseMessage.Content.ReadAsStream(cancellationToken);
-
-            // 初始化 StreamReader 实例
-            using var streamReader = new StreamReader(stream, Encoding.UTF8);
-
-            // 声明 ServerSentEventsData 变量
-            ServerSentEventsData? serverSentEventsData = null;
-
-            // 循环读取数据直到取消请求或读取完毕
-            while (!cancellationToken.IsCancellationRequested && streamReader.ReadLine() is { } line)
-            {
-                // 尝试解析事件消息行文本
-                if (!TryParseEventLine(line, ref serverSentEventsData))
-                {
-                    continue;
-                }
-
-                // 检查是否已经收集了一个完整的事件
-                if (!IsEventComplete(serverSentEventsData))
-                {
-                    continue;
-                }
-
-                // 重置当前重试次数
-                CurrentRetries = 0;
-
-                // 发送事件数据到通道
-                messageChannel.Writer.TryWrite(serverSentEventsData);
-
-                // 重置 ServerSentEventsData 实例，等待下一个事件
-                serverSentEventsData = null;
-            }
-        }
-        // 任务被取消
-        catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            // 处理与事件源的连接错误
-            HandleError(e);
-
-            // 检查是否达到了最大当前重试次数
-            if (CurrentRetries < _httpServerSentEventsBuilder.MaxRetries)
-            {
-                // 重新开始接收
-                Retry(cancellationToken);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Failed to establish Server-Sent Events connection after `{_httpServerSentEventsBuilder.MaxRetries}` attempts.",
-                    e);
-            }
-        }
-        finally
-        {
-            // 关闭通道
-            messageChannel.Writer.Complete();
-
-            // 等待接收事件消息任务完成
-            receiveDataTask.Wait(cancellationToken);
-
-            // 释放资源集合
-            RequestBuilder.ReleaseResources();
-        }
-    }
+        => AsyncUtility.RunSync(() => StartAsync(cancellationToken));
 
     /// <summary>
     ///     开始接收
@@ -217,83 +125,15 @@ internal sealed class ServerSentEventsManager
         // 初始化接收事件消息任务
         var receiveDataTask = ReceiveDataAsync(messageChannel, cancellationToken);
 
-        // 处理与事件源的连接打开
-        HandleOpen();
-
         try
         {
-            // 发送 HTTP 远程请求
-            using var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder,
-                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-            // 空检查
-            if (httpResponseMessage is null)
-            {
-                return;
-            }
-
-            // 获取 HTTP 响应体中的内容流
-            await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
-
-            // 初始化 StreamReader 实例
-            using var streamReader = new StreamReader(stream, Encoding.UTF8);
-
-            // 声明 ServerSentEventsData 变量
-            ServerSentEventsData? serverSentEventsData = null;
-
-            // 循环读取数据直到取消请求或读取完毕
-            while (!cancellationToken.IsCancellationRequested && await streamReader.ReadLineAsync(cancellationToken) is
-                       { } line)
-            {
-                // 尝试解析事件消息行文本
-                if (!TryParseEventLine(line, ref serverSentEventsData))
-                {
-                    continue;
-                }
-
-                // 检查是否已经收集了一个完整的事件
-                if (!IsEventComplete(serverSentEventsData))
-                {
-                    continue;
-                }
-
-                // 重置当前重试次数
-                CurrentRetries = 0;
-
-                // 发送事件数据到通道
-                await messageChannel.Writer.WriteAsync(serverSentEventsData, cancellationToken);
-
-                // 重置 ServerSentEventsData 实例，等待下一个事件
-                serverSentEventsData = null;
-            }
-        }
-        // 任务被取消
-        catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            // 处理与事件源的连接错误
-            HandleError(e);
-
-            // 检查是否达到了最大当前重试次数
-            if (CurrentRetries < _httpServerSentEventsBuilder.MaxRetries)
-            {
-                // 重新开始接收
-                await RetryAsync(cancellationToken);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Failed to establish Server-Sent Events connection after `{_httpServerSentEventsBuilder.MaxRetries}` attempts.",
-                    e);
-            }
+            // 开始接收（核心）
+            await StartCoreAsync(messageChannel.Writer, cancellationToken);
         }
         finally
         {
-            // 关闭通道
-            messageChannel.Writer.Complete();
+            // 关闭通道，通知接收任务结束
+            messageChannel.Writer.TryComplete();
 
             // 等待接收事件消息任务完成
             await receiveDataTask;
@@ -304,39 +144,147 @@ internal sealed class ServerSentEventsManager
     }
 
     /// <summary>
-    ///     重新开始接收
+    ///     开始接收
     /// </summary>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
-    internal void Retry(CancellationToken cancellationToken = default)
+    /// <returns>
+    ///     <see cref="IAsyncEnumerable{T}" />
+    /// </returns>
+    internal async IAsyncEnumerable<ServerSentEventsData> StartAsAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // 递增当前重试次数
-        CurrentRetries++;
+        // 初始化事件消息传输的通道
+        var messageChannel = Channel.CreateUnbounded<ServerSentEventsData>(new UnboundedChannelOptions
+        {
+            SingleWriter = true, SingleReader = true, AllowSynchronousContinuations = true
+        });
 
-        // 根据配置的重新连接的间隔时间延迟重新开始接收
-        Task.Delay(CurrentRetryInterval, cancellationToken).Wait(cancellationToken);
+        // 开始接收（核心）
+        var producerTask = StartCoreAsync(messageChannel.Writer, cancellationToken);
 
-        // 重新开始接收
-        Start(cancellationToken);
+        try
+        {
+            // 从通道中读取事件
+            await foreach (var eventData in messageChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                yield return eventData;
+            }
+        }
+        finally
+        {
+            // 关闭通道，通知接收任务结束
+            messageChannel.Writer.TryComplete();
+
+            // 释放资源集合
+            RequestBuilder.ReleaseResources();
+
+            // 等待接收服务器响应数据任务完成
+            await producerTask;
+        }
     }
 
     /// <summary>
-    ///     重新开始接收
+    ///     开始接收（核心）
     /// </summary>
+    /// <param name="writer">
+    ///     <see cref="ChannelWriter{T}" />
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
-    internal async Task RetryAsync(CancellationToken cancellationToken = default)
+    private async Task StartCoreAsync(ChannelWriter<ServerSentEventsData> writer, CancellationToken cancellationToken)
     {
-        // 递增当前重试次数
-        CurrentRetries++;
+        try
+        {
+            // 重试循环
+            while (CurrentRetries <= _httpServerSentEventsBuilder.MaxRetries)
+            {
+                try
+                {
+                    // 发送 HTTP 远程请求
+                    using var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder,
+                        HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
-        // 根据配置的重新连接的间隔时间延迟重新开始接收
-        await Task.Delay(CurrentRetryInterval, cancellationToken);
+                    // 空检查
+                    if (httpResponseMessage is null)
+                    {
+                        return;
+                    }
 
-        // 重新开始接收
-        await StartAsync(cancellationToken);
+                    // 处理与事件源的连接打开
+                    HandleOpen();
+
+                    // 获取 HTTP 响应体中的内容流
+                    await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
+
+                    // 初始化 StreamReader 实例
+                    using var streamReader = new StreamReader(stream, Encoding.UTF8);
+
+                    // 声明当前正在构建的事件数据
+                    ServerSentEventsData? currentEvent = null;
+
+                    // 循环读取数据直到取消请求或读取完毕
+                    while (!cancellationToken.IsCancellationRequested &&
+                           await streamReader.ReadLineAsync(cancellationToken) is { } line)
+                    {
+                        // 空检查
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            // 检查是否有待派发的事件
+                            if (currentEvent is not null && IsEventComplete(currentEvent))
+                            {
+                                // 重置当前重试次数
+                                CurrentRetries = 0;
+
+                                // 发送事件数据到通道
+                                await writer.WriteAsync(currentEvent, cancellationToken);
+                            }
+
+                            // 重置构建器，准备接收下一个事件
+                            currentEvent = null;
+
+                            continue;
+                        }
+
+                        // 尝试解析事件消息行文本
+                        TryParseEventLine(line, ref currentEvent);
+                    }
+
+                    break;
+                }
+                // 任务被取消
+                catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    // 处理与事件源的连接错误
+                    HandleError(e);
+
+                    // 检查是否达到了最大当前重试次数
+                    if (CurrentRetries >= _httpServerSentEventsBuilder.MaxRetries)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to establish Server-Sent Events connection after `{_httpServerSentEventsBuilder.MaxRetries}` attempts.",
+                            e);
+                    }
+
+                    // 递增当前重试次数
+                    CurrentRetries++;
+
+                    // 延迟并重试
+                    await Task.Delay(CurrentRetryInterval, cancellationToken);
+                }
+            }
+        }
+        finally
+        {
+            // 关闭通道，通知接收任务结束
+            writer.TryComplete();
+        }
     }
 
     /// <summary>
@@ -363,15 +311,12 @@ internal sealed class ServerSentEventsManager
     /// <param name="serverSentEventsData">
     ///     <see cref="ServerSentEventsData" />
     /// </param>
-    /// <returns>
-    ///     <see cref="bool" />
-    /// </returns>
-    internal bool TryParseEventLine(string line, [NotNullWhen(true)] ref ServerSentEventsData? serverSentEventsData)
+    internal void TryParseEventLine(string line, ref ServerSentEventsData? serverSentEventsData)
     {
         // 空检查（忽略空白行和注释行）
         if (string.IsNullOrWhiteSpace(line) || line.StartsWith(':'))
         {
-            return false;
+            return;
         }
 
         // 初始化 ServerSentEventsData 实例
@@ -416,8 +361,6 @@ internal sealed class ServerSentEventsManager
                 serverSentEventsData.AddCustomField(key, value);
                 break;
         }
-
-        return true;
     }
 
     /// <summary>

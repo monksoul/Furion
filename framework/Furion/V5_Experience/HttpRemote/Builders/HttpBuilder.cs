@@ -37,7 +37,6 @@ public sealed class HttpBuilder
     /// <summary>
     ///     创建 <c>GET</c> 请求的 <see cref="HttpRequestBuilder" /> 构建器
     /// </summary>
-    /// <remarks>用于简化 <see cref="HttpRequestBuilder" /> 名字过长。</remarks>
     /// <param name="requestUri">请求地址</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
@@ -426,17 +425,26 @@ public sealed class HttpBuilder
     /// <summary>
     ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
     /// </summary>
-    /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="onMessage">用于在从事件源接收到数据时的操作</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
-    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
-        Func<ServerSentEventsData, CancellationToken, Task> onMessage,
+    public static HttpServerSentEventsBuilder ServerSentEvents(Uri? requestUri,
         Action<HttpServerSentEventsBuilder>? configure = null) =>
-        HttpRequestBuilder.ServerSentEvents(httpMethod, requestUri, onMessage, configure);
+        HttpRequestBuilder.ServerSentEvents(requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(string? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        HttpRequestBuilder.ServerSentEvents(requestUri, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
@@ -465,6 +473,34 @@ public sealed class HttpBuilder
         Func<ServerSentEventsData, CancellationToken, Task> onMessage,
         Action<HttpServerSentEventsBuilder>? configure = null) =>
         HttpRequestBuilder.ServerSentEvents(requestUri, onMessage, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        HttpRequestBuilder.ServerSentEvents(httpMethod, requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onMessage">用于在从事件源接收到数据时的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
+        Func<ServerSentEventsData, CancellationToken, Task> onMessage,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        HttpRequestBuilder.ServerSentEvents(httpMethod, requestUri, onMessage, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
@@ -509,17 +545,24 @@ public sealed class HttpBuilder
     /// <summary>
     ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
     /// </summary>
-    /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="onDataReceived">用于接收服务器返回 <c>200~299</c> 状态码的数据的操作</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpLongPollingBuilder" />
     /// </returns>
-    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
-        Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
-        Action<HttpLongPollingBuilder>? configure = null) =>
-        HttpRequestBuilder.LongPolling(httpMethod, requestUri, onDataReceived, configure);
+    public static HttpLongPollingBuilder LongPolling(Uri? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) => HttpRequestBuilder.LongPolling(requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(string? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) => HttpRequestBuilder.LongPolling(requestUri, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
@@ -550,6 +593,34 @@ public sealed class HttpBuilder
         HttpRequestBuilder.LongPolling(requestUri, onDataReceived, configure);
 
     /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        HttpRequestBuilder.LongPolling(httpMethod, requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onDataReceived">用于接收服务器返回 <c>200~299</c> 状态码的数据的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
+        Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        HttpRequestBuilder.LongPolling(httpMethod, requestUri, onDataReceived, configure);
+
+    /// <summary>
     ///     创建 <see cref="HttpDeclarativeBuilder" /> 构建器
     /// </summary>
     /// <param name="method">被调用方法</param>
@@ -569,8 +640,7 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static HttpRequestBuilder FromJson(string json, Action<JsonObject>? jsonProcess = null) =>
+    public static HttpRequestBuilder
+        FromJson(string json, Action<JsonObject, HttpRequestBuilder>? jsonProcess = null) =>
         HttpRequestBuilder.FromJson(json, jsonProcess);
 }

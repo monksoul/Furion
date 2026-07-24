@@ -118,138 +118,7 @@ internal sealed class FileDownloadManager
     ///     <see cref="FileTransferResult" />
     /// </returns>
     internal FileTransferResult Start(CancellationToken cancellationToken = default)
-    {
-        // 初始化 FileTransferResult 实例
-        var fileTransferResult = new FileTransferResult();
-
-        // 创建进度报告任务取消标识
-        using var progressCancellationTokenSource = new CancellationTokenSource();
-
-        // 初始化进度报告任务
-        var reportProgressTask = ReportProgressAsync(progressCancellationTokenSource.Token, cancellationToken);
-
-        // 处理文件传输开始
-        HandleTransferStarted();
-
-        // 获取临时文件路径
-        var tempDestinationPath = Path.GetTempFileName();
-
-        // 声明 FileStream 变量
-        FileStream? fileStream = null;
-
-        // 初始化 Stopwatch 实例并开启计时操作
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            // 发送 HTTP 远程请求
-            using var httpResponseMessage = _httpRemoteService.Send(RequestBuilder,
-                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-            // 设置文件下载地址和响应状态码
-            fileTransferResult.RequestUri =
-                httpResponseMessage?.RequestMessage?.RequestUri ?? RequestBuilder.RequestUri;
-            fileTransferResult.StatusCode = httpResponseMessage?.StatusCode;
-
-            // 空检查
-            if (httpResponseMessage is null)
-            {
-                // 设置文件传输结果信息
-                fileTransferResult.IsSuccess = false;
-                return fileTransferResult;
-            }
-
-            // 根据文件是否存在及配置的行为来决定是否应继续进行文件下载
-            if (!ShouldContinueWithDownload(httpResponseMessage, out var destinationPath))
-            {
-                // 处理文件存在且配置为跳过时的操作
-                HandleFileExistAndSkip();
-
-                // 设置文件传输结果信息
-                fileTransferResult.FilePath = destinationPath;
-                fileTransferResult.FileSize = new FileInfo(destinationPath).Length;
-                fileTransferResult.IsSuccess = true; // 因文件存在而跳过也被视为成功
-                return fileTransferResult;
-            }
-
-            // 获取文件总大小和服务器是否支持 Range 请求
-            var contentLength = httpResponseMessage.Content.Headers.ContentLength ?? -1;
-            var acceptRanges = httpResponseMessage.Headers.AcceptRanges;
-            var supportsRange = acceptRanges.Count > 0 && acceptRanges.Contains("bytes");
-
-            // 初始化 FileTransferProgress 实例
-            var fileTransferProgress = new FileTransferProgress(destinationPath, contentLength);
-
-            // 初始化 FileStream 实例，使用文件流创建文件，设置写入模式，并允许其他进程同时读取文件
-            fileStream = new FileStream(tempDestinationPath, FileMode.Create, FileAccess.Write, FileShare.Read,
-                _httpFileDownloadBuilder.BufferSize);
-
-            // 实际接收到的字节大小
-            long actualBytesReceived;
-
-            // 检查是否启用了多线程下载，且服务器支持 Range 请求、文件大小有效
-            if (_httpFileDownloadBuilder.MaxThreads > 1 && supportsRange && contentLength > 0)
-            {
-                // 多线程分块下载
-                DownloadInChunks(contentLength, fileStream, fileTransferProgress, stopwatch,
-                    cancellationToken);
-
-                // 同步实际接收到的字节大小
-                actualBytesReceived = _totalBytesReceived;
-            }
-            else
-            {
-                // 单线程下载
-                actualBytesReceived = DownloadSingleThreaded(httpResponseMessage, fileStream, fileTransferProgress,
-                    stopwatch, cancellationToken);
-            }
-
-            // 移动临时文件至文件保存的目标路径
-            MoveTempFileToDestinationPath(fileStream, tempDestinationPath, destinationPath);
-
-            // 计算文件传输总花费时间
-            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-
-            // 处理文件传输完成
-            HandleTransferCompleted(elapsedMilliseconds);
-
-            // 设置文件传输结果信息
-            fileTransferResult.FilePath = destinationPath;
-            fileTransferResult.FileSize = actualBytesReceived;
-            fileTransferResult.ElapsedMilliseconds = elapsedMilliseconds;
-            fileTransferResult.IsSuccess = true;
-            return fileTransferResult;
-        }
-        catch (Exception e)
-        {
-            // 清理临时文件
-            fileStream?.Close();
-            if (File.Exists(tempDestinationPath))
-            {
-                File.Delete(tempDestinationPath);
-            }
-
-            // 处理文件传输失败
-            HandleTransferFailed(e);
-
-            throw;
-        }
-        finally
-        {
-            // 释放 FileStream 实例
-            fileStream?.Dispose();
-
-            // 停止计时
-            stopwatch.Stop();
-
-            // 关闭通道
-            _progressChannel.Writer.Complete();
-
-            // 等待进度报告任务完成
-            progressCancellationTokenSource.Cancel();
-            reportProgressTask.Wait(cancellationToken);
-        }
-    }
+        => AsyncUtility.RunSync(() => StartAsync(cancellationToken));
 
     /// <summary>
     ///     开始下载
@@ -291,7 +160,7 @@ internal sealed class FileDownloadManager
 
             // 设置文件下载地址和响应状态码
             fileTransferResult.RequestUri =
-                httpResponseMessage?.RequestMessage?.RequestUri ?? RequestBuilder.RequestUri;
+                httpResponseMessage?.RequestMessage?.RequestUri ?? _httpFileDownloadBuilder.RequestUri;
             fileTransferResult.StatusCode = httpResponseMessage?.StatusCode;
 
             // 空检查
@@ -451,60 +320,6 @@ internal sealed class FileDownloadManager
     }
 
     /// <summary>
-    ///     多线程分块下载（同步）
-    /// </summary>
-    /// <param name="contentLength">文件总大小</param>
-    /// <param name="fileStream">
-    ///     <see cref="FileStream" />
-    /// </param>
-    /// <param name="fileTransferProgress">
-    ///     <see cref="FileTransferProgress" />
-    /// </param>
-    /// <param name="stopwatch">
-    ///     <see cref="Stopwatch" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    internal void DownloadInChunks(long contentLength, FileStream fileStream,
-        FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
-    {
-        // 获取配置的下载最大线程数并计算每个分块的大小
-        var maxThreads = _httpFileDownloadBuilder.MaxThreads;
-        var chunkSize = (contentLength + maxThreads - 1) / maxThreads;
-
-        // 初始化线程同步锁，确保文件写入顺序是连续的
-        var fileWriteLock = new object();
-
-        // 重置全局已接收字节数
-        _totalBytesReceived = 0;
-
-        // 初始化任务列表，每个任务负责一个分块
-        var tasks = new List<Task>(maxThreads);
-        for (var i = 0; i < maxThreads; i++)
-        {
-            // 计算当前分块的起始和结束位置
-            var start = i * chunkSize;
-            var end = Math.Min(((i + 1) * chunkSize) - 1, contentLength - 1);
-
-            // 启动分块下载任务
-            tasks.Add(Task.Run(
-                () => DownloadChunk(start, end, fileStream, fileWriteLock, fileTransferProgress, stopwatch,
-                    cancellationToken), cancellationToken));
-        }
-
-        // 等待所有分块下载任务完成
-        Task.WaitAll(tasks.ToArray(), cancellationToken);
-
-        // 更新下载完成时的传输进度
-        fileTransferProgress.FileSize = _totalBytesReceived;
-        fileTransferProgress.UpdateProgress(_totalBytesReceived, stopwatch.Elapsed);
-
-        // 发送文件传输进度到通道
-        _progressChannel.Writer.TryWrite(fileTransferProgress);
-    }
-
-    /// <summary>
     ///     下载单个分块
     /// </summary>
     /// <param name="start">分块起始字节位置</param>
@@ -591,82 +406,6 @@ internal sealed class FileDownloadManager
     }
 
     /// <summary>
-    ///     下载单个分块（同步）
-    /// </summary>
-    /// <param name="start">分块起始字节位置</param>
-    /// <param name="end">分块结束字节位置</param>
-    /// <param name="fileStream">
-    ///     <see cref="FileStream" />
-    /// </param>
-    /// <param name="fileWriteLock">同步锁</param>
-    /// <param name="fileTransferProgress">
-    ///     <see cref="FileTransferProgress" />
-    /// </param>
-    /// <param name="stopwatch">
-    ///     <see cref="Stopwatch" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    /// <exception cref="InvalidOperationException"></exception>
-    internal void DownloadChunk(long start, long end, FileStream fileStream, object fileWriteLock,
-        FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
-    {
-        // 克隆 HttpRequestBuilder 并设置 Range 头
-        var httpRequestBuilder =
-            RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}", replace: true);
-
-        // 发送 HTTP 远程请求
-        using var httpResponseMessage = _httpRemoteService.Send(httpRequestBuilder,
-            HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return;
-        }
-
-        // 检查服务器是否返回了部分内容（HTTP 206）
-        if (httpResponseMessage.StatusCode is not HttpStatusCode.PartialContent)
-        {
-            throw new InvalidOperationException(
-                $"Server did not return partial content for range {start}-{end}. Status code: {httpResponseMessage.StatusCode}.");
-        }
-
-        // 初始化读取数据的缓冲区和记录进度所需的变量
-        var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
-        var bytesReceived = 0L;
-
-        // 获取 HTTP 响应体中的内容流
-        using var stream = httpResponseMessage.Content.ReadAsStream(cancellationToken);
-
-        // 循环读取数据直到取消请求或分块完成
-        int numBytesRead;
-        while (!cancellationToken.IsCancellationRequested && (numBytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            // 使用同步锁
-            lock (fileWriteLock)
-            {
-                // 定位到文件指定位置并写入读取的数据
-                fileStream.Seek(start + bytesReceived, SeekOrigin.Begin);
-                fileStream.Write(buffer, 0, numBytesRead);
-
-                // 更新已接收字节数
-                bytesReceived += numBytesRead;
-                _totalBytesReceived += numBytesRead;
-            }
-
-            // 发送文件传输进度到通道
-            // ReSharper disable once InvertIf
-            if (_throttler.TryEnter())
-            {
-                fileTransferProgress.UpdateProgress(_totalBytesReceived, stopwatch.Elapsed);
-                _progressChannel.Writer.TryWrite(fileTransferProgress);
-            }
-        }
-    }
-
-    /// <summary>
     ///     单线程下载
     /// </summary>
     /// <remarks>仅在单线程下载或服务器不支持 <c>Range</c> 请求时使用。</remarks>
@@ -728,71 +467,6 @@ internal sealed class FileDownloadManager
         // 发送文件传输进度到通道
         fileTransferProgress.UpdateProgress(bytesReceived, stopwatch.Elapsed);
         await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
-
-        return bytesReceived;
-    }
-
-    /// <summary>
-    ///     单线程下载（同步）
-    /// </summary>
-    /// <remarks>仅在单线程下载或服务器不支持 <c>Range</c> 请求时使用。</remarks>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="fileStream">
-    ///     <see cref="FileStream" />
-    /// </param>
-    /// <param name="fileTransferProgress">
-    ///     <see cref="FileTransferProgress" />
-    /// </param>
-    /// <param name="stopwatch">
-    ///     <see cref="Stopwatch" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="long" />
-    /// </returns>
-    internal long DownloadSingleThreaded(HttpResponseMessage httpResponseMessage, FileStream fileStream,
-        FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
-    {
-        // 初始化读取数据的缓冲区和记录进度所需的变量
-        var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
-        var bytesReceived = 0L;
-
-        // 获取 HTTP 响应体中的内容流
-        using var stream = httpResponseMessage.Content.ReadAsStream(cancellationToken);
-
-        // 尝试解压内容流，解决部分内容流被压缩的情况
-        using var contentStream = WrapDecompressionStream(stream, httpResponseMessage);
-
-        // 循环读取数据直到取消请求或读取完毕
-        int numBytesRead;
-        while (!cancellationToken.IsCancellationRequested &&
-               (numBytesRead = contentStream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            // 将读取的数据写入文件
-            fileStream.Write(buffer, 0, numBytesRead);
-
-            // 更新文件传输进度
-            bytesReceived += numBytesRead;
-
-            // 发送文件传输进度到通道
-            // ReSharper disable once InvertIf
-            if (_throttler.TryEnter())
-            {
-                fileTransferProgress.UpdateProgress(bytesReceived, stopwatch.Elapsed);
-                _progressChannel.Writer.TryWrite(fileTransferProgress);
-            }
-        }
-
-        // 更新下载完成时的传输进度
-        fileTransferProgress.FileSize = bytesReceived;
-
-        // 发送文件传输进度到通道
-        fileTransferProgress.UpdateProgress(bytesReceived, stopwatch.Elapsed);
-        _progressChannel.Writer.TryWrite(fileTransferProgress);
 
         return bytesReceived;
     }

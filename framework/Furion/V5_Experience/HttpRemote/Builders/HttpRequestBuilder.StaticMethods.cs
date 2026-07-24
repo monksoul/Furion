@@ -25,7 +25,6 @@
 
 using Furion.HttpRemote.Extensions;
 using System.Reflection;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -489,26 +488,28 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
     /// </summary>
-    /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="onMessage">用于在从事件源接收到数据时的操作</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
-    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
-        Func<ServerSentEventsData, CancellationToken, Task> onMessage,
-        Action<HttpServerSentEventsBuilder>? configure = null)
-    {
-        // 初始化 HttpServerSentEventsBuilder 实例
-        var httpServerSentEventsBuilder =
-            new HttpServerSentEventsBuilder(httpMethod, requestUri).SetOnMessage(onMessage);
+    public static HttpServerSentEventsBuilder ServerSentEvents(Uri? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        ServerSentEvents(HttpMethod.Get, requestUri, configure);
 
-        // 调用自定义配置委托
-        configure?.Invoke(httpServerSentEventsBuilder);
-
-        return httpServerSentEventsBuilder;
-    }
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(string? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        ServerSentEvents(string.IsNullOrWhiteSpace(requestUri)
+            ? null
+            : new Uri(requestUri, UriKind.RelativeOrAbsolute), configure);
 
     /// <summary>
     ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
@@ -539,6 +540,51 @@ public sealed partial class HttpRequestBuilder
         ServerSentEvents(string.IsNullOrWhiteSpace(requestUri)
             ? null
             : new Uri(requestUri, UriKind.RelativeOrAbsolute), onMessage, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null)
+    {
+        // 初始化 HttpServerSentEventsBuilder 实例
+        var httpServerSentEventsBuilder = new HttpServerSentEventsBuilder(httpMethod, requestUri);
+
+        // 调用自定义配置委托
+        configure?.Invoke(httpServerSentEventsBuilder);
+
+        return httpServerSentEventsBuilder;
+    }
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onMessage">用于在从事件源接收到数据时的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
+        Func<ServerSentEventsData, CancellationToken, Task> onMessage,
+        Action<HttpServerSentEventsBuilder>? configure = null)
+    {
+        // 初始化 HttpServerSentEventsBuilder 实例
+        var httpServerSentEventsBuilder =
+            new HttpServerSentEventsBuilder(httpMethod, requestUri).SetOnMessage(onMessage);
+
+        // 调用自定义配置委托
+        configure?.Invoke(httpServerSentEventsBuilder);
+
+        return httpServerSentEventsBuilder;
+    }
 
     /// <summary>
     ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
@@ -594,26 +640,27 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
     /// </summary>
-    /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="onDataReceived">用于接收服务器返回 <c>200~299</c> 状态码的数据的操作</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpLongPollingBuilder" />
     /// </returns>
-    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
-        Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
-        Action<HttpLongPollingBuilder>? configure = null)
-    {
-        // 初始化 HttpLongPollingBuilder 实例
-        var httpLongPollingBuilder =
-            new HttpLongPollingBuilder(httpMethod, requestUri).SetOnDataReceived(onDataReceived);
+    public static HttpLongPollingBuilder LongPolling(Uri? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        LongPolling(HttpMethod.Get, requestUri, configure);
 
-        // 调用自定义配置委托
-        configure?.Invoke(httpLongPollingBuilder);
-
-        return httpLongPollingBuilder;
-    }
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(string? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        LongPolling(HttpMethod.Get,
+            string.IsNullOrWhiteSpace(requestUri) ? null : new Uri(requestUri, UriKind.RelativeOrAbsolute), configure);
 
     /// <summary>
     ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
@@ -646,6 +693,51 @@ public sealed partial class HttpRequestBuilder
             onDataReceived, configure);
 
     /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null)
+    {
+        // 初始化 HttpLongPollingBuilder 实例
+        var httpLongPollingBuilder = new HttpLongPollingBuilder(httpMethod, requestUri);
+
+        // 调用自定义配置委托
+        configure?.Invoke(httpLongPollingBuilder);
+
+        return httpLongPollingBuilder;
+    }
+
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onDataReceived">用于接收服务器返回 <c>200~299</c> 状态码的数据的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, Uri? requestUri,
+        Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
+        Action<HttpLongPollingBuilder>? configure = null)
+    {
+        // 初始化 HttpLongPollingBuilder 实例
+        var httpLongPollingBuilder =
+            new HttpLongPollingBuilder(httpMethod, requestUri).SetOnDataReceived(onDataReceived);
+
+        // 调用自定义配置委托
+        configure?.Invoke(httpLongPollingBuilder);
+
+        return httpLongPollingBuilder;
+    }
+
+    /// <summary>
     ///     创建 <see cref="HttpDeclarativeBuilder" /> 构建器
     /// </summary>
     /// <param name="method">被调用方法</param>
@@ -668,7 +760,7 @@ public sealed partial class HttpRequestBuilder
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public static HttpRequestBuilder FromJson(string json, Action<JsonObject>? jsonProcess = null)
+    public static HttpRequestBuilder FromJson(string json, Action<JsonObject, HttpRequestBuilder>? jsonProcess = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -742,7 +834,7 @@ public sealed partial class HttpRequestBuilder
         }
 
         // 调用自定义 JSON 解析委托
-        jsonProcess?.Invoke(jsonObject);
+        jsonProcess?.Invoke(jsonObject, httpRequestBuilder);
 
         return httpRequestBuilder;
     }

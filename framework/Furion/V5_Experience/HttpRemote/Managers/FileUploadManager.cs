@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using Furion.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -103,51 +104,7 @@ internal sealed class FileUploadManager
     /// </returns>
     /// <exception cref="NotImplementedException"></exception>
     internal HttpResponseMessage? Start(CancellationToken cancellationToken = default)
-    {
-        // 创建进度报告任务取消标识
-        using var progressCancellationTokenSource = new CancellationTokenSource();
-
-        // 初始化进度报告任务
-        var reportProgressTask = ReportProgressAsync(progressCancellationTokenSource.Token, cancellationToken);
-
-        // 处理文件传输开始
-        HandleTransferStarted();
-
-        // 初始化 Stopwatch 实例并开启计时操作
-        var stopwatch = Stopwatch.StartNew();
-
-        HttpResponseMessage? httpResponseMessage;
-
-        try
-        {
-            // 发送 HTTP 远程请求
-            httpResponseMessage = _httpRemoteService.Send(RequestBuilder, cancellationToken);
-
-            // 计算文件传输总花费时间并处理文件传输完成
-            HandleTransferCompleted(stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception e)
-        {
-            // 处理文件传输失败
-            HandleTransferFailed(e);
-
-            throw;
-        }
-        finally
-        {
-            // 停止计时
-            stopwatch.Stop();
-
-            // 关闭通道
-            _progressChannel.Writer.Complete();
-
-            // 等待进度报告任务完成
-            progressCancellationTokenSource.Cancel();
-            reportProgressTask.Wait(cancellationToken);
-        }
-
-        return httpResponseMessage;
-    }
+        => AsyncUtility.RunSync(() => StartAsync(cancellationToken));
 
     /// <summary>
     ///     开始上传

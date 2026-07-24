@@ -311,6 +311,18 @@ public static partial class HttpRemoteExtensions
                     $"{summary} ({httpContent.GetType().Name}, total: {contentLength} bytes)");
             }
         }
+        // 空检查
+        else if (httpResponseMessage is not null)
+        {
+            // 解决响应体没有 Content-Length 的问题，例如流式响应（SSE、chunked 等）
+            return StringUtility.FormatKeyValuesSummary(
+                [
+                    new KeyValuePair<string, IEnumerable<string>>(string.Empty,
+                    [
+                        $"\e[33m[Skipped: streaming content ({httpContent.Headers.ContentType?.ToString() ?? "unknown"})]\e[0m"
+                    ])
+                ], $"{summary} ({httpContent.GetType().Name}, Skipped due to streaming)");
+        }
 
         try
         {
