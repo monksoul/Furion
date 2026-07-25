@@ -311,10 +311,11 @@ public static partial class HttpRemoteExtensions
                     $"{summary} ({httpContent.GetType().Name}, total: {contentLength} bytes)");
             }
         }
-        // 空检查
-        else if (httpResponseMessage is not null)
+        // 跳过流式响应
+        else if (httpResponseMessage?.RequestMessage?.Options.TryGetValue(
+                     new HttpRequestOptionsKey<HttpCompletionOption>(Constants.HTTP_COMPLETION_OPTION_KEY),
+                     out var completionOption) == true && completionOption == HttpCompletionOption.ResponseHeadersRead)
         {
-            // 解决响应体没有 Content-Length 的问题，例如流式响应（SSE、chunked 等）
             return StringUtility.FormatKeyValuesSummary(
                 [
                     new KeyValuePair<string, IEnumerable<string>>(string.Empty,

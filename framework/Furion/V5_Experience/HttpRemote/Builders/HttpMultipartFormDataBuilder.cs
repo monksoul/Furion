@@ -211,13 +211,11 @@ public sealed class HttpMultipartFormDataBuilder
             return AddObject(extractedJson, name, contentType ?? MediaTypeNames.Application.Json, contentEncoding);
         }
 
-        // 尝试验证并获取 JsonDocument 实例（需 using）
-        var jsonDocument = JsonUtility.Parse(rawString);
+        // 尝试验证并获取 JsonDocument 实例
+        using var jsonDocument = JsonDocument.Parse(rawString);
 
-        // 添加请求结束时需要释放的对象
-        _httpRequestBuilder.AddDisposable(jsonDocument);
-
-        return AddObject(jsonDocument, name, contentType ?? MediaTypeNames.Application.Json, contentEncoding);
+        return AddObject(jsonDocument.RootElement.Clone(), name, contentType ?? MediaTypeNames.Application.Json,
+            contentEncoding);
     }
 
     /// <summary>

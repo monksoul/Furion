@@ -157,10 +157,11 @@ public sealed partial class HttpRequestBuilder
             return SetContent(extractedJson, contentType ?? MediaTypeNames.Application.Json, contentEncoding);
         }
 
-        // 尝试验证并获取 JsonDocument 实例（需 using）
-        var jsonDocument = JsonUtility.Parse(rawString);
+        // 尝试验证并获取 JsonDocument 实例
+        using var jsonDocument = JsonDocument.Parse(rawString);
 
-        return SetContent(jsonDocument, contentType ?? MediaTypeNames.Application.Json, contentEncoding, true);
+        return SetContent(jsonDocument.RootElement.Clone(), contentType ?? MediaTypeNames.Application.Json,
+            contentEncoding);
     }
 
     /// <summary>

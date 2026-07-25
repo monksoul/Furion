@@ -57,6 +57,11 @@ internal sealed class RequestBuilderPipelineHandler(
         var httpRequestMessage = httpRequestBuilder.Build(httpRemoteOptions.Value, httpContentProcessorFactory,
             context.HttpClient.BaseAddress ?? httpRemoteOptions.Value.FallbackBaseAddress);
 
+        // 将 HttpCompletionOption 写入请求选项，供请求分析工具使用
+        httpRequestMessage.Options.Set(
+            new HttpRequestOptionsKey<HttpCompletionOption>(Constants.HTTP_COMPLETION_OPTION_KEY),
+            context.CompletionOption);
+
         // 更新上下文
         context.RequestMessage = httpRequestMessage;
 

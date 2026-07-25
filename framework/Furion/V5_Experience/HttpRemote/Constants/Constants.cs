@@ -132,4 +132,10 @@ internal static class Constants
     /// </summary>
     /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="IHttpRequestEventHandler" /> 实例。</remarks>
     internal const string REQUEST_EVENT_HANDLER_KEY = "RequestEventHandler";
+
+    /// <summary>
+    ///     请求 <see cref="HttpCompletionOption" /> 选项键
+    /// </summary>
+    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    internal const string HTTP_COMPLETION_OPTION_KEY = "__HTTP_COMPLETION_OPTION__";
 }
