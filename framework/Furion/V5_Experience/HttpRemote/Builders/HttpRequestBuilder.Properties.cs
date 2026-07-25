@@ -42,18 +42,6 @@ public sealed partial class HttpRequestBuilder
         typeof(HttpRequestBuilder).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                                  BindingFlags.DeclaredOnly));
 
-    /// <inheritdoc cref="OnPostReceiveResponse" />
-    internal Action<HttpResponseMessage>? _onPostReceiveResponse;
-
-    /// <inheritdoc cref="OnPreSendRequest" />
-    internal Action<HttpRequestMessage>? _onPreSendRequest;
-
-    /// <inheritdoc cref="OnPreSetContent" />
-    internal Action<HttpContent>? _onPreSetContent;
-
-    /// <inheritdoc cref="UriBuilderConfigure" />
-    internal Action<UriBuilder>? _uriBuilderConfigure;
-
     /// <summary>
     ///     请求地址
     /// </summary>
@@ -224,25 +212,17 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在设置 <see cref="HttpRequestMessage" /> 的请求消息的内容时的操作
     /// </summary>
-    public Action<HttpContent>? OnPreSetContent { get => _onPreSetContent; private set => _onPreSetContent = value; }
+    public Action<HttpContent>? OnPreSetContent { get; private set; }
 
     /// <summary>
     ///     用于处理在发送 HTTP 请求之前的操作
     /// </summary>
-    public Action<HttpRequestMessage>? OnPreSendRequest
-    {
-        get => _onPreSendRequest;
-        private set => _onPreSendRequest = value;
-    }
+    public Action<HttpRequestMessage>? OnPreSendRequest { get; private set; }
 
     /// <summary>
     ///     用于处理在收到 HTTP 响应之后的操作
     /// </summary>
-    public Action<HttpResponseMessage>? OnPostReceiveResponse
-    {
-        get => _onPostReceiveResponse;
-        private set => _onPostReceiveResponse = value;
-    }
+    public Action<HttpResponseMessage>? OnPostReceiveResponse { get; private set; }
 
     /// <summary>
     ///     用于处理在发送 HTTP 请求发生异常时的操作
@@ -373,11 +353,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在构建最终请求 URL 的操作
     /// </summary>
-    public Action<UriBuilder>? UriBuilderConfigure
-    {
-        get => _uriBuilderConfigure;
-        private set => _uriBuilderConfigure = value;
-    }
+    public Action<UriBuilder>? OnUriBuilding { get; private set; }
 
     /// <summary>
     ///     表示启用 JSON 响应反序列化包装器

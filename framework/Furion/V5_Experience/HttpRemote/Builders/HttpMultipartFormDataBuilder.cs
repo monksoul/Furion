@@ -24,7 +24,6 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
-using Furion.Utilities;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Reflection;
@@ -61,9 +60,6 @@ public sealed class HttpMultipartFormDataBuilder
     /// </summary>
     internal Func<string, string?>? FormNameTransformer;
 
-    /// <inheritdoc cref="OnPreAddContent" />
-    internal Action<HttpContent, string>? _onPreAddContent;
-
     /// <summary>
     ///     <inheritdoc cref="HttpMultipartFormDataBuilder" />
     /// </summary>
@@ -94,11 +90,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <summary>
     ///     用于处理在添加 <see cref="HttpContent" /> 表单项内容时的操作
     /// </summary>
-    internal Action<HttpContent, string>? OnPreAddContent
-    {
-        get => _onPreAddContent;
-        private set => _onPreAddContent = value;
-    }
+    internal Action<HttpContent, string>? OnPreAddContent { get; set; }
 
     /// <summary>
     ///     设置多部分表单内容的边界
@@ -122,9 +114,13 @@ public sealed class HttpMultipartFormDataBuilder
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpMultipartFormDataBuilder SetOnPreAddContent(Action<HttpContent, string> configure)
     {
-        configure.Combine(ref _onPreAddContent);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnPreAddContent += configure;
 
         return this;
     }
@@ -767,13 +763,13 @@ public sealed class HttpMultipartFormDataBuilder
     ///     是否使用 <see cref="StringContent" /> 构建
     ///     <see cref="FormUrlEncodedContent" />。默认值为： <c>false</c>
     /// </param>
-    /// <param name="useUrlEncode">是否对表单数据进行 URL 编码，默认值为： <c>true</c></param>
+    /// <param name="urlEncode">是否对表单数据进行 URL 编码，默认值为： <c>true</c></param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddFormUrlEncoded(object? rawObject, string name,
-        Encoding? contentEncoding = null, bool useStringContent = false, bool useUrlEncode = true)
+        Encoding? contentEncoding = null, bool useStringContent = false, bool urlEncode = true)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -785,19 +781,10 @@ public sealed class HttpMultipartFormDataBuilder
             ContentEncoding = contentEncoding
         });
 
-        // 检查是否对表单数据进行 URL 编码
-        if (!useUrlEncode)
+        // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
+        if (useStringContent || !urlEncode)
         {
-            _httpRequestBuilder.AddHttpContentProcessors(() =>
-                [new StringContentForFormUrlEncodedContentProcessor { UrlEncode = false }]);
-        }
-        else
-        {
-            // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
-            if (useStringContent)
-            {
-                _httpRequestBuilder.AddStringContentForFormUrlEncodedContentProcessor();
-            }
+            _httpRequestBuilder.AddStringContentForFormUrlEncodedContentProcessor(urlEncode);
         }
 
         return this;

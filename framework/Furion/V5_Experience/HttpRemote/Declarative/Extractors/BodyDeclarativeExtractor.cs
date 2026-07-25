@@ -75,19 +75,10 @@ internal sealed class BodyDeclarativeExtractor : IHttpDeclarativeExtractor
         // 检查是否是 application/x-www-form-urlencoded 请求内容
         if (httpRequestBuilder.ContentType.IsIn([MediaTypeNames.Application.FormUrlEncoded]))
         {
-            // 检查是否对表单数据进行 URL 编码
-            if (!bodyAttribute.UseUrlEncode)
+            // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
+            if (bodyAttribute.UseStringContent || !bodyAttribute.UrlEncode)
             {
-                httpRequestBuilder.AddHttpContentProcessors(() =>
-                    [new StringContentForFormUrlEncodedContentProcessor { UrlEncode = false }]);
-            }
-            else
-            {
-                // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
-                if (bodyAttribute.UseStringContent)
-                {
-                    httpRequestBuilder.AddStringContentForFormUrlEncodedContentProcessor();
-                }
+                httpRequestBuilder.AddStringContentForFormUrlEncodedContentProcessor(bodyAttribute.UrlEncode);
             }
         }
 

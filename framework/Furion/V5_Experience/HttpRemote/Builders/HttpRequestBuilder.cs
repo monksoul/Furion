@@ -39,13 +39,6 @@ namespace Furion.HttpRemote;
 public sealed partial class HttpRequestBuilder
 {
     /// <summary>
-    ///     <see cref="StringContentForFormUrlEncodedContentProcessor" /> 实例
-    /// </summary>
-    internal static readonly Lazy<StringContentForFormUrlEncodedContentProcessor>
-        _stringContentForFormUrlEncodedContentProcessor =
-            new(() => new StringContentForFormUrlEncodedContentProcessor());
-
-    /// <summary>
     ///     <inheritdoc cref="HttpRequestBuilder" />
     /// </summary>
     private HttpRequestBuilder()
@@ -201,7 +194,7 @@ public sealed partial class HttpRequestBuilder
         AppendFragment(uriBuilder);
 
         // 调用构建最终请求 URL 的操作
-        UriBuilderConfigure?.Invoke(uriBuilder);
+        OnUriBuilding?.Invoke(uriBuilder);
 
         // 替换路径或配置参数
         var finalRequestUri = ReplacePlaceholders(uriBuilder.Uri.ToString(), configuration)!;

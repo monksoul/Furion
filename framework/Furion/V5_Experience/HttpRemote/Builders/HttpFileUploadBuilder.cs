@@ -39,7 +39,7 @@ public sealed class HttpFileUploadBuilder
     /// <summary>
     ///     <see cref="HttpRequestBuilder" /> 配置委托
     /// </summary>
-    internal Action<HttpRequestBuilder>? _requestConfigure;
+    internal Action<HttpRequestBuilder>? _configureRequest;
 
     /// <summary>
     ///     <inheritdoc cref="HttpFileUploadBuilder" />
@@ -358,9 +358,13 @@ public sealed class HttpFileUploadBuilder
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpFileUploadBuilder WithRequest(Action<HttpRequestBuilder> configure)
     {
-        configure.Combine(ref _requestConfigure);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        _configureRequest += configure;
 
         return this;
     }
@@ -425,7 +429,7 @@ public sealed class HttpFileUploadBuilder
         }
 
         // 调用自定义配置委托
-        _requestConfigure?.Invoke(httpRequestBuilder);
+        _configureRequest?.Invoke(httpRequestBuilder);
 
         return httpRequestBuilder;
     }

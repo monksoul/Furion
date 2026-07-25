@@ -41,15 +41,9 @@ namespace Furion.HttpRemote;
 public sealed partial class HttpRequestBuilder
 {
     /// <summary>
-    ///     线程锁
-    /// </summary>
-    /// <remarks>用于保证 <see cref="AddStringContentForFormUrlEncodedContentProcessor" /> 方法调用是线程安全的。</remarks>
-    internal readonly object _lock = new();
-
-    /// <summary>
     ///     表示是否已添加了 <see cref="StringContentForFormUrlEncodedContentProcessor" /> 处理器
     /// </summary>
-    internal bool _isAddedStringContentForFormUrlEncodedContentProcessor;
+    internal bool _formUrlEncodedStringContentProcessorAdded;
 
     /// <summary>
     ///     设置跟踪标识
@@ -246,27 +240,19 @@ public sealed partial class HttpRequestBuilder
     ///     是否使用 <see cref="StringContent" /> 构建
     ///     <see cref="FormUrlEncodedContent" />。默认值为： <c>false</c>
     /// </param>
-    /// <param name="useUrlEncode">是否对表单数据进行 URL 编码，默认值为： <c>true</c></param>
+    /// <param name="urlEncode">是否对表单数据进行 URL 编码，默认值为： <c>true</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     public HttpRequestBuilder SetFormUrlEncodedContent(object? rawObject, Encoding? contentEncoding = null,
-        bool useStringContent = false, bool useUrlEncode = true)
+        bool useStringContent = false, bool urlEncode = true)
     {
         SetContent(rawObject, MediaTypeNames.Application.FormUrlEncoded, contentEncoding);
 
-        // 检查是否对表单数据进行 URL 编码
-        if (!useUrlEncode)
+        // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
+        if (useStringContent || !urlEncode)
         {
-            AddHttpContentProcessors(() => [new StringContentForFormUrlEncodedContentProcessor { UrlEncode = false }]);
-        }
-        else
-        {
-            // 检查是否启用 StringContent 方式构建 application/x-www-form-urlencoded 请求内容
-            if (useStringContent)
-            {
-                AddStringContentForFormUrlEncodedContentProcessor();
-            }
+            AddStringContentForFormUrlEncodedContentProcessor(urlEncode);
         }
 
         return this;
@@ -1095,7 +1081,10 @@ public sealed partial class HttpRequestBuilder
     /// </returns>
     public HttpRequestBuilder SetOnPreSetContent(Action<HttpContent?> configure)
     {
-        configure.Combine(ref _onPreSetContent);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnPreSetContent += configure;
 
         return this;
     }
@@ -1110,7 +1099,10 @@ public sealed partial class HttpRequestBuilder
     /// </returns>
     public HttpRequestBuilder SetOnPreSendRequest(Action<HttpRequestMessage> configure)
     {
-        configure.Combine(ref _onPreSendRequest);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnPreSendRequest += configure;
 
         return this;
     }
@@ -1125,7 +1117,10 @@ public sealed partial class HttpRequestBuilder
     /// </returns>
     public HttpRequestBuilder SetOnPostReceiveResponse(Action<HttpResponseMessage> configure)
     {
-        configure.Combine(ref _onPostReceiveResponse);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnPostReceiveResponse += configure;
 
         return this;
     }
@@ -1481,22 +1476,23 @@ public sealed partial class HttpRequestBuilder
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(statusCodes);
+        ArgumentNullException.ThrowIfNull(handler);
+
+        // 防止多次枚举
+        var codesArray = statusCodes.ToArray();
 
         // 检查数量是否为空
-        if (statusCodes.TryGetCount(out var count) && count == 0)
+        if (codesArray is { Length: 0 })
         {
             throw new ArgumentException(
                 "The status codes array cannot be empty. At least one status code must be provided.",
                 nameof(statusCodes));
         }
 
-        // 空检查
-        ArgumentNullException.ThrowIfNull(handler);
-
         StatusCodeHandlers ??=
             new Dictionary<IEnumerable<object>, Func<HttpResponseMessage, CancellationToken, Task>>();
 
-        StatusCodeHandlers[statusCodes] = handler;
+        StatusCodeHandlers[codesArray] = handler;
 
         return this;
     }
@@ -1995,7 +1991,10 @@ public sealed partial class HttpRequestBuilder
     /// </returns>
     public HttpRequestBuilder SetUriBuilder(Action<UriBuilder> configure)
     {
-        configure.Combine(ref _uriBuilderConfigure);
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnUriBuilding += configure;
 
         return this;
     }
@@ -2135,19 +2134,19 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     添加 <see cref="StringContentForFormUrlEncodedContentProcessor" /> 处理器
     /// </summary>
-    internal void AddStringContentForFormUrlEncodedContentProcessor()
+    /// <remarks>仅首次调用时有效。</remarks>
+    /// <param name="urlEncode">是否对表单数据进行 URL 编码，默认值为： <c>true</c></param>
+    internal void AddStringContentForFormUrlEncodedContentProcessor(bool urlEncode = true)
     {
-        lock (_lock)
+        // 检查是否已添加 StringContentForFormUrlEncodedContentProcessor 处理器
+        if (_formUrlEncodedStringContentProcessorAdded)
         {
-            // 检查是否已添加 StringContentForFormUrlEncodedContentProcessor 处理器
-            if (_isAddedStringContentForFormUrlEncodedContentProcessor)
-            {
-                return;
-            }
-
-            _isAddedStringContentForFormUrlEncodedContentProcessor = true;
-            AddHttpContentProcessors(() => [_stringContentForFormUrlEncodedContentProcessor.Value]);
+            return;
         }
+
+        _formUrlEncodedStringContentProcessorAdded = true;
+        AddHttpContentProcessors(() =>
+            [new StringContentForFormUrlEncodedContentProcessor { UrlEncode = urlEncode }]);
     }
 
     /// <summary>

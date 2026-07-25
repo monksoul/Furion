@@ -73,7 +73,7 @@ public class BodyAttribute : Attribute
     ///     是否对表单数据进行 URL 编码
     /// </summary>
     /// <remarks>当 <see cref="ContentType" /> 值为 <c>application/x-www-form-urlencoded</c> 时有效。默认值为：<c>true</c>。</remarks>
-    public bool UseUrlEncode { get; set; } = true;
+    public bool UrlEncode { get; set; } = true;
 
     /// <summary>
     ///     是否为原始字符串内容
