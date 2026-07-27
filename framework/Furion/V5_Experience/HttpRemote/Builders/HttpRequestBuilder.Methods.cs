@@ -2073,6 +2073,28 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     移除 URL 地址末尾的 "/"
+    /// </summary>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder RemoveTrailingSlash() => RemoveTrailingSlash(true);
+
+    /// <summary>
+    ///     设置是否移除 URL 地址末尾的 "/"
+    /// </summary>
+    /// <param name="enabled">是否启用</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder RemoveTrailingSlash(bool enabled)
+    {
+        RemoveTrailingSlashEnabled = enabled;
+
+        return this;
+    }
+
+    /// <summary>
     ///     将一组标头合并到现有标头字典中
     /// </summary>
     /// <param name="existing">当前标头字典</param>

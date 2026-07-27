@@ -67,6 +67,7 @@ public sealed class HttpDeclarativeBuilder
         new(typeof(JsonResponseWrapperDeclarativeExtractor), new JsonResponseWrapperDeclarativeExtractor()),
         new(typeof(JsonResponseStringUnwrapDeclarativeExtractor), new JsonResponseStringUnwrapDeclarativeExtractor()),
         new(typeof(SuppressTokenManagementDeclarativeExtractor), new SuppressTokenManagementDeclarativeExtractor()),
+        new(typeof(RemoveTrailingSlashDeclarativeExtractor), new RemoveTrailingSlashDeclarativeExtractor()),
         new(typeof(BodyDeclarativeExtractor), new BodyDeclarativeExtractor())
     ]);
 

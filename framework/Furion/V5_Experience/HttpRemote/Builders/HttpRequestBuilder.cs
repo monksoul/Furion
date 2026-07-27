@@ -199,7 +199,10 @@ public sealed partial class HttpRequestBuilder
         // 替换路径或配置参数
         var finalRequestUri = ReplacePlaceholders(uriBuilder.Uri.ToString(), configuration)!;
 
-        return finalRequestUri;
+        // 处理末尾斜杠
+        return RemoveTrailingSlashEnabled && finalRequestUri.EndsWith('/')
+            ? finalRequestUri.TrimEnd('/')
+            : finalRequestUri;
     }
 
     /// <summary>

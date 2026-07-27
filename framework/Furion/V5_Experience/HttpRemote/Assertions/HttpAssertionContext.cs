@@ -89,6 +89,7 @@ public sealed class HttpAssertionContext
     /// <summary>
     ///     读取响应内容字符串
     /// </summary>
+    /// <remarks>支持多次读取。</remarks>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>

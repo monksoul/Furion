@@ -30,8 +30,15 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     Furion 框架 Access Token 提供器
 /// </summary>
+/// <remarks>参考文献：https://furion.net/docs/auth-control。</remarks>
 public class FurionAccessTokenProvider : IHttpAccessTokenProvider, IHttpAccessTokenConfigurator
 {
+    // Furion 框架相关常量定义
+    internal const string XAuthorizationHeaderName = "X-Authorization";
+    internal const string AccessTokenHeaderName = "access-token";
+    internal const string XAccessTokenHeaderName = "x-access-token";
+    internal const string BearerTokenFormat = "Bearer {0}";
+
     /// <inheritdoc />
     public virtual void Configure(HttpRequestBuilder httpRequestBuilder, HttpAccessToken httpAccessToken)
     {
@@ -41,15 +48,16 @@ public class FurionAccessTokenProvider : IHttpAccessTokenProvider, IHttpAccessTo
         // 检查 Access Token 是否过期且刷新 Token 不为空
         if (httpAccessToken.IsExpired() && httpAccessToken.RefreshToken is not null)
         {
-            httpRequestBuilder.WithHeader("X-Authorization", $"Bearer {httpAccessToken.RefreshToken}", replace: true);
+            httpRequestBuilder.WithHeader(XAuthorizationHeaderName,
+                string.Format(BearerTokenFormat, httpAccessToken.RefreshToken), replace: true);
         }
 
-        //  设置在收到 HTTP 响应之后执行的操作
+        // 设置在收到 HTTP 响应之后执行的操作
         httpRequestBuilder.SetOnPostReceiveResponse(httpResponseMessage =>
         {
             // 获取响应标头中的 access-token 和 x-access-token
-            var newAccessToken = httpResponseMessage.Headers.GetValues("access-token").FirstOrDefault();
-            var newRefreshToken = httpResponseMessage.Headers.GetValues("x-access-token").FirstOrDefault();
+            var newAccessToken = httpResponseMessage.Headers.GetValues(AccessTokenHeaderName).FirstOrDefault();
+            var newRefreshToken = httpResponseMessage.Headers.GetValues(XAccessTokenHeaderName).FirstOrDefault();
 
             // 空检查
             // ReSharper disable once InvertIf

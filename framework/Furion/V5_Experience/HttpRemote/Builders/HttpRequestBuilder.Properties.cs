@@ -353,7 +353,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在构建最终请求 URL 的操作
     /// </summary>
-    public Action<UriBuilder>? OnUriBuilding { get; private set; }
+    internal Action<UriBuilder>? OnUriBuilding { get; private set; }
 
     /// <summary>
     ///     表示启用 JSON 响应反序列化包装器
@@ -376,4 +376,10 @@ public sealed partial class HttpRequestBuilder
     ///     表示是否跳过框架的 Access Token 自动管理
     /// </summary>
     internal bool SuppressTokenManagement { get; private set; }
+
+    /// <summary>
+    ///     是否移除 URL 地址末尾的 "/"
+    /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
+    internal bool RemoveTrailingSlashEnabled { get; private set; }
 }

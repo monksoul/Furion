@@ -325,7 +325,7 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
     internal void LogContentConversionError(Type resultType, HttpResponseMessage httpResponseMessage,
         Exception exception) =>
         _logger.LogError(exception,
-            "Failed to convert HTTP response to type {ResultType}. Status: {StatusCode} {StatusDescription}, URI: {RequestUri}",
+            "Failed to convert HTTP response to type \e[31m\e[1m{ResultType}\e[0m. Status: {StatusCode} {StatusDescription}, URI: {RequestUri}",
             resultType.FullName!, (int)httpResponseMessage.StatusCode, httpResponseMessage.StatusCode.ToString(),
             httpResponseMessage.RequestMessage?.RequestUri?.ToString() ?? "unknown");
 
