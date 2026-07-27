@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Furion.HttpRemote;
 
@@ -145,6 +146,82 @@ public sealed partial class HttpAssertionBuilder
     }
 
     /// <summary>
+    ///     断言响应内容完全等于指定的字符串
+    /// </summary>
+    /// <param name="expected">期望完全相等的字符串</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpAssertionBuilder ContentEquals(string expected, CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrEmpty(expected);
+
+        return AddAssertion(async context =>
+        {
+            // 读取响应内容字符串
+            var content = await context.ReadAsStringAsync(cancellationToken);
+
+            if (!string.Equals(content, expected, StringComparison.Ordinal))
+            {
+                await HttpAssertionException.ThrowAsync(
+                    $"Expected response content to be '{expected}', but found '{content}'.");
+            }
+        });
+    }
+
+    /// <summary>
+    ///     断言响应内容与指定的正则表达式匹配
+    /// </summary>
+    /// <param name="pattern">正则表达式</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpAssertionBuilder ContentMatches(string pattern, CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+
+        return AddAssertion(async context =>
+        {
+            // 读取响应内容字符串
+            var content = await context.ReadAsStringAsync(cancellationToken);
+
+            if (content is null || !Regex.IsMatch(content, pattern))
+            {
+                await HttpAssertionException.ThrowAsync(
+                    $"Expected response content to match regex '{pattern}', but it did not.");
+            }
+        });
+    }
+
+    /// <summary>
+    ///     断言响应内容不为空
+    /// </summary>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    public HttpAssertionBuilder ContentNotEmpty() =>
+        AddAssertion(async context =>
+        {
+            // 读取响应内容字符串
+            var content = await context.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(content))
+            {
+                await HttpAssertionException.ThrowAsync("Expected response content not to be empty.");
+            }
+        });
+
+    /// <summary>
     ///     断言指定的响应标头存在（可在响应标头或内容标头中）
     /// </summary>
     /// <param name="name">标头名</param>
@@ -256,6 +333,34 @@ public sealed partial class HttpAssertionBuilder
             {
                 await HttpAssertionException.ThrowAsync(
                     $"Expected response header '{name}' to contain '{expectedValue}', but actual values were: [{string.Join(", ", values)}].");
+            }
+        });
+    }
+
+    /// <summary>
+    ///     断言指定的响应标头不存在（可在响应标头或内容标头中）
+    /// </summary>
+    /// <param name="name">标头名</param>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpAssertionException"></exception>
+    public HttpAssertionBuilder HeaderNotExists(string name)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        return AddAssertion(async context =>
+        {
+            // 尝试从响应标头或内容标头中检查
+            var exists = context.ResponseMessage.Headers.Contains(name) ||
+                         context.ResponseMessage.Content.Headers.Contains(name);
+
+            if (exists)
+            {
+                await HttpAssertionException.ThrowAsync(
+                    $"Expected response header '{name}' not to exist, but it was found.");
             }
         });
     }
