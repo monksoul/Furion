@@ -104,7 +104,7 @@ public sealed class WebSocketClientOptions
     public int MaxReconnectRetries { get; set; } = 10;
 
     /// <summary>
-    ///     超时时间
+    ///     连接超时时间
     /// </summary>
     public TimeSpan? Timeout { get; set; }
 
