@@ -72,6 +72,20 @@ public sealed class ClayOptions
     };
 
     /// <summary>
+    ///     极度宽松的 <see cref="ClayOptions" /> 实例
+    /// </summary>
+    /// <remarks>在 <see cref="Flexible" /> 的基础上，进一步启用了自动创建嵌套对象、自动创建嵌套数组以及数组越界时自动用 <c>null</c> 补位的特性，适合对数据结构完全不固定的动态场景。</remarks>
+    public static ClayOptions Lenient => new()
+    {
+        PropertyNameCaseInsensitive = true,
+        AllowMissingProperty = true,
+        AllowIndexOutOfRange = true,
+        AutoCreateNestedObjects = true,
+        AutoCreateNestedArrays = true,
+        AutoExpandArrayWithNulls = true
+    };
+
+    /// <summary>
     ///     配置用于包裹非对象和非数组类型的键名
     /// </summary>
     /// <remarks>默认值为：<c>value</c>。</remarks>

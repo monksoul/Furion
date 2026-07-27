@@ -399,7 +399,7 @@ public partial class Clay
         // 处理对象或数组类型双重 JSON 序列化问题
         var scalarValueKey = Options.ScalarValueKey;
         var clay = IsScalarValue && IsJsonObjectOrArray(this[scalarValueKey] as string)
-            ? Unwrap(scalarValueKey)[scalarValueKey]
+            ? Unwrap(scalarValueKey)[scalarValueKey]!
             : this;
 
         return ParseRecursive(clay, maxDepth);

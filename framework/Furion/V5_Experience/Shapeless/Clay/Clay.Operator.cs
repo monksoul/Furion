@@ -84,6 +84,20 @@ public partial class Clay
     public static bool operator !=(Clay? left, Clay? right) => !(left == right);
 
     /// <summary>
+    ///     重载 + 运算符
+    /// </summary>
+    /// <param name="left">
+    ///     <see cref="Clay" />
+    /// </param>
+    /// <param name="right">
+    ///     <see cref="Clay" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Clay" />
+    /// </returns>
+    public static Clay operator +(Clay left, Clay right) => left.Combine(right);
+
+    /// <summary>
     ///     支持 <see cref="Clay" /> 类型隐式转换为 <see cref="string" />
     /// </summary>
     /// <param name="clay">
