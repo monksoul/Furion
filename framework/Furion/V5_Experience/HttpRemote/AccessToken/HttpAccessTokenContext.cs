@@ -62,5 +62,5 @@ public sealed class HttpAccessTokenContext
     /// <summary>
     ///     <see cref="IHttpAccessTokenProvider" /> 实例
     /// </summary>
-    internal IHttpAccessTokenProvider HttpAccessTokenProvider { get; }
+    public IHttpAccessTokenProvider HttpAccessTokenProvider { get; }
 }

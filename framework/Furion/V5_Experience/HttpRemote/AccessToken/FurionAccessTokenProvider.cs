@@ -64,10 +64,10 @@ public class FurionAccessTokenProvider : IHttpAccessTokenProvider, IHttpAccessTo
     }
 
     /// <inheritdoc />
-    public virtual Task<HttpAccessToken?> GetTokenAsync(HttpAccessTokenContext context,
+    public virtual Task<HttpAccessToken?> GetAsync(HttpAccessTokenContext context,
         CancellationToken cancellationToken) => Task.FromResult<HttpAccessToken?>(null);
 
     /// <inheritdoc />
-    public virtual Task<HttpAccessToken?> RefreshTokenAsync(HttpAccessTokenContext context,
+    public virtual Task<HttpAccessToken?> RefreshAsync(HttpAccessTokenContext context,
         HttpAccessToken? currentToken, CancellationToken cancellationToken) => Task.FromResult(currentToken);
 }

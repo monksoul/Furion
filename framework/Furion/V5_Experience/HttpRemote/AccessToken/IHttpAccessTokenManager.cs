@@ -31,24 +31,7 @@ namespace Furion.HttpRemote;
 public interface IHttpAccessTokenManager
 {
     /// <summary>
-    ///     设置 Access Token
-    /// </summary>
-    /// <remarks>用于首次获取或常规获取。</remarks>
-    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
-    /// <param name="httpAccessToken">
-    ///     <see cref="HttpAccessToken" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="Task" />
-    /// </returns>
-    Task SetTokenAsync(string? httpClientName, HttpAccessToken httpAccessToken,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    ///     获取当前缓存的 Access Token
+    ///     获取指定 <see cref="HttpClient" /> 实例的配置名称的缓存 Access Token
     /// </summary>
     /// <remarks>此方法不会触发刷新操作。</remarks>
     /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
@@ -58,5 +41,57 @@ public interface IHttpAccessTokenManager
     /// <returns>
     ///     <see cref="HttpAccessToken" />
     /// </returns>
-    Task<HttpAccessToken?> GetTokenAsync(string? httpClientName, CancellationToken cancellationToken = default);
+    Task<HttpAccessToken?> GetAsync(string? httpClientName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     设置指定 <see cref="HttpClient" /> 实例的配置名称的 Access Token
+    /// </summary>
+    /// <remarks>用于首次获取或常规获取。</remarks>
+    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
+    /// <param name="httpAccessToken">
+    ///     <see cref="HttpAccessToken" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    Task SetAsync(string? httpClientName, HttpAccessToken httpAccessToken,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     获取或刷新指定 <see cref="HttpClient" /> 实例的配置名称的 Access Token
+    /// </summary>
+    /// <remarks>
+    ///     内部实现中，若缓存中已存在有效的 <see cref="HttpAccessToken" />，则直接返回；否则调用
+    ///     <see cref="IHttpAccessTokenProvider.RefreshAsync" /> 方法获取新的 <see cref="HttpAccessToken" /> 实例，并将其缓存后再返回。
+    /// </remarks>
+    /// <param name="context">
+    ///     <see cref="HttpAccessTokenContext" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAccessToken" />
+    /// </returns>
+    Task<HttpAccessToken?> GetOrRefreshAsync(HttpAccessTokenContext context,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     强制刷新指定 <see cref="HttpClient" /> 实例的配置名称的 Access Token
+    /// </summary>
+    /// <remarks>
+    ///     内部实现中，直接调用 <see cref="IHttpAccessTokenProvider.RefreshAsync" /> 方法获取新的 <see cref="HttpAccessToken" />
+    ///     实例，并将其缓存后再返回。
+    /// </remarks>
+    /// <param name="context">
+    ///     <see cref="HttpAccessTokenContext" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpAccessToken" />
+    /// </returns>
+    Task<HttpAccessToken?> ForceRefreshAsync(HttpAccessTokenContext context,
+        CancellationToken cancellationToken = default);
 }

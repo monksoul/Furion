@@ -39,12 +39,12 @@ namespace Furion.HttpRemote;
 ///     <see cref="IHttpRemoteLogger" />
 /// </param>
 /// <param name="accessTokenManager">
-///     <see cref="HttpAccessTokenManager" />
+///     <see cref="IHttpAccessTokenManager" />
 /// </param>
 internal sealed class TokenManagementPipelineHandler(
     IServiceProvider serviceProvider,
     IHttpRemoteLogger logger,
-    HttpAccessTokenManager accessTokenManager) : IHttpRequestPipelineHandler
+    IHttpAccessTokenManager accessTokenManager) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -102,7 +102,7 @@ internal sealed class TokenManagementPipelineHandler(
         // 检查是否需要强制刷新 Token 并重试（由提供器决定，默认 401）
         // ReSharper disable once InvertIf
         if (httpResponseMessage is not null && httpAccessToken is not null &&
-            await httpAccessTokenProvider.ShouldRefreshTokenAsync(httpAccessTokenContext, httpResponseMessage,
+            await httpAccessTokenProvider.ShouldRefreshAsync(httpAccessTokenContext, httpResponseMessage,
                 context.CancellationToken))
         {
             // 输出重试日志
