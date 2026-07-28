@@ -263,6 +263,12 @@ public sealed partial class HttpRequestBuilder
     public IDictionary<string, object?>? AccessTokenData { get; private set; }
 
     /// <summary>
+    ///     配额键
+    /// </summary>
+    /// <remarks>用于标识当前请求属于哪个配额组，例如接口路径。</remarks>
+    public string? QuotaKey { get; private set; }
+
+    /// <summary>
     ///     如果 HTTP 响应的 <c>IsSuccessStatusCode</c> 属性是 <c>false</c>，则引发异常。
     /// </summary>
     /// <remarks>默认值为 <c>false</c>。</remarks>

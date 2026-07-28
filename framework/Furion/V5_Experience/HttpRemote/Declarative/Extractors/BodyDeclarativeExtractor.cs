@@ -59,9 +59,6 @@ internal sealed class BodyDeclarativeExtractor : IHttpDeclarativeExtractor
         // 检查是否为原始字符串内容
         if (value is string stringValue && bodyAttribute.RawString)
         {
-            // 空检查
-            ArgumentException.ThrowIfNullOrWhiteSpace(bodyAttribute.ContentType);
-
             // 设置原始字符串内容
             httpRequestBuilder.SetRawStringContent(stringValue, bodyAttribute.ContentType);
         }

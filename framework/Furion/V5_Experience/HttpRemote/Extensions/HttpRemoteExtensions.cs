@@ -273,14 +273,19 @@ public static partial class HttpRemoteExtensions
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
     /// </param>
+    /// <param name="httpRequestMessage">
+    ///     <see cref="HttpRequestMessage" />
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static async Task<string?> ProfilerAsync(this HttpContent? httpContent, string? summary = "Request Body",
-        HttpResponseMessage? httpResponseMessage = null, CancellationToken cancellationToken = default)
+        HttpResponseMessage? httpResponseMessage = null, HttpRequestMessage? httpRequestMessage = null,
+        CancellationToken cancellationToken = default)
     {
         // 空检查
         if (httpContent is null)
@@ -292,7 +297,10 @@ public static partial class HttpRemoteExtensions
         httpContent.FixInvalidCharset();
 
         // 新增最大处理大小限制，避免内存溢出（OOM）或缓冲区溢出
-        const long maxAllowedSize = 5 * 1024 * 1024; // 5MB
+        const long maxAllowedSize = 10 * 1024 * 1024; // 10MB
+
+        // 判断当前内容来自请求还是响应
+        var isResponse = httpResponseMessage is not null;
 
         // 检查内容是否包含 Content-Length 标头
         if (httpContent.Headers.ContentLength.HasValue)
@@ -336,11 +344,14 @@ public static partial class HttpRemoteExtensions
         }
         catch
         {
-            return StringUtility.FormatKeyValuesSummary(
-                [
-                    new KeyValuePair<string, IEnumerable<string>>(string.Empty,
-                        [$"\e[33m[Skipped: content unreadable or exceeds {maxAllowedSize} bytes]\e[0m"])
-                ], $"{summary} ({httpContent.GetType().Name}, Skipped due to size)");
+            // 这里存在一个问题：一旦发生异常，流将变为不可读状态，之后所有读取操作均会失败
+            // return StringUtility.FormatKeyValuesSummary(
+            //     [
+            //         new KeyValuePair<string, IEnumerable<string>>(string.Empty,
+            //             [$"\e[33m[Skipped: content unreadable or exceeds {maxAllowedSize} bytes]\e[0m"])
+            //     ], $"{summary} ({httpContent.GetType().Key}, Skipped due to size)");
+            throw new InvalidOperationException(
+                $"The {(isResponse ? "response body" : "request body")} for request '{(httpRequestMessage ?? httpResponseMessage?.RequestMessage)?.RequestUri?.OriginalString}' exceeds the maximum allowed size of 10 MB for profiling and cannot be printed. To resolve this, disable profiling by calling `HttpRequestBuilder.Profiler(false)`, applying the `[Profiler(false)]` attribute to declarative requests, or removing the global `.AddProfilerDelegatingHandler()` registration.");
         }
 
         // 获取已缓冲的内部流
@@ -353,10 +364,10 @@ public static partial class HttpRemoteExtensions
         // 获取响应内容 Content-Encoding 标头
         string? contentEncoding = null;
 
-        // 空检查
-        if (httpResponseMessage is not null)
+        // 检查是否是响应内容
+        if (isResponse)
         {
-            contentEncoding = httpResponseMessage.Content.Headers.ContentEncoding.FirstOrDefault();
+            contentEncoding = httpResponseMessage!.Content.Headers.ContentEncoding.FirstOrDefault();
         }
 
         // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
@@ -385,11 +396,11 @@ public static partial class HttpRemoteExtensions
             partialContent = Regex.Unescape(partialContent);
         }
 
-        // 空检查
-        if (httpResponseMessage is not null)
+        // 检查是否是响应内容
+        if (isResponse)
         {
             // 对响应内容进行着色
-            partialContent = httpResponseMessage.GetColoredText(partialContent, false);
+            partialContent = httpResponseMessage!.GetColoredText(partialContent, false);
         }
 
         // 如果未发生截断，则直接返回；否则，添加省略号表示内容被截断
@@ -406,7 +417,7 @@ public static partial class HttpRemoteExtensions
     ///     从流中读取最多指定数量的解压后字节
     /// </summary>
     /// <param name="compressedStream">压缩数据流</param>
-    /// <param name="contentEncoding">内容编码（gzip, deflate, br 等）</param>
+    /// <param name="contentEncoding">内容编码（gzip, deflate, br, zstd 等）</param>
     /// <param name="maxBytes">最多读取的字节数（解压后）</param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
@@ -430,6 +441,10 @@ public static partial class HttpRemoteExtensions
                     "gzip" => new GZipStream(compressedStream, CompressionMode.Decompress, true),
                     "deflate" => new DeflateStream(compressedStream, CompressionMode.Decompress, true),
                     "br" => new BrotliStream(compressedStream, CompressionMode.Decompress, true),
+#if NET11_0_OR_GREATER
+                    "zstd" => new ZstandardStream(compressedStream, CompressionMode.Decompress, true),
+#endif
+
                     _ => null
                 };
             }

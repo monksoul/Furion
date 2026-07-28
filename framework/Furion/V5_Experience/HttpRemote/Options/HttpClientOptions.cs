@@ -64,6 +64,26 @@ public sealed class HttpClientOptions
     public IHttpRequestEventHandler? HttpRequestEventHandler { get; set; }
 
     /// <summary>
+    ///     接口调用配额限制配置
+    /// </summary>
+    /// <remarks>
+    ///     <para>用于对接像微信 API 这样对不同接口有独立调用限制的场景。需配合 <see cref="HttpRequestBuilder.SetQuotaKey(string)" /> 为每个请求指定对应的配额键。</para>
+    ///     <para>推荐在 <c>appsettings.json</c> 等配置文件中定义，避免在代码中硬编码大量键值。示例如下：</para>
+    ///     <code>
+    ///     {
+    ///       "HttpQuotas": {
+    ///         "weixin": {
+    ///           "wechat/accesstoken": { "MaxCount": 2000, "Strategy": "daily" },
+    ///           "wechat/menu_create":  { "MaxCount": 1000, "Strategy": "weekly" },
+    ///           "wechat/upload_media": { "MaxCount": 50000, "Strategy": "monthly" }
+    ///         }
+    ///       }
+    ///     }
+    ///     </code>
+    /// </remarks>
+    public Dictionary<string, HttpQuotaLimit>? QuotaLimits { get; set; }
+
+    /// <summary>
     ///     标识选项是否配置为默认值（未配置）
     /// </summary>
     /// <remarks>用于避免通过 <see cref="IOptionsSnapshot{TOptions}" /> 获取选项时无法确定是否已配置该选项。默认值为：<c>true</c>。</remarks>

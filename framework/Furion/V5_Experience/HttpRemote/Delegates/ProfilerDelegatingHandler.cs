@@ -147,7 +147,7 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
     /// <param name="remoteOptions">
     ///     <see cref="HttpRemoteOptions" />
     /// </param>
-    /// <param name="request">
+    /// <param name="httpRequestMessage">
     ///     <see cref="HttpRequestMessage" />
     /// </param>
     /// <param name="httpRemoteAnalyzer">
@@ -160,12 +160,14 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
     ///     <see cref="CancellationToken" />
     /// </param>
     internal static async Task LogRequestAsync(IHttpRemoteLogger logger, HttpRemoteOptions remoteOptions,
-        HttpRequestMessage request, HttpRemoteAnalyzer? httpRemoteAnalyzer = null, HttpClient? httpClient = null,
-        CancellationToken cancellationToken = default)
+        HttpRequestMessage httpRequestMessage, HttpRemoteAnalyzer? httpRemoteAnalyzer = null,
+        HttpClient? httpClient = null, CancellationToken cancellationToken = default)
     {
         // 解析请求标头和内容信息
-        var requestSummary = request.ProfilerHeaders(httpClient);
-        var requestContentSummary = await request.Content.ProfilerAsync(cancellationToken: cancellationToken);
+        var requestSummary = httpRequestMessage.ProfilerHeaders(httpClient);
+        var requestContentSummary =
+            await httpRequestMessage.Content.ProfilerAsync(httpRequestMessage: httpRequestMessage,
+                cancellationToken: cancellationToken);
 
         Log(logger, remoteOptions, Helpers.JoinNonEmptyLines(requestSummary, requestContentSummary),
             httpRemoteAnalyzer);
@@ -198,7 +200,8 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         var generalSummary = httpResponseMessage.ProfilerGeneralAndHeaders(generalCustomKeyValues:
             [new KeyValuePair<string, IEnumerable<string>>("Request Duration (ms)", [$"{requestDuration:N2}"])]);
         var responseContentSummary =
-            await httpResponseMessage.Content.ProfilerAsync("Response Body", httpResponseMessage, cancellationToken);
+            await httpResponseMessage.Content.ProfilerAsync("Response Body", httpResponseMessage,
+                cancellationToken: cancellationToken);
 
         Log(logger, remoteOptions, Helpers.JoinNonEmptyLines(generalSummary, responseContentSummary),
             httpRemoteAnalyzer);

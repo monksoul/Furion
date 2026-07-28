@@ -64,6 +64,11 @@ public sealed class HttpRemoteBuilder
     internal HashSet<Type>? _httpDeclarativeTypes;
 
     /// <summary>
+    ///     <see cref="IHttpQuotaStrategy" /> 类型集合
+    /// </summary>
+    internal HashSet<Type>? _httpQuotaStrategyTypes;
+
+    /// <summary>
     ///     <see cref="IHttpRequestPipelineHandler" /> 类型集合
     /// </summary>
     internal IList<Type> _httpRequestPipelineHandlerTypes =
@@ -72,6 +77,7 @@ public sealed class HttpRemoteBuilder
         typeof(ResponseAssertionPipelineHandler),
         typeof(ResponseProfilerPipelineHandler),
         typeof(RequestEventPipelineHandler),
+        typeof(QuotaPipelineHandler),
         typeof(TimeoutPipelineHandler),
         typeof(RetryPipelineHandler),
         typeof(TokenManagementPipelineHandler),
@@ -386,6 +392,60 @@ public sealed class HttpRemoteBuilder
     }
 
     /// <summary>
+    ///     添加 HTTP 请求配额策略服务
+    /// </summary>
+    /// <typeparam name="TStrategy">
+    ///     <see cref="IHttpQuotaStrategy" />
+    /// </typeparam>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    public HttpRemoteBuilder AddQuotaStrategy<TStrategy>()
+        where TStrategy : IHttpQuotaStrategy =>
+        AddQuotaStrategy(typeof(TStrategy));
+
+    /// <summary>
+    ///     添加内置的 HTTP 请求配额策略服务
+    /// </summary>
+    /// <remarks>包含每日、每周、每月和生命周期配额策略。</remarks>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    public HttpRemoteBuilder AddDefaultQuotaStrategies() =>
+        AddQuotaStrategy<DailyQuotaStrategy>().AddQuotaStrategy<WeeklyQuotaStrategy>()
+            .AddQuotaStrategy<MonthlyQuotaStrategy>().AddQuotaStrategy<LifetimeQuotaStrategy>();
+
+    /// <summary>
+    ///     添加 HTTP 请求配额策略服务
+    /// </summary>
+    /// <param name="strategyType">
+    ///     <see cref="IHttpQuotaStrategy" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRemoteBuilder AddQuotaStrategy(Type strategyType)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(strategyType);
+
+        // 检查类型是否实现了 IHttpQuotaStrategy 接口
+        if (!typeof(IHttpQuotaStrategy).IsAssignableFrom(strategyType))
+        {
+            throw new ArgumentException(
+                $"`{strategyType}` type is not assignable from `{typeof(IHttpQuotaStrategy)}`.",
+                nameof(strategyType));
+        }
+
+        _httpQuotaStrategyTypes ??= [];
+        _httpQuotaStrategyTypes.Add(strategyType);
+
+        return this;
+    }
+
+    /// <summary>
     ///     构建模块服务
     /// </summary>
     /// <param name="services">
@@ -466,12 +526,17 @@ public sealed class HttpRemoteBuilder
         // 注册 Access Token 管理器服务
         services.TryAddSingleton<IHttpAccessTokenManager, HttpAccessTokenManager>();
 
+        // 注册配额管理器服务
+        services.TryAddSingleton<IHttpQuotaManager, HttpQuotaManager>();
+        // 注册配额策略服务
+        RegisterQuotaStrategies(services);
+
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);
     }
 
     /// <summary>
-    ///     注册内容提供器
+    ///     注册内容提供器服务
     /// </summary>
     /// <remarks>处理重复注册远程请求服务时不能合并多个提供器问题。</remarks>
     /// <param name="services">
@@ -546,6 +611,27 @@ public sealed class HttpRemoteBuilder
 
                 return httpDeclarative;
             });
+        }
+    }
+
+    /// <summary>
+    ///     注册配额策略服务
+    /// </summary>
+    /// <param name="services">
+    ///     <see cref="IServiceCollection" />
+    /// </param>
+    internal void RegisterQuotaStrategies(IServiceCollection services)
+    {
+        // 空检查
+        if (_httpQuotaStrategyTypes is null)
+        {
+            return;
+        }
+
+        // 遍历所有配额策略类型并注册为服务
+        foreach (var strategyType in _httpQuotaStrategyTypes)
+        {
+            services.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IHttpQuotaStrategy), strategyType));
         }
     }
 

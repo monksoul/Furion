@@ -221,12 +221,11 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    public HttpRequestBuilder SetRawStringContent(string text, string contentType, Encoding? contentEncoding = null)
+    public HttpRequestBuilder SetRawStringContent(string text, string? contentType = null,
+        Encoding? contentEncoding = null)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(text);
-        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
 
         return SetContent(text.AddQuotes(), contentType, contentEncoding);
     }
@@ -2090,6 +2089,20 @@ public sealed partial class HttpRequestBuilder
     public HttpRequestBuilder RemoveTrailingSlash(bool enabled)
     {
         RemoveTrailingSlashEnabled = enabled;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置当前请求的配额键
+    /// </summary>
+    /// <param name="key">配额标识，通常为接口路径或自定义名称</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder SetQuotaKey(string? key)
+    {
+        QuotaKey = key;
 
         return this;
     }

@@ -725,7 +725,7 @@ internal sealed class FileDownloadManager
     /// <summary>
     ///     根据 Content-Encoding 自动包装解压流
     /// </summary>
-    /// <remarks>支持 gzip/deflate/br 解压。</remarks>
+    /// <remarks>支持 gzip/deflate/br/zstd 解压。</remarks>
     /// <param name="rawContentStream">
     ///     <see cref="Stream" />
     /// </param>
@@ -753,6 +753,9 @@ internal sealed class FileDownloadManager
             "gzip" => new GZipStream(rawContentStream, CompressionMode.Decompress, true),
             "deflate" => new DeflateStream(rawContentStream, CompressionMode.Decompress, true),
             "br" => new BrotliStream(rawContentStream, CompressionMode.Decompress, true),
+#if NET11_0_OR_GREATER
+            "zstd" => new ZstandardStream(rawContentStream, CompressionMode.Decompress, true),
+#endif
             _ => rawContentStream
         };
     }
