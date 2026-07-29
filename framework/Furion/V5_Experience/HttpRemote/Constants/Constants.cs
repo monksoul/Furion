@@ -36,11 +36,6 @@ internal static class Constants
     internal const string X_TRACE_ID_HEADER = "X-Trace-ID";
 
     /// <summary>
-    ///     未知 <c>User Agent</c> 版本
-    /// </summary>
-    internal const string UNKNOWN_USER_AGENT_VERSION = "unknown";
-
-    /// <summary>
     ///     Basic 授权标识
     /// </summary>
     internal const string BASIC_AUTHENTICATION_SCHEME = "Basic";

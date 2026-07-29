@@ -36,8 +36,11 @@ internal sealed class SendCorePipelineHandler : IHttpRequestPipelineHandler
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
         Func<Task<HttpResponseMessage?>> next)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(context.RequestMessage);
+
         // 调用发送 HTTP 请求委托
-        var httpResponseMessage = await context.SendAsync(context.HttpClient, context.RequestMessage!,
+        var httpResponseMessage = await context.SendAsync(context.HttpClient, context.RequestMessage,
             context.CompletionOption, context.CancellationToken);
 
         // 修复无效的响应内容字符编码

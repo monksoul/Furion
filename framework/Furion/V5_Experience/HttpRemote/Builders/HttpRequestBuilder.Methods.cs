@@ -1208,6 +1208,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     设置 Digest 摘要身份验证凭据请求授权标头
     /// </summary>
+    /// <remarks>建议先使用 <see cref="DigestCredentials.GetDigestCredentials" /> 获取凭证并缓存，再直接设置 <c>Authorization</c> 标头，避免每次请求触发探测。</remarks>
     /// <param name="username">用户名</param>
     /// <param name="password">密码</param>
     /// <returns>

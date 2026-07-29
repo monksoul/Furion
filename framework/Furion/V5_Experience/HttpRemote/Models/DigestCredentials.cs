@@ -114,8 +114,8 @@ public sealed class DigestCredentials
 
         try
         {
-            // 发送 HTTP 远程请求
-            using var httpResponseMessage = httpClient.Send(new HttpRequestMessage(httpMethod, requestUri),
+            // 发送 HTTP 远程请求（默认 HEAD 请求）
+            using var httpResponseMessage = httpClient.Send(new HttpRequestMessage(HttpMethod.Head, requestUri),
                 HttpCompletionOption.ResponseHeadersRead);
 
             // 检查响应状态码是否是 401 且响应标头是否包含 WWW-Authenticate 
@@ -160,7 +160,34 @@ public sealed class DigestCredentials
         var nonce = ExtractParameterValueFromHeader("nonce", wwwAuthenticateValue);
         var qop = ExtractParameterValueFromHeader("qop", wwwAuthenticateValue);
         var opaque = ExtractParameterValueFromHeader("opaque", wwwAuthenticateValue);
-        var cNonce = RandomNumberGenerator.GetInt32(123400, 9999999).ToString();
+        var algorithm = ExtractParameterValueFromHeader("algorithm", wwwAuthenticateValue) ?? "MD5";
+
+        // 检查是否是 MD5 和 MD5-sess 算法
+        if (!algorithm.Equals("MD5", StringComparison.OrdinalIgnoreCase) &&
+            !algorithm.Equals("MD5-sess", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Unsupported digest algorithm '{algorithm}'. Only MD5 and MD5-sess are supported.");
+        }
+
+        // 处理 qop 多值情况
+        string? selectedQop = null;
+
+        // 空检查 
+        if (!string.IsNullOrWhiteSpace(qop))
+        {
+            var qopOptions = qop.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            selectedQop = qopOptions.FirstOrDefault(o => o.Equals("auth", StringComparison.OrdinalIgnoreCase));
+
+            // 空检查
+            if (selectedQop is null)
+            {
+                throw new InvalidOperationException($"Server requested qop '{qop}', but only 'auth' is supported.");
+            }
+        }
+
+        // 生成随机值
+        var cNonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
 
         // 初始化 DigestCredentials 实例
         return new DigestCredentials
@@ -169,7 +196,7 @@ public sealed class DigestCredentials
             Password = password,
             Realm = realm,
             Nonce = nonce,
-            Qop = qop,
+            Qop = selectedQop,
             Nc = 1, // 注意
             CNonce = cNonce,
             Opaque = opaque
@@ -186,21 +213,50 @@ public sealed class DigestCredentials
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="InvalidOperationException"></exception>
     internal string GenerateCredentials(string? digestUri, HttpMethod httpMethod)
     {
+        // 空检查
+        if (string.IsNullOrEmpty(digestUri))
+        {
+            throw new InvalidOperationException("digestUri cannot be null or empty.");
+        }
+
         var ha1 = GenerateMd5Hash($"{Username}:{Realm}:{Password}");
         var ha2 = GenerateMd5Hash($"{httpMethod}:{digestUri}");
 
-        var digestResponse =
-            GenerateMd5Hash(
-                $"{ha1}:{Nonce}:{Nc:00000000}:{CNonce}:{Qop}:{ha2}");
+        string digestResponse;
+        var parts = new List<string>
+        {
+            $"username=\"{Username}\"",
+            $"realm=\"{Realm}\"",
+            $"nonce=\"{Nonce}\"",
+            $"uri=\"{digestUri}\"",
+            "algorithm=MD5"
+        };
 
-        var credentials =
-            $"username=\"{Username}\", realm=\"{Realm}\", nonce=\"{Nonce}\", uri=\"{digestUri}\", " +
-            $"algorithm=MD5, qop={Qop}, nc={Nc:00000000}, cnonce=\"{CNonce}\", " +
-            $"response=\"{digestResponse}\", opaque=\"{Opaque}\"";
+        // 空检查
+        if (!string.IsNullOrWhiteSpace(Qop))
+        {
+            digestResponse = GenerateMd5Hash($"{ha1}:{Nonce}:{Nc:00000000}:{CNonce}:{Qop}:{ha2}");
+            parts.Add($"qop={Qop}");
+            parts.Add($"nc={Nc:00000000}");
+            parts.Add($"cnonce=\"{CNonce}\"");
+        }
+        else
+        {
+            digestResponse = GenerateMd5Hash($"{ha1}:{Nonce}:{ha2}");
+        }
 
-        return credentials;
+        parts.Add($"response=\"{digestResponse}\"");
+
+        // 空检查
+        if (!string.IsNullOrWhiteSpace(Opaque))
+        {
+            parts.Add($"opaque=\"{Opaque}\"");
+        }
+
+        return string.Join(", ", parts);
     }
 
     /// <summary>
@@ -218,10 +274,10 @@ public sealed class DigestCredentials
         ArgumentException.ThrowIfNullOrWhiteSpace(wwwAuthenticateValue);
 
         var match = new Regex($"""
-                               {name}="([^"]*)"
+                               {name}=(?:"([^"]*)"|([^,\s]+))
                                """).Match(wwwAuthenticateValue);
 
-        return match.Success ? match.Groups[1].Value : null;
+        return match.Success ? match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value : null;
     }
 
     /// <summary>

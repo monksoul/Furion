@@ -47,7 +47,8 @@ internal sealed class SuppressExceptionPipelineHandler(IHttpRemoteLogger logger)
         catch (Exception e) when (ShouldSuppressException(context.Builder.SuppressExceptionTypes, e))
         {
             // 记录异常抑制日志
-            logger.LogWarning(e, "An exception occurred but was suppressed by SuppressExceptionPipelineHandler.");
+            logger.LogWarning(e,
+                $"An exception occurred but was suppressed by {nameof(SuppressExceptionPipelineHandler)}.");
 
             return context.ResponseMessage;
         }

@@ -72,8 +72,8 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
         catch (Exception e)
         {
             // 输出请求异常日志
-            logger.LogError(e, "An error occurred while sending HTTP request to {Url} using {Method}.",
-                context.RequestMessage?.RequestUri?.ToString() ?? "unknown", context.RequestMessage?.Method);
+            logger.LogError(e, "An error occurred while sending HTTP request to '{Url}' using {Method}.",
+                context.RequestMessage?.RequestUri?.ToString(), context.RequestMessage?.Method);
 
             // 处理发送 HTTP 请求发生异常
             HandleRequestFailed(httpRequestBuilder, globalEventHandler, requestEventHandler, e,
