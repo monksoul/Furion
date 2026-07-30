@@ -30,6 +30,7 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     据文件扩展名提供内容类型
 /// </summary>
+/// <remarks>参考文献：https://www.iana.org/assignments/media-types/media-types.xhtml。</remarks>
 public sealed class FileTypeMapper
 {
     /// <summary>
@@ -53,7 +54,7 @@ public sealed class FileTypeMapper
         { ".adts", "audio/vnd.dlna.adts" },
         { ".afm", "application/octet-stream" },
         { ".ai", "application/postscript" },
-        { ".aif", "audio/x-aiff" },
+        { ".aif", "audio/aiff" },
         { ".aifc", "audio/aiff" },
         { ".aiff", "audio/aiff" },
         { ".appcache", "text/cache-manifest" },
@@ -146,7 +147,7 @@ public sealed class FileTypeMapper
         { ".hxt", "text/html" },
         { ".ical", "text/calendar" },
         { ".icalendar", "text/calendar" },
-        { ".ico", "image/x-icon" },
+        { ".ico", "image/vnd.microsoft.icon" },
         { ".ics", "text/calendar" },
         { ".ief", "image/ief" },
         { ".ifb", "text/calendar" },
@@ -220,7 +221,7 @@ public sealed class FileTypeMapper
         { ".ocx", "application/octet-stream" },
         { ".oda", "application/oda" },
         { ".odc", "text/x-ms-odc" },
-        { ".ods", "application/oleobject" },
+        { ".ods", "application/vnd.oasis.opendocument.spreadsheet" },
         { ".oga", "audio/ogg" },
         { ".ogg", "video/ogg" },
         { ".ogv", "video/ogg" },
@@ -334,10 +335,10 @@ public sealed class FileTypeMapper
         { ".toc", "application/octet-stream" },
         { ".tr", "application/x-troff" },
         { ".trm", "application/x-msterminal" },
-        { ".ts", "video/vnd.dlna.mpeg-tts" },
+        { ".ts", "video/mp2t" },
         { ".tsv", "text/tab-separated-values" },
         { ".ttc", "application/x-font-ttf" },
-        { ".ttf", "application/x-font-ttf" },
+        { ".ttf", "font/ttf" },
         { ".tts", "video/vnd.dlna.mpeg-tts" },
         { ".txt", "text/plain" },
         { ".u32", "application/octet-stream" },
@@ -357,6 +358,7 @@ public sealed class FileTypeMapper
         { ".vtx", "application/vnd.visio" },
         { ".wasm", "application/wasm" },
         { ".wav", "audio/wav" },
+        { ".weba", "audio/webm" },
         { ".wax", "audio/x-ms-wax" },
         { ".wbmp", "image/vnd.wap.wbmp" },
         { ".wcm", "application/vnd.ms-works" },
@@ -377,7 +379,7 @@ public sealed class FileTypeMapper
         { ".wmv", "video/x-ms-wmv" },
         { ".wmx", "video/x-ms-wmx" },
         { ".wmz", "application/x-ms-wmz" },
-        { ".woff", "application/font-woff" }, // https://www.w3.org/TR/WOFF/#appendix-b
+        { ".woff", "font/woff" }, // https://www.w3.org/TR/WOFF/#appendix-b
         { ".woff2", "font/woff2" }, // https://www.w3.org/TR/WOFF2/#IMT
         { ".wps", "application/vnd.ms-works" },
         { ".wri", "application/x-mswrite" },
@@ -429,7 +431,40 @@ public sealed class FileTypeMapper
         { ".nupkg", "application/vnd.nuget.package" },
         { ".snupkg", "application/vnd.nuget.package" },
         { ".ofd", "application/ofd" },
-        { ".jsonl", "application/json-lines" }
+        { ".jsonl", "application/json-lines" },
+        { ".msix", "application/msix" },
+        { ".ini", "text/plain" },
+        { ".log", "text/plain" },
+        { ".toml", "application/toml" },
+        { ".yaml", "application/x-yaml" },
+        { ".yml", "application/x-yaml" },
+        { ".torrent", "application/x-bittorrent" },
+        { ".odt", "application/vnd.oasis.opendocument.text" },
+        { ".odp", "application/vnd.oasis.opendocument.presentation" },
+        { ".odg", "application/vnd.oasis.opendocument.graphics" },
+        { ".epub", "application/epub+zip" },
+        { ".mobi", "application/x-mobipocket-ebook" },
+        { ".azw", "application/vnd.amazon.ebook" },
+        { ".avif", "image/avif" },
+        { ".heic", "image/heic" },
+        { ".heif", "image/heif" },
+        { ".mkv", "video/x-matroska" },
+        { ".flac", "audio/flac" },
+        { ".opus", "audio/opus" },
+        { ".srt", "application/x-subrip" },
+        { ".vtt", "text/vtt" },
+        { ".iso", "application/x-iso9660-image" },
+        { ".dmg", "application/x-apple-diskimage" },
+        { ".cs", "text/plain" },
+        { ".vb", "text/plain" },
+        { ".fs", "text/plain" },
+        { ".py", "text/plain" },
+        { ".rb", "text/plain" },
+        { ".go", "text/plain" },
+        { ".rs", "text/plain" },
+        { ".sql", "text/plain" },
+        { ".bat", "text/plain" },
+        { ".ps1", "text/plain" }
     })
     {
     }
@@ -438,6 +473,7 @@ public sealed class FileTypeMapper
     ///     <inheritdoc cref="FileTypeMapper" />
     /// </summary>
     /// <param name="mapping">文件扩展名及其对应内容类型映射字典</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public FileTypeMapper(IDictionary<string, string> mapping)
     {
         // 空检查

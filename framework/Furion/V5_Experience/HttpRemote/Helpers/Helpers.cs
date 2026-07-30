@@ -45,7 +45,7 @@ internal static class Helpers
     /// <summary>
     ///     HTTP QUERY <see cref="HttpMethod" /> 静态实例
     /// </summary>
-    internal static readonly HttpMethod HttpQuery = ParseHttpMethod("QUERY");
+    internal static readonly HttpMethod HttpQuery = new("QUERY");
 
     /// <summary>
     ///     从互联网 URL 地址中加载流
@@ -316,19 +316,25 @@ internal static class Helpers
 
             // 获取原始 "filename=" 参数值
             var rawFileName = contentDisposition.Parameters
-                .First(p => string.Equals(p.Name, "filename", StringComparison.OrdinalIgnoreCase)).Value!;
+                .FirstOrDefault(p => string.Equals(p.Name, "filename", StringComparison.OrdinalIgnoreCase))?.Value;
 
-            // 检查首尾是否包含双引号
+            // 空检查
             // ReSharper disable once InvertIf
-            if (rawFileName.StartsWith('"') && rawFileName.EndsWith('"'))
+            if (rawFileName is not null)
             {
-                rawFileName = rawFileName.Trim('"');
-
-                // 检查是否为 MIME 编码格式（如 =?UTF-8?B?...?=），若是则跳过乱码修复
-                if (!(rawFileName.StartsWith("=?") && rawFileName.EndsWith("?=")))
+                // 检查首尾是否包含双引号
+                // ReSharper disable once InvertIf
+                if (rawFileName.StartsWith('"') && rawFileName.EndsWith('"'))
                 {
-                    // 尝试修复乱码，如 UTF-8 字节被错误解释为 ISO-8859-1
-                    decodedFileName = Encoding.UTF8.GetString(Encoding.GetEncoding("ISO-8859-1").GetBytes(rawFileName));
+                    rawFileName = rawFileName.Trim('"');
+
+                    // 检查是否为 MIME 编码格式（如 =?UTF-8?B?...?=），若是则跳过乱码修复
+                    if (!(rawFileName.StartsWith("=?") && rawFileName.EndsWith("?=")))
+                    {
+                        // 尝试修复乱码，如 UTF-8 字节被错误解释为 ISO-8859-1
+                        decodedFileName =
+                            Encoding.UTF8.GetString(Encoding.GetEncoding("ISO-8859-1").GetBytes(rawFileName));
+                    }
                 }
             }
 

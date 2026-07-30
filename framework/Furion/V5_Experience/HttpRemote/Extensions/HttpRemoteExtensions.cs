@@ -519,8 +519,8 @@ public static partial class HttpRemoteExtensions
         // 初始化 StringBuilder 实例
         var stringBuilder = new StringBuilder();
 
-        // 检查是否是成功请求状态码
-        if (httpResponseMessage.IsSuccessStatusCode)
+        // 检查是否是成功请求状态码或 304 Not Modified
+        if (httpResponseMessage.IsSuccessStatusCode || httpResponseMessage.StatusCode == HttpStatusCode.NotModified)
         {
             // 输出绿色内容
             stringBuilder.Append("\e[32m");
@@ -561,6 +561,7 @@ public static partial class HttpRemoteExtensions
     /// <returns>
     ///     <see cref="HttpRequestMessage" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage httpRequestMessage,
         CancellationToken cancellationToken = default)
     {
@@ -579,7 +580,7 @@ public static partial class HttpRemoteExtensions
         // 复制 httpRequestMessage.Options 选项
         foreach (var (key, value) in httpRequestMessage.Options)
         {
-            clonedHttpRequestMessage.Options.TryAdd(key, value); // TODO: 思考是 TryAdd 还是 AddOrUpdate
+            clonedHttpRequestMessage.Options.AddOrUpdate(key, value);
         }
 
         // 检查是否包含请求内容

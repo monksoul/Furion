@@ -369,7 +369,8 @@ public sealed class HttpContextForwardBuilder
         HttpRequestBuilder httpRequestBuilder, CancellationToken cancellationToken)
     {
         // 获取多部分表单内容的边界；注意：这里可能出现前后双引号问题
-        var boundary = rawContentType.Split('=')[1].TrimStart('"').TrimEnd('"');
+        var contentTypeHeader = Microsoft.Net.Http.Headers.MediaTypeHeaderValue.Parse(rawContentType);
+        var boundary = contentTypeHeader.Boundary.Value?.TrimStart('"').TrimEnd('"')!;
 
         // 初始化 HttpMultipartFormDataBuilder 实例
         var httpMultipartFormDataBuilder =

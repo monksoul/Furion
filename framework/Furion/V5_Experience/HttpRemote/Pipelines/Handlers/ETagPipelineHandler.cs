@@ -32,10 +32,10 @@ namespace Furion.HttpRemote;
 ///     ETag 缓存管道处理器
 /// </summary>
 /// <remarks>参考文献：https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Reference/Headers/ETag。</remarks>
-/// <param name="etagCache">
+/// <param name="eTagCache">
 ///     <see cref="IHttpETagCache" />
 /// </param>
-internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpRequestPipelineHandler
+internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -66,7 +66,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
         var cacheKey = GenerateCacheKey(httpRequestMessage);
 
         // 如果缓存中存在 ETag，则添加到请求头中
-        if (etagCache.TryGet(cacheKey, out var eTagCacheItem) && eTagCacheItem?.ETag is not null)
+        if (eTagCache.TryGet(cacheKey, out var eTagCacheItem) && eTagCacheItem?.ETag is not null)
         {
             httpRequestMessage.Headers.IfNoneMatch.Clear();
             httpRequestMessage.Headers.IfNoneMatch.Add(new EntityTagHeaderValue($"\"{eTagCacheItem.ETag}\""));
@@ -81,7 +81,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
             return null;
         }
 
-        // 检查是否收到 304 Not Modified 状态码
+        // 检查是否是 304 Not Modified 状态码
         if (httpResponseMessage.StatusCode == HttpStatusCode.NotModified && eTagCacheItem is not null)
         {
             // 释放前一个 HttpResponseMessage 实例
@@ -96,7 +96,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
             return cachedResponseMessage;
         }
 
-        // 检查是否成功请求且包含 ETag 标头
+        // 检查是否是成功请求状态码且包含 ETag 响应标头
         if (httpResponseMessage.IsSuccessStatusCode && httpResponseMessage.Headers.ETag is { } entityTagHeaderValue)
         {
             // 缓存 HttpResponseMessage 信息
@@ -170,7 +170,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
         };
 
         // 更新缓存
-        etagCache.Set(cacheKey, eTagCacheItem);
+        eTagCache.Set(cacheKey, eTagCacheItem);
     }
 
     /// <summary>
@@ -196,11 +196,11 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
         // 初始化 HttpResponseMessage 实例
         var httpResponseMessage = new HttpResponseMessage(eTagCacheItem.StatusCode);
 
-        // 同步当前 HttpRequestMessage 实例
-        httpResponseMessage.RequestMessage = httpRequestMessage;
-
         // 标记此响应来自 ETag 缓存，供请求分析工具使用
         httpRequestMessage.Options.Set(new HttpRequestOptionsKey<bool>(Constants.ETAG_CACHED_KEY), true);
+
+        // 同步当前 HttpRequestMessage 实例
+        httpResponseMessage.RequestMessage = httpRequestMessage;
 
         // 检查是否包含响应内容
         if (eTagCacheItem.ContentBytes is { Length: > 0 })
