@@ -88,7 +88,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
             httpResponseMessage.Dispose();
 
             // 从缓存项重建完整响应消息
-            var cachedResponseMessage = BuildResponseFromCacheItem(eTagCacheItem);
+            var cachedResponseMessage = BuildResponseFromCacheItem(eTagCacheItem, httpRequestMessage);
 
             // 更新上下文
             context.ResponseMessage = cachedResponseMessage;
@@ -179,17 +179,28 @@ internal sealed class ETagPipelineHandler(IHttpETagCache etagCache) : IHttpReque
     /// <param name="eTagCacheItem">
     ///     <see cref="HttpETagCacheItem" />
     /// </param>
+    /// <param name="httpRequestMessage">
+    ///     <see cref="HttpRequestMessage" />
+    /// </param>
     /// <returns>
     ///     <see cref="HttpResponseMessage" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    internal static HttpResponseMessage BuildResponseFromCacheItem(HttpETagCacheItem eTagCacheItem)
+    internal static HttpResponseMessage BuildResponseFromCacheItem(HttpETagCacheItem eTagCacheItem,
+        HttpRequestMessage httpRequestMessage)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(eTagCacheItem);
+        ArgumentNullException.ThrowIfNull(httpRequestMessage);
 
         // 初始化 HttpResponseMessage 实例
         var httpResponseMessage = new HttpResponseMessage(eTagCacheItem.StatusCode);
+
+        // 同步当前 HttpRequestMessage 实例
+        httpResponseMessage.RequestMessage = httpRequestMessage;
+
+        // 标记此响应来自 ETag 缓存，供请求分析工具使用
+        httpRequestMessage.Options.Set(new HttpRequestOptionsKey<bool>(Constants.ETAG_CACHED_KEY), true);
 
         // 检查是否包含响应内容
         if (eTagCacheItem.ContentBytes is { Length: > 0 })

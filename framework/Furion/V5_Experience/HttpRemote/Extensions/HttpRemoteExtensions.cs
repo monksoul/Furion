@@ -242,6 +242,11 @@ public static partial class HttpRemoteExtensions
             ? [new KeyValuePair<string, IEnumerable<string>>("HttpClient Name", [httpClientName])]
             : null;
 
+        // 检查是否从（ETag）内存缓存返回
+        var fromMemoryCache =
+            httpRequestMessage.Options.TryGetValue(new HttpRequestOptionsKey<bool>(Constants.ETAG_CACHED_KEY),
+                out var value) && value;
+
         // 格式化常规条目
         var generalEntry = StringUtility.FormatKeyValuesSummary(new[]
             {
@@ -251,7 +256,8 @@ public static partial class HttpRemoteExtensions
                 new KeyValuePair<string, IEnumerable<string>>("Status Code",
                 [
                     httpResponseMessage.GetColoredText(
-                        $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}")
+                        $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}") +
+                    (!fromMemoryCache ? string.Empty : " (from memory cache)")
                 ]),
                 new KeyValuePair<string, IEnumerable<string>>("HTTP Version", [httpResponseMessage.Version.ToString()]),
                 new KeyValuePair<string, IEnumerable<string>>("HTTP Content", [$"{httpContent?.GetType().Name}"]),

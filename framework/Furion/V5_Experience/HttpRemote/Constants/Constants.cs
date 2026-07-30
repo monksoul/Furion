@@ -119,13 +119,13 @@ internal static class Constants
     /// <summary>
     ///     请求管道上下文中请求分析工具的键
     /// </summary>
-    /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="HttpRemoteAnalyzer" /> 实例。</remarks>
+    /// <remarks>被用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="HttpRemoteAnalyzer" /> 实例。</remarks>
     internal const string PROFILER_ANALYZER_KEY = "ProfilerAnalyzer";
 
     /// <summary>
     ///     请求管道上下文中请求事件处理程序的键
     /// </summary>
-    /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="IHttpRequestEventHandler" /> 实例。</remarks>
+    /// <remarks>被用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="IHttpRequestEventHandler" /> 实例。</remarks>
     internal const string REQUEST_EVENT_HANDLER_KEY = "RequestEventHandler";
 
     /// <summary>
@@ -133,4 +133,13 @@ internal static class Constants
     /// </summary>
     /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string HTTP_COMPLETION_OPTION_KEY = "__HTTP_COMPLETION_OPTION__";
+
+    /// <summary>
+    ///     ETag 响应缓存标识键
+    /// </summary>
+    /// <remarks>
+    ///     被用于标记 <see cref="HttpResponseMessage" /> 是否从 ETag 缓存中重建。被用于从 <see cref="HttpResponseMessage" /> 的
+    ///     <c>Options</c> 属性中读取。
+    /// </remarks>
+    internal const string ETAG_CACHED_KEY = "__ETAG_CACHED__";
 }
