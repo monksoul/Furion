@@ -102,10 +102,32 @@ public static class App
     public static HttpContext HttpContext => CatchOrDefault(() => RootServices?.GetService<IHttpContextAccessor>()?.HttpContext);
 
     /// <summary>
+    /// 异步上下文用户身份存储
+    /// </summary>
+    private static readonly AsyncLocal<ClaimsPrincipal> _asyncLocalUser = new();
+
+    /// <summary>
     /// 获取请求上下文用户
     /// </summary>
     /// <remarks>只有授权访问的页面或接口才存在值，否则为 null</remarks>
-    public static ClaimsPrincipal User => HttpContext?.User;
+    public static ClaimsPrincipal User
+    {
+        get
+        {
+            var httpContext = HttpContext;
+
+            // 空检查
+            if (httpContext?.User != null)
+            {
+                // 缓存当前线程的用户身份
+                _asyncLocalUser.Value = httpContext.User;
+
+                return httpContext.User;
+            }
+
+            return _asyncLocalUser.Value;
+        }
+    }
 
     /// <summary>
     /// 未托管的对象集合
