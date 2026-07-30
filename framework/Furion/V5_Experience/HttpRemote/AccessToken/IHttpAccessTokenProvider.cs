@@ -72,7 +72,7 @@ public interface IHttpAccessTokenProvider
     ///     指示是否需要强制刷新 Access Token 并重试请求
     /// </summary>
     /// <remarks>
-    ///     默认实现仅在状态码为 <see cref="HttpStatusCode.Unauthorized" />（401）时返回 <c>true</c>。可重写此方法以自定义刷新策略（例如检查 403、响应头、响应体等）。
+    ///     默认实现仅在状态码为 <see cref="HttpStatusCode.Unauthorized" />（401）时返回 <c>true</c>。可重写此方法以自定义刷新策略（例如检查 403、响应头、响应内容等）。
     /// </remarks>
     /// <param name="context">
     ///     <see cref="HttpAccessTokenContext" />

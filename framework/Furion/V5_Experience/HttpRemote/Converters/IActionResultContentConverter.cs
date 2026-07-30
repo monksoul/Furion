@@ -115,7 +115,7 @@ public class IActionResultContentConverter : HttpContentConverterBase<IActionRes
 
         emptyContentResult = statusCode switch
         {
-            // 无响应体的状态码
+            // 无响应内容的状态码
             HttpStatusCode.NoContent => new NoContentResult(),
             HttpStatusCode.ResetContent => new StatusCodeResult((int)HttpStatusCode.ResetContent),
             // 304 特殊处理：返回空内容但必须保留 ETag/Last-Modified 等验证头
@@ -123,7 +123,7 @@ public class IActionResultContentConverter : HttpContentConverterBase<IActionRes
             HttpStatusCode.SwitchingProtocols => new StatusCodeResult((int)HttpStatusCode.SwitchingProtocols),
             HttpStatusCode.Processing => new StatusCodeResult((int)HttpStatusCode.Processing),
 
-            // 可能存在响应体的状态码。这里不应该处理，因为它们通常包含错误详情
+            // 可能存在响应内容的状态码。这里不应该处理，因为它们通常包含错误详情
             // HttpStatusCode.BadRequest => new BadRequestResult(),
             // HttpStatusCode.Unauthorized => new UnauthorizedResult(),
             // HttpStatusCode.NotFound => new NotFoundResult(),

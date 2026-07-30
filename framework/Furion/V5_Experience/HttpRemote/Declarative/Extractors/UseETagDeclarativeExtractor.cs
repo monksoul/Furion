@@ -26,20 +26,20 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式配额键特性
+///     HTTP 声明式 <see cref="UseETagAttribute" /> 特性提取器
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
-public sealed class QuotaKeyAttribute : Attribute
+internal sealed class UseETagDeclarativeExtractor : IHttpDeclarativeExtractor
 {
-    /// <summary>
-    ///     <inheritdoc cref="QuotaKeyAttribute" />
-    /// </summary>
-    /// <param name="key">配额键</param>
-    public QuotaKeyAttribute(string? key) => Key = key;
+    /// <inheritdoc />
+    public void Extract(HttpRequestBuilder httpRequestBuilder, HttpDeclarativeExtractorContext context)
+    {
+        // 检查方法或接口是否贴有 [UseETag] 特性
+        if (!context.IsMethodDefined<UseETagAttribute>(out var useETagAttribute, true))
+        {
+            return;
+        }
 
-    /// <summary>
-    ///     配额键
-    /// </summary>
-    /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
-    public string? Key { get; set; }
+        // 设置是否启用 ETag 缓存处理
+        httpRequestBuilder.UseETag(useETagAttribute.Enabled);
+    }
 }

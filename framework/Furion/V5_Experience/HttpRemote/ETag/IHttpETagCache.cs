@@ -26,20 +26,34 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式配额键特性
+///     ETag 缓存接口
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
-public sealed class QuotaKeyAttribute : Attribute
+public interface IHttpETagCache
 {
     /// <summary>
-    ///     <inheritdoc cref="QuotaKeyAttribute" />
+    ///     尝试获取指定键的缓存项
     /// </summary>
-    /// <param name="key">配额键</param>
-    public QuotaKeyAttribute(string? key) => Key = key;
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="eTagCacheItem">
+    ///     <see cref="HttpETagCacheItem" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    bool TryGet(string cacheKey, out HttpETagCacheItem? eTagCacheItem);
 
     /// <summary>
-    ///     配额键
+    ///     设置或更新指定键的缓存项
     /// </summary>
-    /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
-    public string? Key { get; set; }
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="eTagCacheItem">
+    ///     <see cref="HttpETagCacheItem" />
+    /// </param>
+    void Set(string cacheKey, HttpETagCacheItem eTagCacheItem);
+
+    /// <summary>
+    ///     移除指定键的缓存项
+    /// </summary>
+    /// <param name="cacheKey">缓存键</param>
+    void Remove(string cacheKey);
 }

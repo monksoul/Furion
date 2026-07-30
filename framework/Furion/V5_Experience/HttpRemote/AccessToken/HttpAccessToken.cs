@@ -40,6 +40,13 @@ public sealed class HttpAccessToken
     /// <summary>
     ///     <inheritdoc cref="HttpAccessToken" />
     /// </summary>
+    public HttpAccessToken()
+    {
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="HttpAccessToken" />
+    /// </summary>
     /// <param name="value">Access Token 值</param>
     /// <param name="expiresAt">Access Token 的绝对过期时间</param>
     /// <exception cref="ArgumentException"></exception>
@@ -79,7 +86,7 @@ public sealed class HttpAccessToken
     /// <summary>
     ///     Access Token 值
     /// </summary>
-    public string Value { get; set; }
+    public string Value { get; set; } = null!;
 
     /// <summary>
     ///     Access Token 的绝对过期时间

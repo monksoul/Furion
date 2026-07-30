@@ -312,7 +312,7 @@ public sealed class HttpContextForwardBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(contentType);
 
-        // 读取 HttpContext 请求体流
+        // 读取 HttpContext 请求内容流
         var bodyStream = ReadBody();
 
         // 检查请求内容类型是否为 multipart/form-data
@@ -328,7 +328,7 @@ public sealed class HttpContextForwardBuilder
                 HttpContext.RequestAborted);
         }
 
-        // 将请求体流的位置重置回起始位置
+        // 将请求内容流的位置重置回起始位置
         httpRequest.Body.Position = 0;
     }
 
@@ -468,7 +468,7 @@ public sealed class HttpContextForwardBuilder
     }
 
     /// <summary>
-    ///     读取 <see cref="HttpContext" /> 请求体流
+    ///     读取 <see cref="HttpContext" /> 请求内容流
     /// </summary>
     /// <returns>
     ///     <see cref="Stream" />
@@ -476,17 +476,17 @@ public sealed class HttpContextForwardBuilder
     /// <exception cref="InvalidOperationException"></exception>
     internal Stream ReadBody()
     {
-        // 获取请求体流
+        // 获取请求内容流
         var body = HttpContext.Request.Body;
 
-        // 检查请求体流是否支持查找操作
+        // 检查请求内容流是否支持查找操作
         if (!body.CanSeek)
         {
             throw new InvalidOperationException(
                 "Please ensure that the `app.UseEnableBuffering()` middleware is registered.");
         }
 
-        // 将请求体流的位置重置回起始位置
+        // 将请求内容流的位置重置回起始位置
         body.Position = 0;
 
         return body;

@@ -23,23 +23,45 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
+
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式配额键特性
+///     基于内存的 ETag 缓存
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
-public sealed class QuotaKeyAttribute : Attribute
+internal sealed class MemoryETagCache : IHttpETagCache
 {
     /// <summary>
-    ///     <inheritdoc cref="QuotaKeyAttribute" />
+    ///     内部缓存字典
     /// </summary>
-    /// <param name="key">配额键</param>
-    public QuotaKeyAttribute(string? key) => Key = key;
+    internal readonly ConcurrentDictionary<string, HttpETagCacheItem> _cache = new();
 
-    /// <summary>
-    ///     配额键
-    /// </summary>
-    /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
-    public string? Key { get; set; }
+    /// <inheritdoc />
+    public bool TryGet(string cacheKey, out HttpETagCacheItem? eTagCacheItem)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(cacheKey);
+
+        return _cache.TryGetValue(cacheKey, out eTagCacheItem);
+    }
+
+    /// <inheritdoc />
+    public void Set(string cacheKey, HttpETagCacheItem eTagCacheItem)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(cacheKey);
+        ArgumentNullException.ThrowIfNull(eTagCacheItem);
+
+        _cache[cacheKey] = eTagCacheItem;
+    }
+
+    /// <inheritdoc />
+    public void Remove(string cacheKey)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(cacheKey);
+
+        _cache.TryRemove(cacheKey, out _);
+    }
 }

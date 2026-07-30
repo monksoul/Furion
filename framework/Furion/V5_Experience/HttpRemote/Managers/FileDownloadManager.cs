@@ -368,7 +368,7 @@ internal sealed class FileDownloadManager
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
         var bytesReceived = 0L;
 
-        // 获取 HTTP 响应体中的内容流
+        // 获取 HTTP 响应内容中的内容流
         await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 
         // 循环读取数据直到取消请求或分块完成
@@ -435,7 +435,7 @@ internal sealed class FileDownloadManager
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
         var bytesReceived = 0L;
 
-        // 获取 HTTP 响应体中的内容流
+        // 获取 HTTP 响应内容中的内容流
         await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 
         // 尝试解压内容流，解决部分内容流被压缩的情况

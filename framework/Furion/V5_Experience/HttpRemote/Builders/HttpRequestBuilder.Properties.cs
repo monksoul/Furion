@@ -265,7 +265,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     配额键
     /// </summary>
-    /// <remarks>用于标识当前请求属于哪个配额组，例如接口路径。</remarks>
+    /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
     public string? QuotaKey { get; private set; }
 
     /// <summary>
@@ -388,4 +388,9 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>
     internal bool RemoveTrailingSlashEnabled { get; private set; }
+
+    /// <summary>
+    ///     是否启用 ETag 缓存处理
+    /// </summary>
+    internal bool ETagEnabled { get; private set; }
 }

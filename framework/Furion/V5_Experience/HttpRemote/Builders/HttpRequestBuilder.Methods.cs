@@ -2095,7 +2095,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置当前请求的配额键
+    ///     设置配额键
     /// </summary>
     /// <param name="key">配额标识，通常为接口路径或自定义名称</param>
     /// <returns>
@@ -2104,6 +2104,28 @@ public sealed partial class HttpRequestBuilder
     public HttpRequestBuilder SetQuotaKey(string? key)
     {
         QuotaKey = key;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     启用 ETag 缓存处理
+    /// </summary>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder UseETag() => UseETag(true);
+
+    /// <summary>
+    ///     设置是否启用 ETag 缓存处理
+    /// </summary>
+    /// <returns>
+    ///     <param name="enabled">是否启用</param>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder UseETag(bool enabled)
+    {
+        ETagEnabled = enabled;
 
         return this;
     }
@@ -2208,9 +2230,9 @@ public sealed partial class HttpRequestBuilder
         PathSegments?.Clear();
         PathSegmentsToRemove?.Clear();
 
-        // 重定向时若请求方法为 GET 或 HEAD，则不应设置请求体内容
+        // 重定向时若请求方法为 GET 或 HEAD，则不应设置请求内容
         // ReSharper disable once InvertIf
-        // Query 允许携带请求体内容，参考文献：https://www.rfc-editor.org/info/rfc10008
+        // Query 允许携带请求内容，参考文献：https://www.rfc-editor.org/info/rfc10008
         if (redirectMethod == HttpMethod.Get || redirectMethod == HttpMethod.Head)
         {
             RawContent = null;

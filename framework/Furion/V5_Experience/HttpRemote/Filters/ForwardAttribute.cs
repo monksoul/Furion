@@ -128,7 +128,7 @@ public sealed class ForwardAttribute : ActionFilterAttribute
     ///     忽略在转发时需要跳过的响应标头列表
     /// </summary>
     /// <remarks>
-    ///     若响应标头中包含 <c>Content-Length</c>，且其值与实际响应体大小不符，则可能引发“Error while copying content to a
+    ///     若响应标头中包含 <c>Content-Length</c>，且其值与实际响应内容大小不符，则可能引发“Error while copying content to a
     ///     stream.”。忽略此标头有助于解决因长度不匹配引起的错误。
     /// </remarks>
     public string[]? IgnoreResponseHeaders { get; set; }

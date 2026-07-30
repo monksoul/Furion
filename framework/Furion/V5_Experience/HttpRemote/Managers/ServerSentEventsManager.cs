@@ -216,7 +216,7 @@ internal sealed class ServerSentEventsManager
                     // 处理与事件源的连接打开
                     HandleOpen();
 
-                    // 获取 HTTP 响应体中的内容流
+                    // 获取 HTTP 响应内容中的内容流
                     await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 
                     // 初始化 StreamReader 实例

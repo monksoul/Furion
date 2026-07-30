@@ -39,7 +39,7 @@ internal sealed class QuotaKeyDeclarativeExtractor : IHttpDeclarativeExtractor
             return;
         }
 
-        // 设置当前请求的配额键
+        // 设置配额键
         httpRequestBuilder.SetQuotaKey(quotaKeyAttribute.Key);
     }
 }

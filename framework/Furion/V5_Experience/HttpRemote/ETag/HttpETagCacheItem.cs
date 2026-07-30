@@ -23,23 +23,43 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Net;
+
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式配额键特性
+///     ETag 缓存项
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
-public sealed class QuotaKeyAttribute : Attribute
+public sealed class HttpETagCacheItem
 {
     /// <summary>
-    ///     <inheritdoc cref="QuotaKeyAttribute" />
+    ///     服务器返回的 ETag 值
     /// </summary>
-    /// <param name="key">配额键</param>
-    public QuotaKeyAttribute(string? key) => Key = key;
+    /// <remarks>无前后双引号。</remarks>
+    public string? ETag { get; set; }
 
     /// <summary>
-    ///     配额键
+    ///     响应状态码
     /// </summary>
-    /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
-    public string? Key { get; set; }
+    public HttpStatusCode StatusCode { get; set; }
+
+    /// <summary>
+    ///     响应内容的字节数组
+    /// </summary>
+    public byte[]? ContentBytes { get; set; }
+
+    /// <summary>
+    ///     响应内容标头
+    /// </summary>
+    public Dictionary<string, IEnumerable<string>>? ContentHeaders { get; set; }
+
+    /// <summary>
+    ///     响应标头
+    /// </summary>
+    public Dictionary<string, IEnumerable<string>>? ResponseHeaders { get; set; }
+
+    /// <summary>
+    ///     原因短语
+    /// </summary>
+    public string? ReasonPhrase { get; set; }
 }

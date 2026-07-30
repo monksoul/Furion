@@ -109,7 +109,7 @@ public class HttpRemoteResult : IDisposable
     public HttpResponseHeaders Headers { get; private set; } = null!;
 
     /// <summary>
-    ///     响应体标头
+    ///     响应内容标头
     /// </summary>
     public HttpContentHeaders ContentHeaders { get; private set; } = null!;
 
@@ -174,7 +174,7 @@ public class HttpRemoteResult : IDisposable
     }
 
     /// <summary>
-    ///     解析响应体标头元数据
+    ///     解析响应内容标头元数据
     /// </summary>
     /// <param name="contentHeaders">
     ///     <see cref="HttpContentHeaders" />
@@ -236,7 +236,7 @@ public sealed class HttpRemoteResult<TResult> : HttpRemoteResult
     /// <summary>
     ///     <typeparamref name="TResult" />
     /// </summary>
-    /// <remarks>注意 <c>HEAD</c> 请求不包含响应体。</remarks>
+    /// <remarks>注意 <c>HEAD</c> 请求不包含响应内容。</remarks>
     public TResult? Result { get; internal init; }
 
     /// <inheritdoc />

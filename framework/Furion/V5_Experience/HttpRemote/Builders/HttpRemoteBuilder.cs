@@ -85,6 +85,7 @@ public sealed class HttpRemoteBuilder
         typeof(StatusCodePipelineHandler),
         typeof(ContentLengthValidationPipelineHandler),
         typeof(RequestBuilderPipelineHandler),
+        typeof(ETagPipelineHandler),
         typeof(RequestProfilerPipelineHandler),
         typeof(SendCorePipelineHandler)
     ];
@@ -530,6 +531,9 @@ public sealed class HttpRemoteBuilder
         services.TryAddSingleton<IHttpQuotaManager, HttpQuotaManager>();
         // 注册配额策略服务
         RegisterQuotaStrategies(services);
+
+        // 注册 ETag 缓存服务
+        services.TryAddSingleton<IHttpETagCache, MemoryETagCache>();
 
         // 构建 HTTP 声明式远程请求服务
         BuildHttpDeclarativeServices(services);
