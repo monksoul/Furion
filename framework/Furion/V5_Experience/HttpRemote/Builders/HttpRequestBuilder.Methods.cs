@@ -1858,6 +1858,7 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
+    /// <param name="excludePropertyNames">要排除复制的属性名称集合</param>
     /// <exception cref="ArgumentNullException"></exception>
     public HttpRequestBuilder Clone(params string[]? excludePropertyNames)
     {
