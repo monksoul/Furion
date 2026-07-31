@@ -63,7 +63,7 @@ internal sealed class StressTestHarnessManager
 
         // 构建 HttpRequestBuilder 实例
         RequestBuilder = httpStressTestHarnessBuilder.Build(httpRemoteService.ServiceProvider
-            .GetRequiredService<IOptions<HttpRemoteOptions>>().Value);
+            .GetRequiredService<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue);
     }
 
     /// <summary>

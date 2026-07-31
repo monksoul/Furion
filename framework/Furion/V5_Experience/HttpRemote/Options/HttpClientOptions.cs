@@ -23,7 +23,6 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace Furion.HttpRemote;
@@ -36,8 +35,7 @@ public sealed class HttpClientOptions
     /// <summary>
     ///     JSON 序列化配置
     /// </summary>
-    public JsonSerializerOptions JsonSerializerOptions { get; set; } =
-        new(HttpRemoteOptions.JsonSerializerOptionsDefault);
+    public JsonSerializerOptions JsonSerializerOptions { get; set; } = null!;
 
     /// <summary>
     ///     指定 JSON 响应反序列化包装器
@@ -82,10 +80,4 @@ public sealed class HttpClientOptions
     ///     </code>
     /// </remarks>
     public Dictionary<string, HttpQuotaLimit>? QuotaLimits { get; set; }
-
-    /// <summary>
-    ///     标识选项是否配置为默认值（未配置）
-    /// </summary>
-    /// <remarks>用于避免通过 <see cref="IOptionsSnapshot{TOptions}" /> 获取选项时无法确定是否已配置该选项。默认值为：<c>true</c>。</remarks>
-    internal bool IsDefault { get; set; } = true;
 }

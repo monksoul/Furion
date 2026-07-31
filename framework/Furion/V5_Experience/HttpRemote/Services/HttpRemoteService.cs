@@ -80,7 +80,7 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         IHttpClientFactory httpClientFactory,
         IHttpContentProcessorFactory httpContentProcessorFactory,
         IHttpContentConverterFactory httpContentConverterFactory,
-        IOptions<HttpRemoteOptions> httpRemoteOptions)
+        IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(serviceProvider);
@@ -91,7 +91,7 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
         ArgumentNullException.ThrowIfNull(httpRemoteOptions);
 
         ServiceProvider = serviceProvider;
-        _httpRemoteOptions = httpRemoteOptions.Value;
+        _httpRemoteOptions = httpRemoteOptions.CurrentValue;
 
         _logger = logger;
         _httpClientFactory = httpClientFactory;

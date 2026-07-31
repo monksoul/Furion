@@ -80,7 +80,7 @@ internal sealed class FileUploadManager
 
         // 构建 HttpRequestBuilder 实例
         RequestBuilder = httpFileUploadBuilder.Build(httpRemoteService.ServiceProvider
-            .GetRequiredService<IOptions<HttpRemoteOptions>>().Value, _progressChannel);
+            .GetRequiredService<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue, _progressChannel);
     }
 
     /// <summary>

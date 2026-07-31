@@ -69,7 +69,7 @@ internal sealed class LongPollingManager
 
         // 构建 HttpRequestBuilder 实例
         RequestBuilder = httpLongPollingBuilder.Build(httpRemoteService.ServiceProvider
-            .GetRequiredService<IOptions<HttpRemoteOptions>>().Value);
+            .GetRequiredService<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue);
     }
 
     /// <summary>

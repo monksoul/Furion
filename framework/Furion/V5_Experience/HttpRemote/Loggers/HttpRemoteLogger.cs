@@ -38,7 +38,7 @@ namespace Furion.HttpRemote;
 /// <param name="isLoggingRegistered">是否配置（注册）了日志程序</param>
 internal sealed class HttpRemoteLogger(
     ILogger<Logging> logger,
-    IOptions<HttpRemoteOptions> httpRemoteOptions,
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions,
     bool isLoggingRegistered) : IHttpRemoteLogger
 {
     /// <summary>
@@ -112,7 +112,7 @@ internal sealed class HttpRemoteLogger(
         else
         {
             // 调用备用日志输出委托
-            httpRemoteOptions.Value.FallbackLogger?.Invoke(_logMessageFormatter.Value(message, args));
+            httpRemoteOptions.CurrentValue.FallbackLogger?.Invoke(_logMessageFormatter.Value(message, args));
         }
     }
 }

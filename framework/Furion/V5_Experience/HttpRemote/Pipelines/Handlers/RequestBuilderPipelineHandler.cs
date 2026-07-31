@@ -44,7 +44,7 @@ namespace Furion.HttpRemote;
 internal sealed class RequestBuilderPipelineHandler(
     IServiceProvider serviceProvider,
     IHttpContentProcessorFactory httpContentProcessorFactory,
-    IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -54,8 +54,8 @@ internal sealed class RequestBuilderPipelineHandler(
         var httpRequestBuilder = context.Builder;
 
         // 构建 HttpRequestMessage 实例
-        var httpRequestMessage = httpRequestBuilder.Build(httpRemoteOptions.Value, httpContentProcessorFactory,
-            context.HttpClient.BaseAddress ?? httpRemoteOptions.Value.FallbackBaseAddress);
+        var httpRequestMessage = httpRequestBuilder.Build(httpRemoteOptions.CurrentValue, httpContentProcessorFactory,
+            context.HttpClient.BaseAddress ?? httpRemoteOptions.CurrentValue.FallbackBaseAddress);
 
         // 将 HttpCompletionOption 写入请求选项，供请求分析工具使用
         httpRequestMessage.Options.Set(

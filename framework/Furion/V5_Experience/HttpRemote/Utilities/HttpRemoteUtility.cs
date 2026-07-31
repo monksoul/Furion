@@ -32,6 +32,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace Furion.HttpRemote;
 
@@ -167,15 +168,9 @@ public static class HttpRemoteUtility
         // 空检查
         ArgumentNullException.ThrowIfNull(resultType);
 
-        // 根据 HTTP 响应消息和服务提供器，解析出 HttpClient 客户端配置选项
-        var httpClientOptions = ResolveHttpClientOptions(httpResponseMessage, serviceProvider);
-
         // 获取 JsonSerializerOptions 配置
-        // 优先级：指定名称的 HttpClientOptions -> HttpRemoteOptions -> 默认值
-        var jsonSerializerOptions =
-            (httpClientOptions?.IsDefault != false ? null : httpClientOptions.JsonSerializerOptions) ??
-            serviceProvider?.GetService<IOptions<HttpRemoteOptions>>()?.Value.JsonSerializerOptions ??
-            HttpRemoteOptions.JsonSerializerOptionsDefault;
+        var jsonSerializerOptions = ResolveJsonSerializerOptions(serviceProvider,
+            httpResponseMessage.ResolveHttpClientName(), out var httpClientOptions);
 
         // 检查是否启用 JSON 响应反序列化包装器并获取指定 JSON 响应反序列化包装器实例
         var jsonResponseWrapper = httpResponseMessage.ShouldUseJsonResponseWrapper(serviceProvider)
@@ -384,6 +379,34 @@ public static class HttpRemoteUtility
         }
 
         return null;
+    }
+
+    /// <summary>
+    ///     解析 JSON 序列化配置
+    /// </summary>
+    /// <param name="serviceProvider">
+    ///     <see cref="IServiceProvider" />
+    /// </param>
+    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
+    /// <param name="clientOptions">
+    ///     <see cref="HttpClientOptions" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="JsonSerializerOptions" />
+    /// </returns>
+    internal static JsonSerializerOptions ResolveJsonSerializerOptions(IServiceProvider? serviceProvider,
+        string? httpClientName, out HttpClientOptions? clientOptions)
+    {
+        // 获取 HttpClientOptions 实例
+        clientOptions = serviceProvider?.GetService<IOptionsMonitor<HttpClientOptions>>()?.Get(httpClientName);
+
+        // 获取 JsonSerializerOptions 配置
+        // 优先级：指定名称的 HttpClientOptions -> HttpRemoteOptions -> 默认值
+        var jsonSerializerOptions = clientOptions?.JsonSerializerOptions ??
+                                    serviceProvider?.GetService<IOptionsMonitor<HttpRemoteOptions>>()?.CurrentValue
+                                        .JsonSerializerOptions ?? HttpRemoteOptions.JsonSerializerOptionsDefault;
+
+        return jsonSerializerOptions;
     }
 
     /// <summary>

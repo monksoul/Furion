@@ -42,7 +42,9 @@ namespace Furion.HttpRemote;
 /// <param name="httpRemoteOptions">
 ///     <see cref="IOptions{TOptions}" />
 /// </param>
-public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions<HttpRemoteOptions> httpRemoteOptions)
+public sealed class ProfilerDelegatingHandler(
+    IHttpRemoteLogger logger,
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions)
     : DelegatingHandler
 {
     /// <summary>
@@ -79,7 +81,7 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
 
         // 记录请求信息
         AsyncUtility.RunSync(() =>
-            LogRequestAsync(logger, httpRemoteOptions.Value, httpRequestMessage, null, null, cancellationToken));
+            LogRequestAsync(logger, httpRemoteOptions.CurrentValue, httpRequestMessage, null, null, cancellationToken));
 
         // 初始化 Stopwatch 实例并开启计时操作
         var stopwatch = Stopwatch.StartNew();
@@ -94,11 +96,11 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         stopwatch.Stop();
 
         // 记录响应信息
-        AsyncUtility.RunSync(() => LogResponseAsync(logger, httpRemoteOptions.Value, httpResponseMessage,
+        AsyncUtility.RunSync(() => LogResponseAsync(logger, httpRemoteOptions.CurrentValue, httpResponseMessage,
             requestDuration, null, cancellationToken));
 
         // 打印 CookieContainer 内容
-        LogCookieContainer(logger, httpRemoteOptions.Value, httpRequestMessage, ExtractCookieContainer());
+        LogCookieContainer(logger, httpRemoteOptions.CurrentValue, httpRequestMessage, ExtractCookieContainer());
 
         return httpResponseMessage;
     }
@@ -114,7 +116,8 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         }
 
         // 记录请求信息
-        await LogRequestAsync(logger, httpRemoteOptions.Value, httpRequestMessage, null, null, cancellationToken);
+        await LogRequestAsync(logger, httpRemoteOptions.CurrentValue, httpRequestMessage, null, null,
+            cancellationToken);
 
         // 初始化 Stopwatch 实例并开启计时操作
         var stopwatch = Stopwatch.StartNew();
@@ -129,11 +132,11 @@ public sealed class ProfilerDelegatingHandler(IHttpRemoteLogger logger, IOptions
         stopwatch.Stop();
 
         // 记录响应信息
-        await LogResponseAsync(logger, httpRemoteOptions.Value, httpResponseMessage, requestDuration,
+        await LogResponseAsync(logger, httpRemoteOptions.CurrentValue, httpResponseMessage, requestDuration,
             null, cancellationToken);
 
         // 打印 CookieContainer 内容
-        LogCookieContainer(logger, httpRemoteOptions.Value, httpRequestMessage, ExtractCookieContainer());
+        LogCookieContainer(logger, httpRemoteOptions.CurrentValue, httpRequestMessage, ExtractCookieContainer());
 
         return httpResponseMessage;
     }

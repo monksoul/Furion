@@ -40,7 +40,7 @@ namespace Furion.HttpRemote;
 /// </param>
 internal sealed class ResponseProfilerPipelineHandler(
     IHttpRemoteLogger logger,
-    IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -74,7 +74,7 @@ internal sealed class ResponseProfilerPipelineHandler(
                     : null;
 
                 // 记录响应信息
-                await ProfilerDelegatingHandler.LogResponseAsync(logger, httpRemoteOptions.Value,
+                await ProfilerDelegatingHandler.LogResponseAsync(logger, httpRemoteOptions.CurrentValue,
                     context.ResponseMessage, context.RequestDuration, httpRemoteAnalyzer, context.CancellationToken);
 
                 // 调用请求分析工具委托

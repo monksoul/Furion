@@ -38,7 +38,7 @@ namespace Furion.HttpRemote;
 /// </param>
 internal sealed class RequestProfilerPipelineHandler(
     IHttpRemoteLogger logger,
-    IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -64,7 +64,7 @@ internal sealed class RequestProfilerPipelineHandler(
         context.Items[Constants.PROFILER_ANALYZER_KEY] = httpRemoteAnalyzer;
 
         // 记录请求信息
-        await ProfilerDelegatingHandler.LogRequestAsync(logger, httpRemoteOptions.Value, context.RequestMessage,
+        await ProfilerDelegatingHandler.LogRequestAsync(logger, httpRemoteOptions.CurrentValue, context.RequestMessage,
             httpRemoteAnalyzer, context.HttpClient, context.CancellationToken);
 
         // 调用下一个处理器的委托

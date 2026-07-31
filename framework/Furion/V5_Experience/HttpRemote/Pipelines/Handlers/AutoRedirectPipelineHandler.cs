@@ -39,7 +39,7 @@ namespace Furion.HttpRemote;
 /// </param>
 internal sealed class AutoRedirectPipelineHandler(
     IHttpContentProcessorFactory httpContentProcessorFactory,
-    IOptions<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
+    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions) : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -52,7 +52,7 @@ internal sealed class AutoRedirectPipelineHandler(
         var httpRequestBuilder = context.Builder;
 
         // 获取 HttpRemoteOptions 实例
-        var remoteOptions = httpRemoteOptions.Value;
+        var remoteOptions = httpRemoteOptions.CurrentValue;
 
         // 初始化当前重定向次数和原始请求方法
         var redirections = 0;
