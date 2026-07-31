@@ -36,6 +36,35 @@ namespace Furion.HttpRemote;
 public sealed partial class HttpRequestBuilder
 {
     /// <summary>
+    ///     获取一个用于配置当前 <see cref="HttpRequestBuilder" /> 的实例
+    /// </summary>
+    /// <remarks>
+    ///     用于构建 <![CDATA[Action<HttpRequestBuilder>]]> 委托。
+    /// </remarks>
+    public static HttpRequestBuilder Setup => new();
+
+    /// <summary>
+    ///     支持 <see cref="HttpRequestBuilder" /> 隐式转换为 <![CDATA[Action<HttpRequestBuilder>]]>
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <returns><![CDATA[Action<HttpRequestBuilder>]]></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static implicit operator Action<HttpRequestBuilder>(HttpRequestBuilder httpRequestBuilder)
+    {
+        // 空检查
+        if (httpRequestBuilder.HttpMethod is not null)
+        {
+            throw new InvalidOperationException(
+                $"The '{nameof(Setup)}' builder must not have an HTTP method set. It is intended to be used as a configuration delegate for predicate-style methods (e.g., GetAsync, PostAsync).");
+        }
+
+        return target =>
+            httpRequestBuilder.CopyTo(target, nameof(RequestUri), nameof(HttpMethod));
+    }
+
+    /// <summary>
     ///     创建 <c>GET</c> 请求的 <see cref="HttpRequestBuilder" /> 构建器
     /// </summary>
     /// <param name="requestUri">请求地址</param>

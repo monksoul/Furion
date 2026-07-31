@@ -148,12 +148,14 @@ public sealed class HttpStressTestHarnessBuilder
     ///     配置 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public HttpStressTestHarnessBuilder WithRequest(Action<HttpRequestBuilder> configure)
+    public HttpStressTestHarnessBuilder With(Action<HttpRequestBuilder> configure)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(configure);
@@ -169,7 +171,7 @@ public sealed class HttpStressTestHarnessBuilder
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />
     /// </returns>
-    public HttpStressTestHarnessBuilder DisableCache() => WithRequest(builder => builder.DisableCache());
+    public HttpStressTestHarnessBuilder DisableCache() => With(builder => builder.DisableCache());
 
     /// <summary>
     ///     设置禁用 HTTP 缓存
@@ -179,7 +181,7 @@ public sealed class HttpStressTestHarnessBuilder
     ///     <see cref="HttpStressTestHarnessBuilder" />
     /// </returns>
     public HttpStressTestHarnessBuilder DisableCache(bool disabled) =>
-        WithRequest(builder => builder.DisableCache(disabled));
+        With(builder => builder.DisableCache(disabled));
 
     /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例

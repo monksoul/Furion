@@ -34,7 +34,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -51,7 +53,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -65,7 +69,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -82,7 +88,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -96,7 +104,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -114,7 +124,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -129,7 +141,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -147,7 +161,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -162,7 +178,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -180,7 +198,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -195,7 +215,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -213,7 +235,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -228,7 +252,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -242,7 +268,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -256,7 +284,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -273,7 +303,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -290,7 +322,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -307,7 +341,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -321,7 +357,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -335,7 +373,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -349,7 +389,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP GET 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -366,7 +408,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -383,7 +427,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -400,7 +446,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -414,7 +462,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -431,7 +481,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -445,7 +497,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -462,7 +516,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -476,7 +532,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -494,7 +552,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -509,7 +569,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -527,7 +589,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -542,7 +606,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -560,7 +626,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -575,7 +643,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -593,7 +663,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -608,7 +680,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -622,7 +696,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -636,7 +712,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -653,7 +731,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -670,7 +750,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -687,7 +769,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -701,7 +785,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -715,7 +801,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -729,7 +817,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PUT 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -746,7 +836,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -763,7 +855,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -780,7 +874,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -794,7 +890,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -811,7 +909,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -825,7 +925,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -842,7 +944,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -856,7 +960,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -874,7 +980,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -889,7 +997,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -907,7 +1017,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -922,7 +1034,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -940,7 +1054,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -955,7 +1071,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -974,7 +1092,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -989,7 +1109,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1003,7 +1125,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1017,7 +1141,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1034,7 +1160,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1051,7 +1179,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1068,7 +1198,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1082,7 +1214,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1096,7 +1230,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1110,7 +1246,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP POST 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1127,7 +1265,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1144,7 +1284,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1161,7 +1303,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1175,7 +1319,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1192,7 +1338,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1206,7 +1354,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1223,7 +1373,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1237,7 +1389,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1255,7 +1409,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1270,7 +1426,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1288,7 +1446,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1303,7 +1463,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1321,7 +1483,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1336,7 +1500,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1355,7 +1521,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1370,7 +1538,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1384,7 +1554,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1398,7 +1570,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1415,7 +1589,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1432,7 +1608,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1449,7 +1627,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1463,7 +1643,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1477,7 +1659,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1491,7 +1675,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP DELETE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1508,7 +1694,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1525,7 +1713,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1542,7 +1732,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1556,7 +1748,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1573,7 +1767,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1587,7 +1783,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1604,7 +1802,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1618,7 +1818,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1636,7 +1838,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1651,7 +1855,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1669,7 +1875,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1684,7 +1892,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1702,7 +1912,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1717,7 +1929,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1736,7 +1950,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1751,7 +1967,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1765,7 +1983,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1779,7 +1999,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1796,7 +2018,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1813,7 +2037,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1830,7 +2056,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1844,7 +2072,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1858,7 +2088,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1872,7 +2104,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP HEAD 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1889,7 +2123,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1906,7 +2142,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1923,7 +2161,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1937,7 +2177,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1954,7 +2196,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1968,7 +2212,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1985,7 +2231,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -1999,7 +2247,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2017,7 +2267,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2032,7 +2284,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2050,7 +2304,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2065,7 +2321,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2083,7 +2341,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2098,7 +2358,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2117,7 +2379,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2132,7 +2396,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2146,7 +2412,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2160,7 +2428,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2177,7 +2447,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2194,7 +2466,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2211,7 +2485,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2225,7 +2501,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2239,7 +2517,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2253,7 +2533,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP OPTIONS 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2270,7 +2552,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2287,7 +2571,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2304,7 +2590,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2318,7 +2606,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2335,7 +2625,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2349,7 +2641,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2366,7 +2660,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2380,7 +2676,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2398,7 +2696,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2413,7 +2713,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2431,7 +2733,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2446,7 +2750,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2464,7 +2770,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2479,7 +2787,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2498,7 +2808,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2513,7 +2825,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2527,7 +2841,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2541,7 +2857,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2558,7 +2876,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2575,7 +2895,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2592,7 +2914,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2606,7 +2930,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2620,7 +2946,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2634,7 +2962,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP TRACE 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2651,7 +2981,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2668,7 +3000,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2685,7 +3019,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2699,7 +3035,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2716,7 +3054,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2730,7 +3070,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2747,7 +3089,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2761,7 +3105,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2779,7 +3125,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2794,7 +3142,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2812,7 +3162,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2827,7 +3179,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2845,7 +3199,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2860,7 +3216,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2879,7 +3237,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2894,7 +3254,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2908,7 +3270,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2922,7 +3286,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2939,7 +3305,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2956,7 +3324,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2973,7 +3343,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -2987,7 +3359,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3001,7 +3375,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3015,7 +3391,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP PATCH 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3032,7 +3410,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3049,7 +3429,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3066,7 +3448,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3080,7 +3464,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3097,7 +3483,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3111,7 +3499,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3128,7 +3518,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3142,7 +3534,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3160,7 +3554,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3175,7 +3571,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3193,7 +3591,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3208,7 +3608,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3226,7 +3628,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3241,7 +3645,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3260,7 +3666,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3275,7 +3683,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3289,7 +3699,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3303,7 +3715,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3320,7 +3734,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3337,7 +3753,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3354,7 +3772,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3368,7 +3788,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3382,7 +3804,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3396,7 +3820,9 @@ public partial interface IHttpRemoteService
     ///     发送 HTTP QUERY 远程请求
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3413,7 +3839,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3430,7 +3858,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -3447,7 +3877,9 @@ public partial interface IHttpRemoteService
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
     /// </param>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>

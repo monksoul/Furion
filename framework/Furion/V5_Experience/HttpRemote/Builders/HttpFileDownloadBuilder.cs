@@ -370,12 +370,14 @@ public sealed class HttpFileDownloadBuilder
     ///     配置 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">自定义配置委托</param>
+    /// <param name="configure">
+    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
+    /// </param>
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public HttpFileDownloadBuilder WithRequest(Action<HttpRequestBuilder> configure)
+    public HttpFileDownloadBuilder With(Action<HttpRequestBuilder> configure)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(configure);
@@ -391,7 +393,7 @@ public sealed class HttpFileDownloadBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    public HttpFileDownloadBuilder Profiler() => WithRequest(builder => builder.Profiler(true));
+    public HttpFileDownloadBuilder Profiler() => With(builder => builder.Profiler(true));
 
     /// <summary>
     ///     设置是否启用请求分析工具
@@ -400,7 +402,7 @@ public sealed class HttpFileDownloadBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    public HttpFileDownloadBuilder Profiler(bool enabled) => WithRequest(builder => builder.Profiler(enabled));
+    public HttpFileDownloadBuilder Profiler(bool enabled) => With(builder => builder.Profiler(enabled));
 
     /// <summary>
     ///     设置是否启用请求分析工具
@@ -410,7 +412,7 @@ public sealed class HttpFileDownloadBuilder
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
     public HttpFileDownloadBuilder Profiler(Action<HttpRemoteAnalyzer> predicate) =>
-        WithRequest(builder => builder.Profiler(predicate));
+        With(builder => builder.Profiler(predicate));
 
     /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例

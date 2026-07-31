@@ -35,6 +35,14 @@ namespace Furion.HttpRemote;
 public sealed class HttpBuilder
 {
     /// <summary>
+    ///     获取一个用于配置当前 <see cref="HttpRequestBuilder" /> 的实例
+    /// </summary>
+    /// <remarks>
+    ///     用于构建 <![CDATA[Action<HttpRequestBuilder>]]> 委托。
+    /// </remarks>
+    public static HttpRequestBuilder Setup => HttpRequestBuilder.Setup;
+
+    /// <summary>
     ///     创建 <c>GET</c> 请求的 <see cref="HttpRequestBuilder" /> 构建器
     /// </summary>
     /// <param name="requestUri">请求地址</param>

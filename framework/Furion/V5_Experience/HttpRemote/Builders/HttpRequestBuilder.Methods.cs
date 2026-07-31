@@ -24,7 +24,6 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
-using Furion.Utilities;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
@@ -1860,7 +1859,7 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public HttpRequestBuilder Clone()
+    public HttpRequestBuilder Clone(params string[]? excludePropertyNames)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(HttpMethod);
@@ -1868,13 +1867,37 @@ public sealed partial class HttpRequestBuilder
         // 初始化新的 HttpRequestBuilder 实例
         var httpRequestBuilder = new HttpRequestBuilder();
 
-        // 遍历所有属性并设置给 httpRequestBuilder 实例
-        foreach (var property in _cachedProperties.Value)
-        {
-            property.SetValue(httpRequestBuilder, property.GetValue(this));
-        }
+        // 将所有配置从当前构建器复制到目标 httpRequestBuilder
+        CopyTo(httpRequestBuilder, excludePropertyNames);
 
         return httpRequestBuilder;
+    }
+
+    /// <summary>
+    ///     将所有配置从当前构建器复制到目标 <see cref="HttpRequestBuilder" />
+    /// </summary>
+    /// <param name="target">目标 <see cref="HttpRequestBuilder" /></param>
+    /// <param name="excludePropertyNames">要排除复制的属性名称集合</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void CopyTo(HttpRequestBuilder target, params string[]? excludePropertyNames)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(target);
+
+        // 构建排除属性哈希集
+        var excludeSet = excludePropertyNames?.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // 遍历所有属性并设置给 target 实例
+        foreach (var property in _cachedProperties.Value)
+        {
+            // 跳过需要排除的属性
+            if (excludeSet is not null && excludeSet.Contains(property.Name))
+            {
+                continue;
+            }
+
+            property.SetValue(target, property.GetValue(this));
+        }
     }
 
     /// <summary>
