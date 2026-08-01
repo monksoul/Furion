@@ -27,6 +27,7 @@ using Furion.Converters.Json;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Furion.Shapeless;
 
@@ -55,7 +56,8 @@ public sealed class ClayOptions
                 new FlexibleDateTimeOffsetConverter(),
                 // 允许 Number 或 Boolean 转 String
                 new StringJsonConverter()
-            }
+            },
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
         };
 
     /// <summary>
