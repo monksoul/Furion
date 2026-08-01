@@ -89,6 +89,11 @@ internal sealed class HttpContentConverterFactory : IHttpContentConverterFactory
                 typeArgs => (IHttpContentConverter)Activator.CreateInstance(
                     typeof(AsyncEnumerableContentConverter<>).MakeGenericType(typeArgs[0]))!
             ],
+            [typeof(HttpRemoteResultBase<>)] =
+            [
+                typeArgs => (IHttpContentConverter)Activator.CreateInstance(
+                    typeof(HttpRemoteResultBaseContentConverter<>).MakeGenericType(typeArgs[0]))!
+            ],
             [typeof(HttpRemoteResult<>)] =
             [
                 typeArgs => (IHttpContentConverter)Activator.CreateInstance(

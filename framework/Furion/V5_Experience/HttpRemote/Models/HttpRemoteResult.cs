@@ -31,27 +31,116 @@ using System.Net.Http.Headers;
 namespace Furion.HttpRemote;
 
 /// <summary>
+///     HTTP 远程请求结果接口
+/// </summary>
+public interface IHttpRemoteResult : IDisposable
+{
+    /// <inheritdoc cref="HttpResponseMessage" />
+    HttpResponseMessage ResponseMessage { get; }
+
+    /// <summary>
+    ///     目标结果
+    /// </summary>
+    object? Result { get; }
+}
+
+/// <summary>
 ///     HTTP 远程请求结果
 /// </summary>
 /// <remarks>用于将原始的 <see cref="HttpResponseMessage" /> 进行包装。</remarks>
-public class HttpRemoteResult : IDisposable
+/// <typeparam name="TResult">转换的目标类型</typeparam>
+public class HttpRemoteResultBase<TResult> : IHttpRemoteResult
 {
     /// <summary>
-    ///     <inheritdoc cref="HttpRemoteResult" />
+    ///     <inheritdoc cref="HttpRemoteResultBase{TResult}" />
     /// </summary>
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
     /// </param>
-    public HttpRemoteResult(HttpResponseMessage httpResponseMessage)
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    public HttpRemoteResultBase(HttpResponseMessage httpResponseMessage, TResult? result)
     {
         ResponseMessage = httpResponseMessage;
+        Result = result;
+    }
 
-        // 初始化
-        Initialize();
+    /// <summary>
+    ///     <typeparamref name="TResult" />
+    /// </summary>
+    /// <remarks>注意 <c>HEAD</c> 请求不包含响应内容。</remarks>
+    public TResult? Result { get; }
+
+    /// <summary>
+    ///     请求耗时（毫秒）
+    /// </summary>
+    public long RequestDuration { get; init; }
+
+    /// <inheritdoc />
+    public virtual void Dispose()
+    {
+        GC.SuppressFinalize(this);
+
+        // 检查目标类型的实例是否实现了 IDisposable 接口
+        if (Result is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        // 释放 HttpResponseMessage 实例
+        ResponseMessage.Dispose();
     }
 
     /// <inheritdoc cref="HttpResponseMessage" />
     public HttpResponseMessage ResponseMessage { get; }
+
+    /// <inheritdoc />
+    object? IHttpRemoteResult.Result => Result;
+
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage)
+    {
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        // 格式化请求条目
+        var requestEntry = ResponseMessage.RequestMessage?.ProfilerHeaders();
+
+        // 格式化常规和响应条目
+        var generalAndResponseEntry = ResponseMessage.ProfilerGeneralAndHeaders(generalCustomKeyValues:
+            [new KeyValuePair<string, IEnumerable<string>>("Request Duration (ms)", [$"{RequestDuration:N2}"])]);
+
+        return Helpers.JoinNonEmptyLines(requestEntry, generalAndResponseEntry);
+    }
+}
+
+/// <inheritdoc cref="HttpRemoteResultBase{TResult}" />
+public sealed class HttpRemoteResult<TResult> : HttpRemoteResultBase<TResult>
+{
+    /// <summary>
+    ///     <inheritdoc cref="HttpRemoteResult{TResult}" />
+    /// </summary>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    public HttpRemoteResult(HttpResponseMessage httpResponseMessage, TResult? result) : base(httpResponseMessage,
+        result) => Initialize();
 
     /// <summary>
     ///     内容类型
@@ -99,11 +188,6 @@ public class HttpRemoteResult : IDisposable
     public bool IsSuccessStatusCode { get; private set; }
 
     /// <summary>
-    ///     请求耗时（毫秒）
-    /// </summary>
-    public long RequestDuration { get; internal init; }
-
-    /// <summary>
     ///     响应标头
     /// </summary>
     public HttpResponseHeaders Headers { get; private set; } = null!;
@@ -123,11 +207,42 @@ public class HttpRemoteResult : IDisposable
     /// </summary>
     public string? HttpClientName { get; private set; }
 
-    /// <inheritdoc />
-    public virtual void Dispose()
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="isSuccessStatusCode">是否请求成功</param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
+        out bool isSuccessStatusCode)
     {
-        GC.SuppressFinalize(this);
-        ResponseMessage.Dispose();
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+        isSuccessStatusCode = IsSuccessStatusCode;
+    }
+
+    /// <summary>
+    ///     解构函数
+    /// </summary>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <inheritdoc cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="isSuccessStatusCode">是否请求成功</param>
+    /// <param name="statusCode">响应状态码</param>
+    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
+        out bool isSuccessStatusCode, out HttpStatusCode statusCode)
+    {
+        result = Result;
+        httpResponseMessage = ResponseMessage;
+        isSuccessStatusCode = IsSuccessStatusCode;
+        statusCode = StatusCode;
     }
 
     /// <summary>
@@ -142,7 +257,11 @@ public class HttpRemoteResult : IDisposable
         ParseHeaders();
 
         // 解析响应内容标头部分信息
-        ParseContentMetadata(ResponseMessage.Content.Headers);
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (ResponseMessage.Content is not null)
+        {
+            ParseContentMetadata(ResponseMessage.Content.Headers);
+        }
 
         // 解析响应标头 Set-Cookie 集合
         ParseSetCookies(ResponseMessage.Headers);
@@ -203,104 +322,5 @@ public class HttpRemoteResult : IDisposable
 
         SetCookies = setCookies;
         RawSetCookies = rawSetCookies;
-    }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        // 格式化请求条目
-        var requestEntry = ResponseMessage.RequestMessage?.ProfilerHeaders();
-
-        // 格式化常规和响应条目
-        var generalAndResponseEntry = ResponseMessage.ProfilerGeneralAndHeaders(generalCustomKeyValues:
-            [new KeyValuePair<string, IEnumerable<string>>("Request Duration (ms)", [$"{RequestDuration:N2}"])]);
-
-        return Helpers.JoinNonEmptyLines(requestEntry, generalAndResponseEntry);
-    }
-}
-
-/// <inheritdoc cref="HttpRemoteResult" />
-/// <typeparam name="TResult">转换的目标类型</typeparam>
-public sealed class HttpRemoteResult<TResult> : HttpRemoteResult
-{
-    /// <summary>
-    ///     <inheritdoc cref="HttpRemoteResult{TResult}" />
-    /// </summary>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    public HttpRemoteResult(HttpResponseMessage httpResponseMessage) : base(httpResponseMessage)
-    {
-    }
-
-    /// <summary>
-    ///     <typeparamref name="TResult" />
-    /// </summary>
-    /// <remarks>注意 <c>HEAD</c> 请求不包含响应内容。</remarks>
-    public TResult? Result { get; internal init; }
-
-    /// <inheritdoc />
-    public override void Dispose()
-    {
-        // 检查目标类型的实例是否实现了 IDisposable 接口
-        if (Result is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        base.Dispose();
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="isSuccessStatusCode">是否请求成功</param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
-        out bool isSuccessStatusCode)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-        isSuccessStatusCode = IsSuccessStatusCode;
-    }
-
-    /// <summary>
-    ///     解构函数
-    /// </summary>
-    /// <param name="result">
-    ///     <typeparamref name="TResult" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <inheritdoc cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="isSuccessStatusCode">是否请求成功</param>
-    /// <param name="statusCode">响应状态码</param>
-    public void Deconstruct(out TResult? result, out HttpResponseMessage httpResponseMessage,
-        out bool isSuccessStatusCode, out HttpStatusCode statusCode)
-    {
-        result = Result;
-        httpResponseMessage = ResponseMessage;
-        isSuccessStatusCode = IsSuccessStatusCode;
-        statusCode = StatusCode;
     }
 }

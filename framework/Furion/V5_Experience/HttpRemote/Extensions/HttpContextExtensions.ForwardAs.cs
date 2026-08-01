@@ -141,38 +141,28 @@ public static partial class HttpContextExtensions
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(httpMethod);
 
-        // 初始化转发所需的服务
-        var (httpContextForwardBuilder, httpRequestBuilder, httpRemoteService) =
-            PrepareForwardService(httpContext, httpMethod, requestUri, configure, forwardOptions);
+        // 初始化转发所需的构建器
+        var (httpContextForwardBuilder, httpRequestBuilder) =
+            PrepareForwardBuilder(httpContext, httpMethod, requestUri, configure, forwardOptions);
 
-        // 获取 IHttpContentConverterFactory 实例
-        var httpContentConverterFactory =
-            httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
+        // 解析 IHttpRemoteService 实例
+        var httpRemoteService = httpContext.RequestServices.GetRequiredService<IHttpRemoteService>();
 
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) =
-            httpRemoteService.SendCore(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var httpRemoteResult =
+            httpRemoteService.SendAs<HttpRemoteResultBase<TResult>>(httpRequestBuilder, completionOption,
+                httpContext.RequestAborted);
 
         // 空检查
-        if (httpResponseMessage is null)
+        if (httpRemoteResult?.ResponseMessage is null)
         {
             return default;
         }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
-        ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
+        ForwardResponseMessage(httpContext, httpRemoteResult.ResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        using var httpContentConverterResult = httpContentConverterFactory.Read<TResult>(
-            new HttpContentConverterContext(
-                httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
-            {
-                RequestDuration = requestDuration, Factory = httpContentConverterFactory
-            },
-            httpContext.RequestAborted);
-
-        return httpContentConverterResult.Result;
+        return httpRemoteResult.Result;
     }
 
     /// <summary>
@@ -282,37 +272,28 @@ public static partial class HttpContextExtensions
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(httpMethod);
 
-        // 初始化转发所需的服务
-        var (httpContextForwardBuilder, httpRequestBuilder, httpRemoteService) =
-            await PrepareForwardServiceAsync(httpContext, httpMethod, requestUri, configure, forwardOptions);
+        // 初始化转发所需的构建器
+        var (httpContextForwardBuilder, httpRequestBuilder) =
+            await PrepareForwardBuilderAsync(httpContext, httpMethod, requestUri, configure, forwardOptions);
 
-        // 获取 IHttpContentConverterFactory 实例
-        var httpContentConverterFactory =
-            httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
+        // 解析 IHttpRemoteService 实例
+        var httpRemoteService = httpContext.RequestServices.GetRequiredService<IHttpRemoteService>();
 
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) =
-            await httpRemoteService.SendCoreAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var httpRemoteResult =
+            await httpRemoteService.SendAsAsync<HttpRemoteResultBase<TResult>>(httpRequestBuilder, completionOption,
+                httpContext.RequestAborted);
 
         // 空检查
-        if (httpResponseMessage is null)
+        if (httpRemoteResult?.ResponseMessage is null)
         {
             return default;
         }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
-        ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
+        ForwardResponseMessage(httpContext, httpRemoteResult.ResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 TResult 实例
-        using var httpContentConverterResult = await httpContentConverterFactory.ReadAsync<TResult>(
-            new HttpContentConverterContext(httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
-            {
-                RequestDuration = requestDuration, Factory = httpContentConverterFactory
-            },
-            httpContext.RequestAborted);
-
-        return httpContentConverterResult.Result;
+        return httpRemoteResult.Result;
     }
 
     /// <summary>
@@ -1184,37 +1165,27 @@ public static partial class HttpContextExtensions
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(httpMethod);
 
-        // 初始化转发所需的服务
-        var (httpContextForwardBuilder, httpRequestBuilder, httpRemoteService) =
-            PrepareForwardService(httpContext, httpMethod, requestUri, configure, forwardOptions);
+        // 初始化转发所需的构建器
+        var (httpContextForwardBuilder, httpRequestBuilder) =
+            PrepareForwardBuilder(httpContext, httpMethod, requestUri, configure, forwardOptions);
 
-        // 获取 IHttpContentConverterFactory 实例
-        var httpContentConverterFactory =
-            httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
+        // 获取 IHttpRemoteService 实例
+        var httpRemoteService = httpContext.RequestServices.GetRequiredService<IHttpRemoteService>();
 
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) =
-            httpRemoteService.SendCore(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var httpRemoteResult = httpRemoteService.SendAs(typeof(HttpRemoteResultBase<>).MakeGenericType(resultType),
+            httpRequestBuilder, completionOption, httpContext.RequestAborted) as IHttpRemoteResult;
 
         // 空检查
-        if (httpResponseMessage is null)
+        if (httpRemoteResult?.ResponseMessage is null)
         {
             return null;
         }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
-        ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
+        ForwardResponseMessage(httpContext, httpRemoteResult.ResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 resultType 类型实例
-        using var httpContentConverterResult = httpContentConverterFactory.Read(resultType,
-            new HttpContentConverterContext(httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
-            {
-                RequestDuration = requestDuration, Factory = httpContentConverterFactory
-            },
-            httpContext.RequestAborted);
-
-        return httpContentConverterResult.Result;
+        return httpRemoteResult.Result;
     }
 
     /// <summary>
@@ -1324,36 +1295,27 @@ public static partial class HttpContextExtensions
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(httpMethod);
 
-        // 初始化转发所需的服务
-        var (httpContextForwardBuilder, httpRequestBuilder, httpRemoteService) =
-            await PrepareForwardServiceAsync(httpContext, httpMethod, requestUri, configure, forwardOptions);
+        // 初始化转发所需的构建器
+        var (httpContextForwardBuilder, httpRequestBuilder) =
+            await PrepareForwardBuilderAsync(httpContext, httpMethod, requestUri, configure, forwardOptions);
 
-        // 获取 IHttpContentConverterFactory 实例
-        var httpContentConverterFactory =
-            httpContext.RequestServices.GetRequiredService<IHttpContentConverterFactory>();
+        // 获取 IHttpRemoteService 实例
+        var httpRemoteService = httpContext.RequestServices.GetRequiredService<IHttpRemoteService>();
 
         // 发送 HTTP 远程请求
-        var (httpResponseMessage, requestDuration) =
-            await httpRemoteService.SendCoreAsync(httpRequestBuilder, completionOption, httpContext.RequestAborted);
+        var httpRemoteResult =
+            await httpRemoteService.SendAsAsync(typeof(HttpRemoteResultBase<>).MakeGenericType(resultType),
+                httpRequestBuilder, completionOption, httpContext.RequestAborted) as IHttpRemoteResult;
 
         // 空检查
-        if (httpResponseMessage is null)
+        if (httpRemoteResult?.ResponseMessage is null)
         {
             return null;
         }
 
         // 根据配置选项将 HttpResponseMessage 信息转发到 HttpContext 中
-        ForwardResponseMessage(httpContext, httpResponseMessage, httpContextForwardBuilder.ForwardOptions);
+        ForwardResponseMessage(httpContext, httpRemoteResult.ResponseMessage, httpContextForwardBuilder.ForwardOptions);
 
-        // 将 HttpResponseMessage 转换为 resultType 类型实例
-        using var httpContentConverterResult = await httpContentConverterFactory.ReadAsync(resultType,
-            new HttpContentConverterContext(httpResponseMessage,
-                httpRequestBuilder.HttpContentConverterProviders?.SelectMany(u => u.Invoke()).ToArray())
-            {
-                RequestDuration = requestDuration, Factory = httpContentConverterFactory
-            },
-            httpContext.RequestAborted);
-
-        return httpContentConverterResult.Result;
+        return httpRemoteResult.Result;
     }
 }

@@ -156,6 +156,12 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     public TResult? SendAs<TResult>(HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
         CancellationToken cancellationToken = default)
     {
+        // 尝试处理无需发送请求的类型
+        if (TryHandleSuppressSend<TResult>(httpRequestBuilder, out var result))
+        {
+            return result;
+        }
+
         // 发送 HTTP 远程请求
         var (httpResponseMessage, requestDuration) = SendCore(httpRequestBuilder, completionOption, cancellationToken);
 
@@ -213,6 +219,12 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     public async Task<TResult?> SendAsAsync<TResult>(HttpRequestBuilder httpRequestBuilder,
         HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
     {
+        // 尝试处理无需发送请求的类型
+        if (TryHandleSuppressSend<TResult>(httpRequestBuilder, out var result))
+        {
+            return result;
+        }
+
         // 发送 HTTP 远程请求
         var (httpResponseMessage, requestDuration) =
             await SendCoreAsync(httpRequestBuilder, completionOption, cancellationToken);
@@ -273,6 +285,12 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     public object? SendAs(Type resultType, HttpRequestBuilder httpRequestBuilder, HttpCompletionOption completionOption,
         CancellationToken cancellationToken = default)
     {
+        // 尝试处理无需发送请求的类型
+        if (TryHandleSuppressSend(resultType, httpRequestBuilder, out var result))
+        {
+            return result;
+        }
+
         // 发送 HTTP 远程请求
         var (httpResponseMessage, requestDuration) = SendCore(httpRequestBuilder, completionOption, cancellationToken);
 
@@ -303,6 +321,12 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
     public async Task<object?> SendAsAsync(Type resultType, HttpRequestBuilder httpRequestBuilder,
         HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
     {
+        // 尝试处理无需发送请求的类型
+        if (TryHandleSuppressSend(resultType, httpRequestBuilder, out var result))
+        {
+            return result;
+        }
+
         // 发送 HTTP 远程请求
         var (httpResponseMessage, requestDuration) =
             await SendCoreAsync(httpRequestBuilder, completionOption, cancellationToken);
@@ -450,6 +474,9 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
                 e.Data[nameof(HttpResponseMessage)] = httpResponseMessage;
             }
 
+            // 将请求耗时写入异常数据中
+            e.Data[nameof(HttpRequestPipelineContext.RequestDuration)] = httpRequestPipelineContext.RequestDuration;
+
             throw;
         }
         finally
@@ -553,5 +580,79 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
 
         // 设置默认 User-Agent
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
+    }
+
+    /// <summary>
+    ///     尝试处理无需发送请求的类型
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="result">
+    ///     <typeparamref name="TResult" />
+    /// </param>
+    /// <typeparam name="TResult">转换的目标类型</typeparam>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    internal bool TryHandleSuppressSend<TResult>(HttpRequestBuilder httpRequestBuilder, out TResult? result)
+    {
+        // 尝试处理无需发送请求的类型
+        if (TryHandleSuppressSend(typeof(TResult), httpRequestBuilder, out var objResult))
+        {
+            result = (TResult?)objResult;
+
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    ///     尝试处理无需发送请求的类型
+    /// </summary>
+    /// <param name="resultType">转换的目标类型</param>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="result">目标结果</param>
+    /// <returns>
+    ///     <see cref="bool" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    internal bool TryHandleSuppressSend(Type resultType, HttpRequestBuilder httpRequestBuilder, out object? result)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(resultType);
+        ArgumentNullException.ThrowIfNull(httpRequestBuilder);
+
+        // 检查类型是否是 HttpRequestBuilder 类型
+        if (resultType == typeof(HttpRequestBuilder))
+        {
+            result = httpRequestBuilder;
+
+            return true;
+        }
+
+        // 检查类型是否是 HttpRequestMessage 类型
+        if (resultType == typeof(HttpRequestMessage))
+        {
+            // 创建带有默认值的 HttpClient 实例
+            var httpClientPooling = CreateHttpClientWithDefaults(httpRequestBuilder);
+            var httpClient = httpClientPooling.Instance;
+
+            // 构建 HttpRequestMessage 实例
+            result = httpRequestBuilder.Build(_httpRemoteOptions, _httpContentProcessorFactory,
+                httpClient.BaseAddress ?? _httpRemoteOptions.FallbackBaseAddress);
+
+            // 释放通过自定义提供器创建的 HttpClient 实例
+            httpClientPooling?.Release?.Invoke(httpClient);
+
+            return true;
+        }
+
+        result = null;
+        return false;
     }
 }

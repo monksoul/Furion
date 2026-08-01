@@ -1383,7 +1383,7 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>包含自定义 <see cref="HttpClient" /> 实例和其他可释放对象集合。</remarks>
     public void ReleaseResources()
     {
-        // 空检查
+        // 释放通过自定义提供器创建的 HttpClient 实例
         HttpClientPooling?.Release?.Invoke(HttpClientPooling.Instance);
         HttpClientPooling = null;
 
@@ -2143,8 +2143,8 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     设置是否启用 ETag 缓存处理
     /// </summary>
+    /// <param name="enabled">是否启用</param>
     /// <returns>
-    ///     <param name="enabled">是否启用</param>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     public HttpRequestBuilder UseETag(bool enabled)

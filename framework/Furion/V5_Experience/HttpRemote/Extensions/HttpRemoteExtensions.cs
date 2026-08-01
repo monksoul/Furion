@@ -765,6 +765,24 @@ public static partial class HttpRemoteExtensions
     }
 
     /// <summary>
+    ///     获取与异常关联的请求耗时（毫秒）
+    /// </summary>
+    /// <param name="exception">
+    ///     <see cref="Exception" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="long" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static long? GetRequestDuration(this Exception exception)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return (long?)exception.Data[nameof(HttpRequestPipelineContext.RequestDuration)];
+    }
+
+    /// <summary>
     ///     将对象转换为 JSON 字符串
     /// </summary>
     /// <param name="obj">
