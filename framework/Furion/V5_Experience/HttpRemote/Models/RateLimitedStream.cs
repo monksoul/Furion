@@ -127,6 +127,10 @@ public sealed class RateLimitedStream : Stream
     public override void Flush() => _innerStream.Flush();
 
     /// <inheritdoc />
+    public override Task FlushAsync(CancellationToken cancellationToken) =>
+        _innerStream.FlushAsync(cancellationToken);
+
+    /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
     {
         // 确保单次读取不会超过预设的数据块大小
@@ -140,6 +144,34 @@ public sealed class RateLimitedStream : Stream
     }
 
     /// <inheritdoc />
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+        CancellationToken cancellationToken)
+    {
+        // 确保单次读取不会超过预设的数据块大小
+        var adjustedCount = Math.Min(count, CHUNK_SIZE);
+
+        // 等待直到有足够令牌可用
+        await WaitForTokensAsync(adjustedCount, cancellationToken);
+
+        // 从内部流读取数据到缓冲区
+        return await _innerStream.ReadAsync(buffer.AsMemory(offset, adjustedCount), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
+        CancellationToken cancellationToken = default)
+    {
+        // 确保单次读取不会超过预设的数据块大小
+        var adjustedCount = Math.Min(buffer.Length, CHUNK_SIZE);
+
+        // 等待直到有足够令牌可用
+        await WaitForTokensAsync(adjustedCount, cancellationToken);
+
+        // 从内部流读取数据到缓冲区
+        return await _innerStream.ReadAsync(buffer[..adjustedCount], cancellationToken);
+    }
+
+    /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin) => _innerStream.Seek(offset, origin);
 
     /// <inheritdoc />
@@ -148,14 +180,78 @@ public sealed class RateLimitedStream : Stream
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count)
     {
-        // 确保单次写入不会超过预设的数据块大小
-        var adjustedCount = Math.Min(count, CHUNK_SIZE);
+        // 初始化剩余待写入的字节数和当前偏移量
+        var remaining = count;
+        var currentOffset = offset;
 
-        // 等待直到有足够令牌可用
-        WaitForTokens(adjustedCount);
+        // 循环分块写入，确保所有数据都被写入
+        while (remaining > 0)
+        {
+            // 确保单次写入不会超过预设的数据块大小
+            var adjustedCount = Math.Min(remaining, CHUNK_SIZE);
 
-        // 向内部流写入数据
-        _innerStream.Write(buffer, offset, adjustedCount);
+            // 等待直到有足够令牌可用
+            WaitForTokens(adjustedCount);
+
+            // 向内部流写入数据
+            _innerStream.Write(buffer, currentOffset, adjustedCount);
+
+            // 更新偏移量和剩余字节数
+            currentOffset += adjustedCount;
+            remaining -= adjustedCount;
+        }
+    }
+
+    /// <inheritdoc />
+    public override async Task WriteAsync(byte[] buffer, int offset, int count,
+        CancellationToken cancellationToken)
+    {
+        // 初始化剩余待写入的字节数和当前偏移量
+        var remaining = count;
+        var currentOffset = offset;
+
+        // 循环分块写入，确保所有数据都被写入
+        while (remaining > 0)
+        {
+            // 确保单次写入不会超过预设的数据块大小
+            var adjustedCount = Math.Min(remaining, CHUNK_SIZE);
+
+            // 等待直到有足够令牌可用
+            await WaitForTokensAsync(adjustedCount, cancellationToken);
+
+            // 向内部流写入数据
+            await _innerStream.WriteAsync(buffer.AsMemory(currentOffset, adjustedCount), cancellationToken);
+
+            // 更新偏移量和剩余字节数
+            currentOffset += adjustedCount;
+            remaining -= adjustedCount;
+        }
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer,
+        CancellationToken cancellationToken = default)
+    {
+        // 初始化剩余待写入的字节数和当前偏移量
+        var remaining = buffer.Length;
+        var currentOffset = 0;
+
+        // 循环分块写入，确保所有数据都被写入
+        while (remaining > 0)
+        {
+            // 确保单次写入不会超过预设的数据块大小
+            var adjustedCount = Math.Min(remaining, CHUNK_SIZE);
+
+            // 等待直到有足够令牌可用
+            await WaitForTokensAsync(adjustedCount, cancellationToken);
+
+            // 向内部流写入数据
+            await _innerStream.WriteAsync(buffer.Slice(currentOffset, adjustedCount), cancellationToken);
+
+            // 更新偏移量和剩余字节数
+            currentOffset += adjustedCount;
+            remaining -= adjustedCount;
+        }
     }
 
     /// <inheritdoc />
@@ -206,10 +302,13 @@ public sealed class RateLimitedStream : Stream
     {
         while (true)
         {
+            // 初始化需要等待的时间
+            int waitTime;
+
             // 防止并发访问问题
             lock (_lockObject)
             {
-                //  尝试补充令牌
+                // 尝试补充令牌
                 RefillTokens();
 
                 // 检查是否已有足够的令牌
@@ -221,21 +320,69 @@ public sealed class RateLimitedStream : Stream
                     // 如果有足够的令牌，退出循环
                     return;
                 }
+
+                // 计算还需要多少令牌
+                var requiredTokens = desiredTokens - _availableTokens;
+
+                // 计算为了获得所需令牌需要等待的时间
+                waitTime = (int)(requiredTokens * 1000.0 / _bytesPerSecond);
+
+                // 添加一点额外延迟用来确保精确性，具体是增加了 5% 的延迟
+                waitTime = (int)(waitTime * 1.05);
             }
-
-            // 如果没有足够的令牌，计算还需要多少令牌
-            var requiredTokens = desiredTokens - _availableTokens;
-
-            // 计算为了获得所需令牌需要等待的时间
-            var waitTime = (int)(requiredTokens * 1000.0 / _bytesPerSecond);
-
-            // 添加一点额外延迟用来确保精确性，具体是增加了 5% 的延迟
-            waitTime = (int)(waitTime * 1.05);
 
             // 确保不会一次性等待过长时间，最多等待 100 毫秒
             if (waitTime > 0)
             {
                 Thread.Sleep(Math.Min(100, waitTime));
+            }
+        }
+    }
+
+    /// <summary>
+    ///     等待直到有足够令牌可用
+    /// </summary>
+    /// <param name="desiredTokens">需要等待的令牌数量</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    internal async Task WaitForTokensAsync(int desiredTokens, CancellationToken cancellationToken = default)
+    {
+        while (true)
+        {
+            // 初始化需要等待的时间
+            int waitTime;
+
+            // 防止并发访问问题
+            lock (_lockObject)
+            {
+                // 尝试补充令牌
+                RefillTokens();
+
+                // 检查是否已有足够的令牌
+                if (_availableTokens >= desiredTokens)
+                {
+                    // 扣除所需的令牌数量
+                    _availableTokens -= desiredTokens;
+
+                    // 如果有足够的令牌，退出循环
+                    return;
+                }
+
+                // 计算还需要多少令牌
+                var requiredTokens = desiredTokens - _availableTokens;
+
+                // 计算为了获得所需令牌需要等待的时间
+                waitTime = (int)(requiredTokens * 1000.0 / _bytesPerSecond);
+
+                // 添加一点额外延迟用来确保精确性，具体是增加了 5% 的延迟
+                waitTime = (int)(waitTime * 1.05);
+            }
+
+            // 确保不会一次性等待过长时间，最多等待 100 毫秒
+            if (waitTime > 0)
+            {
+                await Task.Delay(Math.Min(100, waitTime), cancellationToken);
             }
         }
     }

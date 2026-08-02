@@ -118,7 +118,7 @@ internal sealed class ProgressFileStream : Stream
             // ReSharper disable once InvertIf
             if (_hasStarted && value == 0)
             {
-                _transferred = 0;
+                Interlocked.Exchange(ref _transferred, 0);
                 _stopwatch.Restart();
             }
         }
@@ -128,6 +128,10 @@ internal sealed class ProgressFileStream : Stream
     public override void Flush() => _fileStream.Flush();
 
     /// <inheritdoc />
+    public override Task FlushAsync(CancellationToken cancellationToken) =>
+        _fileStream.FlushAsync(cancellationToken);
+
+    /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
     {
         // 确保进度信息已初始化
@@ -135,6 +139,44 @@ internal sealed class ProgressFileStream : Stream
 
         // 从文件流读取数据到缓冲区
         var bytesRead = _fileStream.Read(buffer, offset, count);
+
+        // 报告进度
+        if (bytesRead > 0)
+        {
+            ReportProgress(bytesRead);
+        }
+
+        return bytesRead;
+    }
+
+    /// <inheritdoc />
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
+        CancellationToken cancellationToken)
+    {
+        // 确保进度信息已初始化
+        EnsureInitialized();
+
+        // 从文件流读取数据到缓冲区
+        var bytesRead = await _fileStream.ReadAsync(buffer.AsMemory(offset, count), cancellationToken);
+
+        // 报告进度
+        if (bytesRead > 0)
+        {
+            ReportProgress(bytesRead);
+        }
+
+        return bytesRead;
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
+        CancellationToken cancellationToken = default)
+    {
+        // 确保进度信息已初始化
+        EnsureInitialized();
+
+        // 从文件流读取数据到缓冲区
+        var bytesRead = await _fileStream.ReadAsync(buffer, cancellationToken);
 
         // 报告进度
         if (bytesRead > 0)
@@ -165,6 +207,34 @@ internal sealed class ProgressFileStream : Stream
     }
 
     /// <inheritdoc />
+    public override async Task WriteAsync(byte[] buffer, int offset, int count,
+        CancellationToken cancellationToken)
+    {
+        // 确保进度信息已初始化
+        EnsureInitialized();
+
+        // 向文件流写入数据
+        await _fileStream.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
+
+        // 报告进度
+        ReportProgress(count);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer,
+        CancellationToken cancellationToken = default)
+    {
+        // 确保进度信息已初始化
+        EnsureInitialized();
+
+        // 向文件流写入数据
+        await _fileStream.WriteAsync(buffer, cancellationToken);
+
+        // 报告进度
+        ReportProgress(buffer.Length);
+    }
+
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
         // 释放托管资源
@@ -184,8 +254,10 @@ internal sealed class ProgressFileStream : Stream
     internal void ReportProgress(int increment)
     {
         // 更新当前已传输的数据量
-        _transferred += increment;
-        _fileTransferProgress.UpdateProgress(_transferred, _stopwatch.Elapsed);
+        var transferred = Interlocked.Add(ref _transferred, increment);
+
+        // 更新文件传输进度信息
+        _fileTransferProgress.UpdateProgress(transferred, _stopwatch.Elapsed);
 
         // 发送文件传输进度到通道
         _progressChannel.Writer.TryWrite(_fileTransferProgress);

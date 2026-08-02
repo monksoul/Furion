@@ -368,8 +368,8 @@ public static partial class HttpRemoteExtensions
         var stream = await httpContent.ReadAsStreamAsync(cancellationToken);
         stream.Seek(0, SeekOrigin.Begin);
 
-        // 默认只读取 8KB 的内容
-        const int maxBytesToDisplay = 8 * 1024;
+        // 默认只读取 10KB 的内容
+        const int maxBytesToDisplay = 10 * 1024;
 
         // 获取响应内容 Content-Encoding 标头
         string? contentEncoding = null;

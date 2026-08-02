@@ -555,16 +555,41 @@ public sealed class HttpContextForwardBuilder
             string allowedHost;
             string? allowedPortStr = null;
 
-            // 检查是否存在冒号
-            var colonIndex = hostPortPart.LastIndexOf(':');
-            if (colonIndex > 0)
+            // 检查是否是 IPv6 地址（以方括号包裹，如 [::1] 或 [::1]:8080）
+            if (hostPortPart.StartsWith('['))
             {
-                allowedHost = hostPortPart[..colonIndex];
-                allowedPortStr = hostPortPart[(colonIndex + 1)..];
+                // 查找闭合方括号
+                var closeBracketIndex = hostPortPart.IndexOf(']');
+
+                // 格式不合法则跳过
+                if (closeBracketIndex < 0)
+                {
+                    continue;
+                }
+
+                // 保留方括号
+                allowedHost = hostPortPart[..(closeBracketIndex + 1)];
+
+                // 检查闭合方括号后是否跟着端口
+                if (closeBracketIndex + 1 < hostPortPart.Length && hostPortPart[closeBracketIndex + 1] == ':')
+                {
+                    allowedPortStr = hostPortPart[(closeBracketIndex + 2)..];
+                }
             }
+            // IPv4 或域名
             else
             {
-                allowedHost = hostPortPart;
+                // 检查是否存在冒号
+                var colonIndex = hostPortPart.LastIndexOf(':');
+                if (colonIndex > 0)
+                {
+                    allowedHost = hostPortPart[..colonIndex];
+                    allowedPortStr = hostPortPart[(colonIndex + 1)..];
+                }
+                else
+                {
+                    allowedHost = hostPortPart;
+                }
             }
 
             // 检查主机名是否完全匹配

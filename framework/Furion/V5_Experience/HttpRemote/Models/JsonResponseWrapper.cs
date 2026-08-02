@@ -160,9 +160,13 @@ public sealed class JsonResponseWrapper
     /// <returns>
     ///     <see cref="object" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public object? GetResultValue(object? instance, HttpResponseMessage httpResponseMessage)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(httpResponseMessage);
+
         // 空检查
         if (instance is null)
         {

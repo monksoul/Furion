@@ -248,7 +248,7 @@ public sealed class ProfilerDelegatingHandler(
 
         // 打印日志
         Log(logger, remoteOptions, StringUtility.FormatKeyValuesSummary(
-            cookies.ToDictionary(u => u.Name, u => Enumerable.Empty<string>().Concat([u.Value])),
+            cookies.GroupBy(u => u.Name).ToDictionary(g => g.Key, g => g.Select(c => c.Value).AsEnumerable()),
             "Cookie Container"), httpRemoteAnalyzer);
     }
 

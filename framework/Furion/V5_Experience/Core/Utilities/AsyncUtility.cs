@@ -42,41 +42,49 @@ public static class AsyncUtility
         TaskCreationOptions.None, TaskContinuationOptions.None, TaskScheduler.Default);
 
     /// <summary>
-    ///     运行带有返回值的异步方法
+    ///     执行带有返回值的异步方法
     /// </summary>
-    /// <param name="func">
-    ///     <see cref="Func{TResult}" />
-    /// </param>
+    /// <param name="func">异步操作</param>
     /// <typeparam name="TResult">返回值类型</typeparam>
     /// <returns>
     ///     <typeparamref name="TResult" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static TResult RunSync<TResult>(Func<Task<TResult>> func)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(func);
+
         var cultureUi = CultureInfo.CurrentUICulture;
         var culture = CultureInfo.CurrentCulture;
+
         return _myTaskFactory.StartNew(() =>
         {
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = cultureUi;
+
             return func();
         }).Unwrap().GetAwaiter().GetResult();
     }
 
     /// <summary>
-    ///     运行无返回值的异步方法
+    ///     执行无返回值的异步方法
     /// </summary>
-    /// <param name="func">
-    ///     <see cref="Func{TResult}" />
-    /// </param>
+    /// <param name="func">异步操作</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public static void RunSync(Func<Task> func)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(func);
+
         var cultureUi = CultureInfo.CurrentUICulture;
         var culture = CultureInfo.CurrentCulture;
+
         _myTaskFactory.StartNew(() =>
         {
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = cultureUi;
+
             return func();
         }).Unwrap().GetAwaiter().GetResult();
     }
