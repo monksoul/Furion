@@ -184,51 +184,56 @@ internal sealed class StressTestHarnessManager
             // 等待信号量
             await semaphore.WaitAsync(ct).ConfigureAwait(false);
 
-            // 请求开始时间
-            var requestStart = Stopwatch.GetTimestamp();
-
             try
             {
-                // 发送 HTTP 远程请求
-                using var httpResponseMessage =
-                    await _httpRemoteService.SendAsync(RequestBuilder, option, ct).ConfigureAwait(false);
+                // 记录请求开始时间（不包含排队等待时间）
+                var requestStart = Stopwatch.GetTimestamp();
 
-                // 空检查
-                if (httpResponseMessage is null)
+                try
+                {
+                    // 发送 HTTP 远程请求
+                    using var httpResponseMessage =
+                        await _httpRemoteService.SendAsync(RequestBuilder, option, ct).ConfigureAwait(false);
+
+                    // 空检查
+                    if (httpResponseMessage is null)
+                    {
+                        // 原子递增失败请求计数
+                        Interlocked.Increment(ref totalFailedRequests);
+                        return;
+                    }
+
+                    // 检查响应状态码是否是成功状态
+                    if (httpResponseMessage.IsSuccessStatusCode)
+                    {
+                        // 原子递增成功请求计数
+                        Interlocked.Increment(ref totalSuccessfulRequests);
+                    }
+                    else
+                    {
+                        // 原子递增失败请求计数
+                        Interlocked.Increment(ref totalFailedRequests);
+                    }
+                }
+                // 任务被取消
+                catch (Exception e) when (ct.IsCancellationRequested || e is OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception)
                 {
                     // 原子递增失败请求计数
                     Interlocked.Increment(ref totalFailedRequests);
-                    return;
                 }
-
-                // 检查响应状态码是否是成功状态
-                if (httpResponseMessage.IsSuccessStatusCode)
+                finally
                 {
-                    // 原子递增成功请求计数
-                    Interlocked.Increment(ref totalSuccessfulRequests);
+                    // 计算并存储请求的响应时间（毫秒）
+                    var requestEnd = Stopwatch.GetTimestamp();
+                    times[idx] = (requestEnd - requestStart) * 1000.0 / Stopwatch.Frequency;
                 }
-                else
-                {
-                    // 原子递增失败请求计数
-                    Interlocked.Increment(ref totalFailedRequests);
-                }
-            }
-            // 任务被取消
-            catch (Exception e) when (ct.IsCancellationRequested || e is OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception)
-            {
-                // 原子递增失败请求计数
-                Interlocked.Increment(ref totalFailedRequests);
             }
             finally
             {
-                // 计算并存储请求的响应时间
-                var requestEnd = Stopwatch.GetTimestamp();
-                times[idx] = (requestEnd - requestStart) * 1000.0 / Stopwatch.Frequency;
-
                 // 释放信号量
                 semaphore.Release();
             }

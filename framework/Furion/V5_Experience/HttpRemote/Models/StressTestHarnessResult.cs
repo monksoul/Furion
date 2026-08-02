@@ -40,10 +40,14 @@ public sealed class StressTestHarnessResult
     /// <param name="successfulRequests">成功请求次数</param>
     /// <param name="failedRequests">失败请求次数</param>
     /// <param name="responseTimes">请求的响应时间数组</param>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     public StressTestHarnessResult(long totalRequests, double totalTimeInSeconds, long successfulRequests,
         long failedRequests, double[] responseTimes)
     {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(responseTimes);
+
         // 检查请求的响应时间数组长度是否等于总请求次数
         if (responseTimes.Length != totalRequests)
         {
@@ -62,10 +66,14 @@ public sealed class StressTestHarnessResult
         CalculateQueriesPerSecond(totalRequests, totalTimeInSeconds);
 
         // 计算最小、最大和平均响应时间（毫秒）
-        CalculateMinMaxAvgResponseTime(responseTimes, totalRequests);
+        CalculateMinMaxAvgResponseTime(responseTimes);
+
+        // 初始化排序后的响应时间数组
+        var sortedResponseTimes = (double[])responseTimes.Clone();
+        Array.Sort(sortedResponseTimes);
 
         // 计算各个百分位的响应时间（毫秒）
-        CalculatePercentiles(responseTimes);
+        CalculatePercentiles(sortedResponseTimes);
     }
 
     /// <summary>
@@ -155,7 +163,8 @@ public sealed class StressTestHarnessResult
             new KeyValuePair<string, IEnumerable<string>>("Total Time (s)", [$"{TotalTimeInSeconds:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("Successful Requests", [$"{SuccessfulRequests}"]),
             new KeyValuePair<string, IEnumerable<string>>("Failed Requests", [$"{FailedRequests}"]),
-            new KeyValuePair<string, IEnumerable<string>>("QPS", [$"{QueriesPerSecond:N2}"]),
+            new KeyValuePair<string, IEnumerable<string>>("QPS",
+                [double.IsPositiveInfinity(QueriesPerSecond) ? "∞" : $"{QueriesPerSecond:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("Min RT (ms)", [$"{MinResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("Max RT (ms)", [$"{MaxResponseTime:N2}"]),
             new KeyValuePair<string, IEnumerable<string>>("Avg RT (ms)", [$"{AverageResponseTime:N2}"]),
@@ -175,17 +184,16 @@ public sealed class StressTestHarnessResult
     /// <param name="totalRequests">总请求次数</param>
     /// <param name="totalTimeInSeconds">总用时（秒）</param>
     internal void CalculateQueriesPerSecond(long totalRequests, double totalTimeInSeconds) =>
-        QueriesPerSecond = totalTimeInSeconds > 0 ? totalRequests / totalTimeInSeconds : 0;
+        QueriesPerSecond = totalTimeInSeconds > 0 ? totalRequests / totalTimeInSeconds : double.PositiveInfinity;
 
     /// <summary>
     ///     计算最小、最大和平均响应时间（毫秒）
     /// </summary>
     /// <param name="responseTimes">每个请求的响应时间数组</param>
-    /// <param name="totalRequests">总请求次数</param>
-    internal void CalculateMinMaxAvgResponseTime(double[] responseTimes, long totalRequests)
+    internal void CalculateMinMaxAvgResponseTime(double[] responseTimes)
     {
-        // 检查总请求次数是否为 0
-        if (totalRequests == 0)
+        // 检查请求的响应时间数组是否为空
+        if (responseTimes.Length == 0)
         {
             MinResponseTime = MaxResponseTime = AverageResponseTime = 0;
             return;
@@ -196,45 +204,33 @@ public sealed class StressTestHarnessResult
         var max = double.MinValue;
         var sum = 0.0;
 
-        // 计算总响应时间（毫秒）
+        // 计算总响应时间，同时更新最小和最大值（毫秒）
         foreach (var t in responseTimes)
         {
-            if (t < min)
-            {
-                min = t;
-            }
-
-            if (t > max)
-            {
-                max = t;
-            }
-
+            min = Math.Min(min, t);
+            max = Math.Max(max, t);
             sum += t;
         }
 
-        // 计算最小响应时间和最大响应时间（毫秒）
+        // 赋值最小响应时间和最大响应时间（毫秒）
         MinResponseTime = min;
         MaxResponseTime = max;
 
         // 计算平均响应时间（毫秒）
-        AverageResponseTime = sum / totalRequests;
+        AverageResponseTime = sum / responseTimes.Length;
     }
 
     /// <summary>
     ///     计算各个百分位的响应时间（毫秒）
     /// </summary>
-    /// <param name="responseTimes">请求的响应时间数组</param>
-    internal void CalculatePercentiles(double[] responseTimes)
+    /// <param name="sortedResponseTimes">已排序的请求响应时间数组</param>
+    internal void CalculatePercentiles(double[] sortedResponseTimes)
     {
-        // 检查请求的响应时间数组是否为 0
-        if (responseTimes.Length == 0)
+        // 检查数组是否为空
+        if (sortedResponseTimes.Length == 0)
         {
             return;
         }
-
-        // 对请求响应时间数组进行排序
-        var sortedResponseTimes = (double[])responseTimes.Clone();
-        Array.Sort(sortedResponseTimes);
 
         // 计算百分位数的响应时间（毫秒）
         Percentile10ResponseTime = CalculatePercentile(sortedResponseTimes, 0.1);

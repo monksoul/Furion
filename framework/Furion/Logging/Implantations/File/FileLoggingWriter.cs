@@ -103,8 +103,9 @@ internal class FileLoggingWriter
     private int _writeCount = 0;
 
     /// <summary>
-    /// 周期性检查文件的间隔（写入次数），默认 100 次
+    /// 周期性检查文件的间隔（写入次数）
     /// </summary>
+    /// <remarks>默认 100 次。</remarks>
     private const int PeriodicCheckInterval = 100;
 
     /// <summary>
@@ -158,15 +159,40 @@ internal class FileLoggingWriter
     }
 
     /// <summary>
+    /// 根据当前环境获取默认日志目录
+    /// </summary>
+    /// <returns></returns>
+    private static string GetSafeDefaultLogDirectory()
+    {
+        return EnvironmentUtility.IsDevelopment
+            ? Directory.GetCurrentDirectory()
+            : AppContext.BaseDirectory;
+    }
+
+    /// <summary>
+    /// 确保文件名是绝对路径
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <param name="baseDirectory"></param>
+    /// <returns></returns>
+    private static string EnsureAbsolutePath(string fileName, string baseDirectory)
+    {
+        if (Path.IsPathRooted(fileName)) return fileName;
+        return Path.Combine(baseDirectory, fileName);
+    }
+
+    /// <summary>
     /// 解析当前写入日志的文件名
     /// </summary>
     private void GetCurrentFileName()
     {
-        var baseFileName = GetBaseFileName();
-        var baseNameChanged = baseFileName != _lastBaseFileName;
+        var originalBaseFileName = GetBaseFileName();
+        var baseNameChanged = originalBaseFileName != _lastBaseFileName;
 
         // 总是更新缓存，确保下次能检测到变化
-        _lastBaseFileName = baseFileName;
+        _lastBaseFileName = originalBaseFileName;
+
+        var baseFileName = EnsureAbsolutePath(originalBaseFileName, GetSafeDefaultLogDirectory());
 
         // 是否配置了日志文件最大存储大小
         if (_options.FileSizeLimitBytes <= 0)
@@ -193,9 +219,6 @@ internal class FileLoggingWriter
 
         // 获取文件路径
         var logDirName = Path.GetDirectoryName(baseFileName);
-
-        // 如果没有配置文件路径则默认放置根目录
-        if (string.IsNullOrEmpty(logDirName)) logDirName = Directory.GetCurrentDirectory();
 
         // 如果目录变化，清空缓存
         if (_cachedLogFiles != null && _cachedLogFiles.Count > 0)
@@ -256,10 +279,9 @@ internal class FileLoggingWriter
     /// </summary>
     private void RebuildRollingFileNames()
     {
-        var baseFileName = _lastBaseFileName;
+        var baseFileName = EnsureAbsolutePath(_lastBaseFileName, GetSafeDefaultLogDirectory());
         var logFileMask = Path.GetFileNameWithoutExtension(baseFileName) + "*" + Path.GetExtension(baseFileName);
         var logDirName = Path.GetDirectoryName(baseFileName);
-        if (string.IsNullOrEmpty(logDirName)) logDirName = Directory.GetCurrentDirectory();
 
         if (!Directory.Exists(logDirName)) return;
 
@@ -284,16 +306,19 @@ internal class FileLoggingWriter
     /// 获取下一个匹配的日志文件名
     /// </summary>
     /// <remarks>只有配置了 <see cref="FileLoggerOptions.FileSizeLimitBytes"/> 或 <see cref="FileLoggerOptions.FileNameRule"/> 或 <see cref="FileLoggerOptions.MaxRollingFiles"/> 有效</remarks>
-    /// <returns>新的文件名</returns>
+    /// <returns></returns>
     private string GetNextFileName()
     {
         // 获取日志基础文件名
-        var baseFileName = GetBaseFileName();
+        var baseFileName = EnsureAbsolutePath(GetBaseFileName(), GetSafeDefaultLogDirectory());
 
         // 如果文件不存在或没有达到 FileSizeLimitBytes 限制大小，则返回基础文件名
         if (!System.IO.File.Exists(baseFileName)
             || _options.FileSizeLimitBytes <= 0
-            || new FileInfo(baseFileName).Length < _options.FileSizeLimitBytes) return baseFileName;
+            || new FileInfo(baseFileName).Length < _options.FileSizeLimitBytes)
+        {
+            return baseFileName;
+        }
 
         // 获取日志基础文件名和当前日志文件名
         var currentFileIndex = 0;
@@ -319,7 +344,7 @@ internal class FileLoggingWriter
         // 返回下一个匹配的日志文件名（完整路径）
         var nextFileName = baseFileNameOnly + (nextFileIndex > 0 ? nextFileIndex.ToString() : "") + Path.GetExtension(baseFileName);
         var directory = Path.GetDirectoryName(baseFileName);
-        return string.IsNullOrEmpty(directory) ? nextFileName : Path.Combine(directory, nextFileName);
+        return Path.Combine(directory, nextFileName);
     }
 
     /// <summary>
