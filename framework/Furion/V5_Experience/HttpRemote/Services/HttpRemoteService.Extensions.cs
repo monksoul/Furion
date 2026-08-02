@@ -34,7 +34,7 @@ namespace Furion.HttpRemote;
 internal sealed partial class HttpRemoteService
 {
     /// <inheritdoc />
-    public FileTransferResult DownloadFile(string? requestUri, string? destinationPath,
+    public FileTransferResult DownloadFile(string? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default) =>
@@ -43,13 +43,32 @@ internal sealed partial class HttpRemoteService
                 configure), cancellationToken);
 
     /// <inheritdoc />
-    public Task<FileTransferResult> DownloadFileAsync(string? requestUri, string? destinationPath,
+    public Task<FileTransferResult> DownloadFileAsync(string? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default) =>
         SendAsync(
             HttpRequestBuilder.DownloadFile(requestUri, destinationPath, onProgressChanged, fileExistsBehavior,
                 configure), cancellationToken);
+
+    /// <inheritdoc />
+    public FileTransferResult DownloadFileWithConsoleProgress(string? requestUri, string? destinationPath = null,
+        FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
+        Action<HttpFileDownloadBuilder>? configure = null,
+        CancellationToken cancellationToken = default) =>
+        Send(
+            HttpRequestBuilder.DownloadFile(requestUri, destinationPath,
+                progress => progress.UpdateConsoleProgressAsync(), fileExistsBehavior, configure), cancellationToken);
+
+    /// <inheritdoc />
+    public Task<FileTransferResult> DownloadFileWithConsoleProgressAsync(string? requestUri,
+        string? destinationPath = null,
+        FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
+        Action<HttpFileDownloadBuilder>? configure = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync(
+            HttpRequestBuilder.DownloadFile(requestUri, destinationPath,
+                progress => progress.UpdateConsoleProgressAsync(), fileExistsBehavior, configure), cancellationToken);
 
     /// <inheritdoc />
     public FileTransferResult Send(HttpFileDownloadBuilder httpFileDownloadBuilder,
@@ -74,6 +93,23 @@ internal sealed partial class HttpRemoteService
         Action<HttpFileUploadBuilder>? configure = null, CancellationToken cancellationToken = default) =>
         SendAsync(HttpRequestBuilder.UploadFile(requestUri, filePath, name, onProgressChanged, fileName, configure),
             cancellationToken);
+
+    /// <inheritdoc />
+    public HttpResponseMessage? UploadFileWithConsoleProgress(string? requestUri, string filePath, string name = "file",
+        string? fileName = null, Action<HttpFileUploadBuilder>? configure = null,
+        CancellationToken cancellationToken = default) =>
+        Send(
+            HttpRequestBuilder.UploadFile(requestUri, filePath, name, progress => progress.UpdateConsoleProgressAsync(),
+                fileName, configure), cancellationToken);
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage?> UploadFileWithConsoleProgressAsync(string? requestUri, string filePath,
+        string name = "file",
+        string? fileName = null, Action<HttpFileUploadBuilder>? configure = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync(
+            HttpRequestBuilder.UploadFile(requestUri, filePath, name, progress => progress.UpdateConsoleProgressAsync(),
+                fileName, configure), cancellationToken);
 
     /// <inheritdoc />
     public HttpResponseMessage? Send(HttpFileUploadBuilder httpFileUploadBuilder,

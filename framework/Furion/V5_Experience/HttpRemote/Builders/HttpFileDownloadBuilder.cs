@@ -156,23 +156,13 @@ public sealed class HttpFileDownloadBuilder
     /// <param name="destinationPath">文件保存的目标路径</param>
     /// <remarks>
     ///     如果设置为 <c>null</c>，则尝试获取 HTTP 模块的 <see cref="HttpRemoteBuilder" /> 构建器的 <c>DefaultFileDownloadDirectory</c>
-    ///     的属性配置。
+    ///     的属性配置或应用程序执行目录。
     /// </remarks>
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    /// <exception cref="ArgumentException"></exception>
     public HttpFileDownloadBuilder SetDestinationPath(string? destinationPath)
     {
-        // 跳过空检查
-        if (destinationPath is null)
-        {
-            return this;
-        }
-
-        // 空检查
-        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
-
         DestinationPath = destinationPath;
 
         return this;
@@ -430,8 +420,8 @@ public sealed class HttpFileDownloadBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteOptions);
 
-        // 检查是否设置了文件保存的目标路径，如果没有则设置为默认文件下载保存目录
-        DestinationPath ??= httpRemoteOptions.DefaultFileDownloadDirectory;
+        // 检查是否设置了文件保存的目标路径，如果没有则设置为默认文件下载保存目录或应用程序执行目录
+        DestinationPath ??= httpRemoteOptions.DefaultFileDownloadDirectory ?? AppContext.BaseDirectory;
 
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(DestinationPath);

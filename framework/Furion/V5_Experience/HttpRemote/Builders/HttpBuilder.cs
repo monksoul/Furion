@@ -334,8 +334,8 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    public static HttpFileDownloadBuilder DownloadFile(HttpMethod httpMethod, Uri? requestUri, string? destinationPath,
-        Func<FileTransferProgress, Task>? onProgressChanged = null,
+    public static HttpFileDownloadBuilder DownloadFile(HttpMethod httpMethod, Uri? requestUri,
+        string? destinationPath = null, Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null) => HttpRequestBuilder.DownloadFile(httpMethod, requestUri,
         destinationPath, onProgressChanged, fileExistsBehavior, configure);
@@ -353,7 +353,7 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    public static HttpFileDownloadBuilder DownloadFile(Uri? requestUri, string? destinationPath,
+    public static HttpFileDownloadBuilder DownloadFile(Uri? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null) => HttpRequestBuilder.DownloadFile(requestUri,
@@ -372,7 +372,7 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
-    public static HttpFileDownloadBuilder DownloadFile(string? requestUri, string? destinationPath,
+    public static HttpFileDownloadBuilder DownloadFile(string? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null) => HttpRequestBuilder.DownloadFile(requestUri,

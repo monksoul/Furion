@@ -48,7 +48,7 @@ public partial interface IHttpRemoteService
     /// <returns>
     ///     <see cref="FileTransferResult" />
     /// </returns>
-    FileTransferResult DownloadFile(string? requestUri, string? destinationPath,
+    FileTransferResult DownloadFile(string? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default);
@@ -69,8 +69,46 @@ public partial interface IHttpRemoteService
     /// <returns>
     ///     <see cref="FileTransferResult" />
     /// </returns>
-    Task<FileTransferResult> DownloadFileAsync(string? requestUri, string? destinationPath,
+    Task<FileTransferResult> DownloadFileAsync(string? requestUri, string? destinationPath = null,
         Func<FileTransferProgress, Task>? onProgressChanged = null,
+        FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
+        Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     下载文件（带控制台进度打印）
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="destinationPath">文件保存的目标路径</param>
+    /// <param name="fileExistsBehavior">
+    ///     <see cref="FileExistsBehavior" />
+    /// </param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="FileTransferResult" />
+    /// </returns>
+    FileTransferResult DownloadFileWithConsoleProgress(string? requestUri, string? destinationPath = null,
+        FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
+        Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     下载文件（带控制台进度打印）
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="destinationPath">文件保存的目标路径</param>
+    /// <param name="fileExistsBehavior">
+    ///     <see cref="FileExistsBehavior" />
+    /// </param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="FileTransferResult" />
+    /// </returns>
+    Task<FileTransferResult> DownloadFileWithConsoleProgressAsync(string? requestUri, string? destinationPath = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null, CancellationToken cancellationToken = default);
 
@@ -141,6 +179,42 @@ public partial interface IHttpRemoteService
     Task<HttpResponseMessage?> UploadFileAsync(string? requestUri, string filePath, string name = "file",
         Func<FileTransferProgress, Task>? onProgressChanged = null, string? fileName = null,
         Action<HttpFileUploadBuilder>? configure = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     上传文件（带控制台进度打印）
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpResponseMessage" />
+    /// </returns>
+    HttpResponseMessage? UploadFileWithConsoleProgress(string? requestUri, string filePath, string name = "file",
+        string? fileName = null, Action<HttpFileUploadBuilder>? configure = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     上传文件（带控制台进度打印）
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Task{TResult}" />
+    /// </returns>
+    Task<HttpResponseMessage?> UploadFileWithConsoleProgressAsync(string? requestUri, string filePath,
+        string name = "file", string? fileName = null, Action<HttpFileUploadBuilder>? configure = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     上传文件
