@@ -117,6 +117,9 @@ internal sealed class FileUploadManager
     /// </returns>
     internal async Task<HttpResponseMessage?> StartAsync(CancellationToken cancellationToken = default)
     {
+        // 递增活跃传输计数，用于并发进度条显示控制
+        FileTransferProgress.IncrementActiveCount();
+
         // 创建进度报告任务取消标识
         using var progressCancellationTokenSource = new CancellationTokenSource();
 
@@ -148,6 +151,9 @@ internal sealed class FileUploadManager
         }
         finally
         {
+            // 递减活跃传输计数，用于并发进度条显示控制
+            FileTransferProgress.DecrementActiveCount();
+
             // 停止计时
             stopwatch.Stop();
 

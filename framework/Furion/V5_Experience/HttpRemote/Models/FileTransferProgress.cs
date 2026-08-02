@@ -46,6 +46,16 @@ public sealed partial class FileTransferProgress
     internal const int SpeedCalculationWindowMs = 2000;
 
     /// <summary>
+    ///     控制台输出的全局锁
+    /// </summary>
+    internal static readonly object _consoleLock = new();
+
+    /// <summary>
+    ///     当前活跃的文件传输数量
+    /// </summary>
+    internal static int _activeDownloadCount;
+
+    /// <summary>
     ///     更新进度临时锁对象
     /// </summary>
     internal readonly object _historyLock = new();
@@ -126,6 +136,16 @@ public sealed partial class FileTransferProgress
     /// </summary>
     public TimeSpan EstimatedTimeRemaining { get; private set; }
 
+    /// <summary>
+    ///     递增活跃传输计数
+    /// </summary>
+    internal static void IncrementActiveCount() => Interlocked.Increment(ref _activeDownloadCount);
+
+    /// <summary>
+    ///     递减活跃传输计数
+    /// </summary>
+    internal static void DecrementActiveCount() => Interlocked.Decrement(ref _activeDownloadCount);
+
     /// <inheritdoc />
     public override string ToString() =>
         StringUtility.FormatKeyValuesSummary([
@@ -158,7 +178,7 @@ public sealed partial class FileTransferProgress
     /// </returns>
     public string ToSummaryString()
     {
-        // 判断是否已完成下载
+        // 判断是否已完成传输
         var isComplete = FileSize > 0 && PercentageComplete >= 100.0;
 
         // 初始化已传输的数据文本
@@ -199,121 +219,131 @@ public sealed partial class FileTransferProgress
     /// <remarks>需确保应用项目支持 <see cref="Console" /> 输出。</remarks>
     public void UpdateConsoleProgress()
     {
-        // 初始化控制台宽度
-        var windowWidth = 120;
+        // 确保多文件传输时控制台进度输出串行化
+        lock (_consoleLock)
+        {
+            // 判断是否已完成传输
+            var isComplete = FileSize > 0 && PercentageComplete >= 100.0;
 
-        // 获取控制台实际宽度
-        try
-        {
-            windowWidth = Console.WindowWidth;
-        }
-        catch
-        {
+            // 判断是否存在多个文件同时传输
+            if (_activeDownloadCount > 1 && !isComplete)
+            {
+                return;
+            }
+
+            // 检查是否已打印文件头
+            if (!_hasPrintedHeader)
+            {
+                // 构造跨平台的 file:// URL
+                var fileUrl = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "file:///" : "file://") +
+                              FilePath.Replace("\\", "/");
+
+                // 实现控制台可点击的路径，参考文献：https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
+                Console.WriteLine($"File: {FileName}, Path: \e]8;;{fileUrl}\a{FilePath}\e]8;;\a");
+                _hasPrintedHeader = true;
+            }
+
+            // 初始化控制台宽度
+            var windowWidth = 120;
+
+            // 获取控制台实际宽度
             try
             {
-                windowWidth = Console.BufferWidth;
+                windowWidth = Console.WindowWidth;
             }
-            // ReSharper disable once EmptyGeneralCatchClause
-            catch { }
-        }
-
-        // 检查是否已打印文件头
-        if (!_hasPrintedHeader)
-        {
-            // 构造跨平台的 file:// URL
-            var fileUrl = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "file:///" : "file://") +
-                          FilePath.Replace("\\", "/");
-
-            // 实现控制台可点击的路径，参考文献：https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
-            Console.WriteLine($"File: {FileName}, Path: \e]8;;{fileUrl}\a{FilePath}\e]8;;\a");
-            _hasPrintedHeader = true;
-        }
-
-        // 判断是否已完成下载
-        var isComplete = FileSize > 0 && PercentageComplete >= 100.0;
-
-        // 计算自适应进度条宽度，10-20 字符最合适
-        var barWidth = isComplete ? 20 : (int)Math.Clamp(windowWidth * 0.3, 10, 20);
-
-        // 初始化进度文本
-        string progressText;
-
-        // 初始化下载完成显示的 Done! 字符串
-        const string done = " \e[32mDone!\e[0m";
-
-        // 已知文件大小则显示标准进度条
-        if (FileSize > 0)
-        {
-            var progress = (int)Math.Clamp(PercentageComplete, 0, 100);
-            var filledLength = (int)(progress / 100.0 * barWidth);
-            var progressBar = new string('#', filledLength) + new string('.', barWidth - filledLength);
-            var statusSuffix = isComplete ? done : string.Empty;
-            var etaPart = isComplete
-                ? string.Empty
-                : $", ETA: {EstimatedTimeRemaining.TotalMilliseconds.FormatDuration()}";
-
-            progressText =
-                $"[{progressBar}] {PercentageComplete:F2}% ({Transferred.ToSizeUnits("MB"):F2}MB/{FileSize.ToSizeUnits("MB"):F2}MB) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}{etaPart}.{statusSuffix}";
-        }
-        // 未知文件大小则显示动态动画进度条
-        else
-        {
-            const string animatedChars = "|/-\\";
-            var animatedChar = animatedChars[(int)(TimeElapsed.TotalMilliseconds / 100) % animatedChars.Length];
-            var halfWidth = barWidth / 2;
-            var progressBar = new string('#', halfWidth) + animatedChar + new string('.', barWidth - halfWidth - 1);
-
-            progressText =
-                $"[{progressBar}] {Transferred.ToSizeUnits("MB"):F2}MB (Unknown size) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}, ETA: Unknown.";
-        }
-
-        // 处理窗口过小问题（截断处理）
-        if (GetDisplayLength(progressText) >= windowWidth)
-        {
-            progressText = !isComplete
-                ? progressText[..(windowWidth - 4)] + "..."
-                : progressText[..(windowWidth - 4 - GetDisplayLength(done))] + "..." + done;
-        }
-
-        // 清除当前行并写入新进度
-        try
-        {
-            Console.CursorLeft = 0;
-            Console.Write(progressText);
-
-            // 获取文本的显示长度和是否需要填充
-            var displayLen = GetDisplayLength(progressText);
-            var padding = windowWidth - 1 - displayLen;
-
-            // 填充空格
-            if (padding > 0)
+            catch
             {
-                Console.Write(new string(' ', padding));
+                try
+                {
+                    windowWidth = Console.BufferWidth;
+                }
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch { }
             }
 
-            // 检查是否已完成下载
-            if (isComplete)
+            // 计算自适应进度条宽度，10-20 字符最合适
+            var barWidth = isComplete ? 20 : (int)Math.Clamp(windowWidth * 0.3, 10, 20);
+
+            // 初始化进度文本
+            string progressText;
+
+            // 初始化传输完成显示的 Done! 字符串
+            const string done = " \e[32mDone!\e[0m";
+
+            // 已知文件大小则显示标准进度条
+            if (FileSize > 0)
             {
-                Console.WriteLine();
-                _hasPrintedHeader = false;
+                var progress = (int)Math.Clamp(PercentageComplete, 0, 100);
+                var filledLength = (int)(progress / 100.0 * barWidth);
+                var progressBar = new string('#', filledLength) + new string('.', barWidth - filledLength);
+                var statusSuffix = isComplete ? done : string.Empty;
+                var etaPart = isComplete
+                    ? string.Empty
+                    : $", ETA: {EstimatedTimeRemaining.TotalMilliseconds.FormatDuration()}";
+
+                progressText =
+                    $"[{progressBar}] {PercentageComplete:F2}% ({Transferred.ToSizeUnits("MB"):F2}MB/{FileSize.ToSizeUnits("MB"):F2}MB) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}{etaPart}.{statusSuffix}";
             }
+            // 未知文件大小则显示动态动画进度条
             else
             {
-                Console.CursorLeft = 0;
+                const string animatedChars = "|/-\\";
+                var animatedChar = animatedChars[(int)(TimeElapsed.TotalMilliseconds / 100) % animatedChars.Length];
+                var halfWidth = barWidth / 2;
+                var progressBar = new string('#', halfWidth) + animatedChar + new string('.', barWidth - halfWidth - 1);
+
+                progressText =
+                    $"[{progressBar}] {Transferred.ToSizeUnits("MB"):F2}MB (Unknown size) Speed: {TransferRate.ToSizeUnits("MB"):F2}MB/s, Time: {TimeElapsed.TotalMilliseconds.FormatDuration()}, ETA: Unknown.";
             }
 
-            // 更新历史显示长度
-            _lastDisplayLength = displayLen;
+            // 处理窗口过小问题（截断处理）
+            if (GetDisplayLength(progressText) >= windowWidth)
+            {
+                progressText = !isComplete
+                    ? progressText[..(windowWidth - 4)] + "..."
+                    : progressText[..(windowWidth - 4 - GetDisplayLength(done))] + "..." + done;
+            }
 
-            return;
+            // 清除当前行并写入新进度
+            try
+            {
+                Console.CursorLeft = 0;
+                Console.Write(progressText);
+
+                // 获取文本的显示长度和是否需要填充
+                var displayLen = GetDisplayLength(progressText);
+                var padding = windowWidth - 1 - displayLen;
+
+                // 填充空格
+                if (padding > 0)
+                {
+                    Console.Write(new string(' ', padding));
+                }
+
+                // 检查是否已完成传输
+                if (isComplete)
+                {
+                    Console.WriteLine();
+                    _hasPrintedHeader = false;
+                }
+                else
+                {
+                    Console.CursorLeft = 0;
+                }
+
+                // 更新历史显示长度
+                _lastDisplayLength = displayLen;
+
+                return;
+            }
+            // 控制台不可用
+            catch (IOException) { }
+            // 某些平台不支持
+            catch (PlatformNotSupportedException) { }
+
+            // 发生异常时回退输出
+            FallbackWrite(progressText, isComplete);
         }
-        // 控制台不可用
-        catch (IOException) { }
-        // 某些平台不支持
-        catch (PlatformNotSupportedException) { }
-
-        // 发生异常时回退输出
-        FallbackWrite(progressText, isComplete);
     }
 
     /// <summary>
@@ -402,7 +432,7 @@ public sealed partial class FileTransferProgress
     ///     回退输出
     /// </summary>
     /// <param name="text">要输出的进度文本</param>
-    /// <param name="isComplete">是否已完成下载</param>
+    /// <param name="isComplete">是否已完成传输</param>
     internal void FallbackWrite(string text, bool isComplete)
     {
         // 获取文本的显示长度

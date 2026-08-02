@@ -131,6 +131,9 @@ internal sealed class FileDownloadManager
     /// </returns>
     internal async Task<FileTransferResult> StartAsync(CancellationToken cancellationToken = default)
     {
+        // 递增活跃传输计数，用于并发进度条显示控制
+        FileTransferProgress.IncrementActiveCount();
+
         // 初始化 FileTransferResult 实例
         var fileTransferResult = new FileTransferResult();
 
@@ -248,6 +251,9 @@ internal sealed class FileDownloadManager
         }
         finally
         {
+            // 递减活跃传输计数，用于并发进度条显示控制
+            FileTransferProgress.DecrementActiveCount();
+
             // 释放 FileStream 实例
             if (fileStream is not null)
             {
