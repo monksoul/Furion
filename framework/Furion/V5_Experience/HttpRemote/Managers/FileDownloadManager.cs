@@ -608,8 +608,61 @@ internal sealed class FileDownloadManager
     /// <exception cref="InvalidOperationException"></exception>
     internal bool ShouldContinueWithDownload(HttpResponseMessage httpResponseMessage, out string destinationPath)
     {
-        // 获取文件下载名
-        var fileName = GetFileName(httpResponseMessage);
+        // 获取 DestinationPath 配置
+        var destPath = _httpFileDownloadBuilder.DestinationPath;
+
+        // 初始化用于判断传入的是目录还是文件路径
+        bool isDirectory;
+
+        // 空检查
+        if (string.IsNullOrWhiteSpace(destPath))
+        {
+            isDirectory = true;
+        }
+        // 以目录分隔符结尾视为目录
+        else if (destPath.EndsWith(Path.DirectorySeparatorChar) || destPath.EndsWith(Path.AltDirectorySeparatorChar))
+        {
+            isDirectory = true;
+        }
+        // 路径是一个已存在的目录视为目录
+        else if (Directory.Exists(destPath))
+        {
+            isDirectory = true;
+        }
+        // 路径是一个已存在的文件，视为完整文件路径
+        else if (File.Exists(destPath))
+        {
+            isDirectory = false;
+        }
+        // 路径不存在视为文件路径，通过路径末尾 \ 或 / 来判断是否是目录
+        else
+        {
+            isDirectory = false;
+        }
+
+        string? destinationDir;
+        string fileName;
+
+        // 检查是否是目录
+        if (isDirectory)
+        {
+            // 解析目录和文件下载名
+            destinationDir = destPath;
+            fileName = ExtractFileName(httpResponseMessage);
+        }
+        else
+        {
+            // 解析目录和文件下载名
+            destinationDir = Path.GetDirectoryName(destPath);
+            fileName = Path.GetFileName(destPath) ?? string.Empty;
+
+            // 空检查
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                // 解析文件下载名
+                fileName = ExtractFileName(httpResponseMessage);
+            }
+        }
 
         // 获取无效的文件名字符数组
         var invalidChars = Path.GetInvalidFileNameChars();
@@ -618,9 +671,14 @@ internal sealed class FileDownloadManager
         fileName = new string(fileName.Select(c => Array.IndexOf(invalidChars, c) >= 0 ? '_' : c).ToArray());
 
         // 生成完整的文件存储路径
-        destinationPath = Path.GetFullPath(Path.Combine(
-            Path.GetDirectoryName(_httpFileDownloadBuilder.DestinationPath) ?? string.Empty,
-            fileName));
+        destinationPath = Path.GetFullPath(Path.Combine(destinationDir ?? string.Empty, fileName));
+
+        // 检查最终路径不能是一个已存在的目录
+        if (Directory.Exists(destinationPath))
+        {
+            throw new InvalidOperationException(
+                $"The destination path '{destinationPath}' is an existing directory, not a file path.");
+        }
 
         // 检查文件是否存在
         if (!File.Exists(destinationPath))
@@ -644,30 +702,24 @@ internal sealed class FileDownloadManager
     }
 
     /// <summary>
-    ///     获取文件下载名
+    ///     解析文件下载名
     /// </summary>
+    /// <remarks>从 HTTP 响应标头 <c>Content-Disposition</c> 或请求地址中解析文件名。</remarks>
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
     /// </param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    internal string GetFileName(HttpResponseMessage httpResponseMessage)
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    internal static string ExtractFileName(HttpResponseMessage httpResponseMessage)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpResponseMessage);
 
-        // 获取文件下载保存的文件的名称
-        var fileName = Path.GetFileName(_httpFileDownloadBuilder.DestinationPath);
-
-        // 空检查
-        if (!string.IsNullOrWhiteSpace(fileName))
-        {
-            return fileName;
-        }
-
         // 尝试从响应标头 Content-Disposition 中解析文件名
-        fileName = Helpers.ExtractFileNameFromContentDisposition(httpResponseMessage.Content.Headers
+        var fileName = Helpers.ExtractFileNameFromContentDisposition(httpResponseMessage.Content.Headers
             .ContentDisposition);
 
         // 空检查
