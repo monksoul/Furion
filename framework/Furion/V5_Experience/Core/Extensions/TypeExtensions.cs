@@ -929,26 +929,74 @@ internal static class TypeExtensions
             return null;
         }
 
-        // 检查是否是泛型类型
-        if (type.IsGenericType)
+        // 检查是否是开放泛型类型
+        if (type.IsGenericParameter)
         {
-            // 获取类型名称
-            var typeName = type.Name.Split('`')[0];
-
-            // 获取泛型参数
-            var genericArguments = type.GetGenericArguments().Select(ToFriendlyString).ToArray();
-
-            return $"{type.Namespace}.{typeName}<{string.Join(',', genericArguments)}>";
+            return type.Name;
         }
 
-        // 检查是否是非泛型且不是数组类型
-        // ReSharper disable once InvertIf
+        // 检查是否是数组类型
         if (type.IsArray)
         {
             var rank = new string(',', type.GetArrayRank() - 1);
             return $"{type.GetElementType()!.ToFriendlyString()}[{rank}]";
         }
 
-        return type.FullName ?? type.Name;
+        // 声明嵌套类型所需的信息
+        var declaringTypeToFormat = type.DeclaringType;
+        var declaringArgsCount = 0;
+
+        // 检查类型是否作为泛型类型的嵌套类类型
+        if (type is { IsNested: true, DeclaringType.IsGenericType: true })
+        {
+            var allArgs = type.GetGenericArguments();
+            declaringArgsCount = type.DeclaringType.GetGenericArguments().Length;
+
+            // 确保获取到的参数数量足够还原外层类
+            if (allArgs.Length >= declaringArgsCount)
+            {
+                try
+                {
+                    declaringTypeToFormat =
+                        type.DeclaringType.MakeGenericType(allArgs.Take(declaringArgsCount).ToArray());
+                }
+                catch
+                {
+                    declaringTypeToFormat = type.DeclaringType;
+                }
+            }
+        }
+
+        // 递归获取外层类友好字符串并作为前缀
+        var prefix = declaringTypeToFormat?.ToFriendlyString() ?? type.Namespace;
+        var dot = string.IsNullOrEmpty(prefix) ? "" : ".";
+
+        // 检查是否是泛型类型
+        // ReSharper disable once InvertIf
+        if (type.IsGenericType)
+        {
+            // 获取类型名称
+            var typeName = type.Name.Split('`')[0];
+
+            // 获取泛型参数
+            var allArgs = type.GetGenericArguments();
+
+            // 处理泛型类型嵌套类型的泛型参数
+            var ownArgs = type is { IsNested: true, DeclaringType.IsGenericType: true }
+                ? allArgs.Skip(declaringArgsCount).ToArray()
+                : allArgs;
+
+            // 长度检查
+            // ReSharper disable once InvertIf
+            if (ownArgs.Length > 0)
+            {
+                var genericArguments = string.Join(", ", ownArgs.Select(ToFriendlyString));
+                return $"{prefix}{dot}{typeName}<{genericArguments}>";
+            }
+
+            return $"{prefix}{dot}{typeName}";
+        }
+
+        return $"{prefix}{dot}{type.Name}";
     }
 }

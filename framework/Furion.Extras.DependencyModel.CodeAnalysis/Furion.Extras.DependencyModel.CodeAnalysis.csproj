@@ -26,7 +26,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
 	</ItemGroup>
 

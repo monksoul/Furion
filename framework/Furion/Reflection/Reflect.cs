@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
 namespace Furion.Reflection;
@@ -153,5 +154,37 @@ internal static class Reflect
         }
 
         return GetType(typeDefinitions[0], typeDefinitions[1]);
+    }
+
+    /// <summary>
+    /// 解包异步状态机并获取真实的 <see cref="MethodBase"/>
+    /// </summary>
+    /// <param name="method"></param>
+    /// <returns></returns>
+    internal static MethodBase UnwrapStateMachine(MethodBase method)
+    {
+        if (method == null) return null;
+
+        var declaringType = method.DeclaringType;
+
+        // 判断是否为异步状态机
+        if (declaringType != null && typeof(IAsyncStateMachine).IsAssignableFrom(declaringType))
+        {
+            var outerType = declaringType.DeclaringType;
+
+            if (outerType != null)
+            {
+                // 查找外部类中带有 [AsyncStateMachine] 特性且指向当前状态机类型的方法
+                var originalMethod = outerType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .FirstOrDefault(m => m.GetCustomAttribute<AsyncStateMachineAttribute>()?.StateMachineType == declaringType);
+
+                if (originalMethod != null)
+                {
+                    return originalMethod;
+                }
+            }
+        }
+
+        return method;
     }
 }

@@ -119,12 +119,12 @@ internal static class MethodInfoExtensions
     ///     输出方法签名的友好字符串
     /// </summary>
     /// <param name="method">
-    ///     <see cref="MethodInfo" />
+    ///     <see cref="MethodBase" />
     /// </param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    internal static string? ToFriendlyString(this MethodInfo? method)
+    internal static string? ToFriendlyString(this MethodBase? method)
     {
         // 空检查
         if (method is null)
@@ -132,20 +132,33 @@ internal static class MethodInfoExtensions
             return null;
         }
 
-        // 获取方法的基本信息
+        // 获取方法名
         var methodName = method.Name;
-        var returnType = method.ReturnType.ToFriendlyString();
+
+        // 获取方法返回值
+        var returnType = method is MethodInfo methodInfo
+            ? methodInfo.ReturnType.ToFriendlyString()
+            : "System.Void"; // 构造函数无返回值
+
+        var skipCount = 0;
+        var declaringType = method.DeclaringType;
+
+        // 检查方法的声明类型是否是泛型且是开放类型
+        if (declaringType is { IsGenericType: true, ContainsGenericParameters: true })
+        {
+            skipCount = declaringType.GetGenericArguments().Length;
+        }
 
         // 处理泛型方法
         var genericArguments = method.IsGenericMethod
-            ? method.GetGenericArguments().Select(t => t.ToFriendlyString()).ToArray()
+            ? method.GetGenericArguments().Skip(skipCount).Select(t => t.ToFriendlyString()).ToArray()
             : [];
 
         // 获取参数列表
         var parameters = method.GetParameters().Select(p => p.ParameterType.ToFriendlyString());
 
         // 组合字符串
-        var genericPart = genericArguments.Length != 0 ? $"<{string.Join(',', genericArguments)}>" : string.Empty;
+        var genericPart = genericArguments.Length != 0 ? $"<{string.Join(", ", genericArguments)}>" : string.Empty;
 
         return $"{returnType} {methodName}{genericPart}({string.Join(", ", parameters)})";
     }

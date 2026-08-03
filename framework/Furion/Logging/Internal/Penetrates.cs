@@ -23,8 +23,11 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Extensions;
+using Furion.Reflection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 
 namespace Furion.Logging;
@@ -166,21 +169,15 @@ internal static class Penetrates
         }
         formatString.AppendLine();
 
-        // 输出日志输出所在方法，类型，程序集
+        // 输出日志输出所在方法和类型
         if (withStackFrame)
         {
-            var stackTraces = EnhancedStackTrace.Current();
-            var pos = isConsole ? 6 : 5;
-            if (stackTraces.FrameCount > pos)
-            {
-                var targetMethod = stackTraces.Where((u, i) => i == pos).FirstOrDefault()?.MethodInfo;
-                var targetAssembly = targetMethod?.DeclaringType?.Assembly;
+            var targetMethod = GetBusinessMethod();
 
-                if (targetAssembly != null)
-                {
-                    formatString.Append(PadLeftAlign($"[{targetAssembly.GetName().Name}.dll] {targetMethod}"));
-                    formatString.AppendLine();
-                }
+            if (targetMethod != null)
+            {
+                formatString.Append(PadLeftAlign($"[{targetMethod.DeclaringType.ToFriendlyString()}] {targetMethod.ToFriendlyString()}"));
+                formatString.AppendLine();
             }
         }
 
@@ -366,5 +363,39 @@ internal static class Penetrates
             LogLevel.Trace => new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black),
             _ => new ConsoleColors(null, background: null),
         };
+    }
+
+    private const string LOGGING_ABSTRACTIONS_ASSEMBLY = "Microsoft.Extensions.Logging.Abstractions";
+
+    /// <summary>
+    /// 获取调用当前日志的业务方法
+    /// </summary>
+    /// <returns></returns>
+    private static MethodBase GetBusinessMethod()
+    {
+        var stackTrace = new StackTrace();
+        var frames = stackTrace.GetFrames();
+
+        if (frames == null || frames.Length == 0) return null;
+
+        for (var i = frames.Length - 1; i >= 0; i--)
+        {
+            var method = Reflect.UnwrapStateMachine(frames[i].GetMethod());
+            if (method?.DeclaringType == null) continue;
+
+            var assemblyName = method.DeclaringType.Assembly.GetName().Name;
+
+            if (string.Equals(assemblyName, LOGGING_ABSTRACTIONS_ASSEMBLY, StringComparison.Ordinal))
+            {
+                if (i + 1 < frames.Length)
+                {
+                    return Reflect.UnwrapStateMachine(frames[i + 1].GetMethod());
+                }
+
+                return null;
+            }
+        }
+
+        return null;
     }
 }
