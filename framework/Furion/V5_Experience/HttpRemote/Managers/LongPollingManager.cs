@@ -64,7 +64,7 @@ internal sealed class LongPollingManager
 
         // 解析 IHttpLongPollingEventHandler 事件处理程序
         LongPollingEventHandler = (httpLongPollingBuilder.LongPollingEventHandlerType is not null
-            ? httpRemoteService.ServiceProvider.GetService(httpLongPollingBuilder.LongPollingEventHandlerType)
+            ? httpRemoteService.For(httpLongPollingBuilder.LongPollingEventHandlerType)
             : null) as IHttpLongPollingEventHandler;
 
         // 构建 HttpRequestBuilder 实例

@@ -83,7 +83,7 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         // 获取原始取消令牌
         var originalToken = context.CancellationToken;
 
-        // 更新上下文（替换）
+        // 更新上下文
         context.CancellationToken = timeoutCancellationToken;
 
         try

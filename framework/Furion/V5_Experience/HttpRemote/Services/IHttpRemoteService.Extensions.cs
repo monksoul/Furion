@@ -541,9 +541,28 @@ public partial interface IHttpRemoteService
     /// <summary>
     ///     解析服务
     /// </summary>
-    /// <typeparam name="T">服务类型</typeparam>
+    /// <typeparam name="T">服务的类型</typeparam>
     /// <returns>
     ///     <typeparamref name="T" />
     /// </returns>
     T For<T>() where T : notnull;
+
+    /// <summary>
+    ///     解析服务
+    /// </summary>
+    /// <param name="required">要求服务必须注册，默认值为：<c>true</c></param>
+    /// <typeparam name="T">服务的类型</typeparam>
+    /// <returns>
+    ///     <typeparamref name="T" />
+    /// </returns>
+    T? For<T>(bool required) where T : notnull;
+
+    /// <summary>
+    ///     解析服务
+    /// </summary>
+    /// <param name="serviceType">服务的类型</param>
+    /// <returns>
+    ///     <see cref="object" />
+    /// </returns>
+    object? For(Type serviceType);
 }

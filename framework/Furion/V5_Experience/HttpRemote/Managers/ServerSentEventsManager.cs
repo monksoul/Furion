@@ -25,7 +25,6 @@
 
 using Furion.Extensions;
 using Furion.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -69,12 +68,12 @@ internal sealed class ServerSentEventsManager
 
         // 解析 IHttpServerSentEventsEventHandler 事件处理程序
         ServerSentEventsEventHandler = (httpServerSentEventsBuilder.ServerSentEventsEventHandlerType is not null
-            ? httpRemoteService.ServiceProvider.GetService(httpServerSentEventsBuilder.ServerSentEventsEventHandlerType)
+            ? httpRemoteService.For(httpServerSentEventsBuilder.ServerSentEventsEventHandlerType)
             : null) as IHttpServerSentEventsEventHandler;
 
         // 构建 HttpRequestBuilder 实例
-        RequestBuilder = httpServerSentEventsBuilder.Build(httpRemoteService.ServiceProvider
-            .GetRequiredService<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue);
+        RequestBuilder =
+            httpServerSentEventsBuilder.Build(httpRemoteService.For<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue);
     }
 
     /// <summary>

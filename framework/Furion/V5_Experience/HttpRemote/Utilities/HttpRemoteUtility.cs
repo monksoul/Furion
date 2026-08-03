@@ -398,7 +398,7 @@ public static class HttpRemoteUtility
         string? httpClientName, out HttpClientOptions? clientOptions)
     {
         // 获取 HttpClientOptions 实例
-        clientOptions = serviceProvider?.GetService<IOptionsMonitor<HttpClientOptions>>()?.Get(httpClientName);
+        clientOptions = ResolveHttpClientOptions(serviceProvider, httpClientName);
 
         // 获取 JsonSerializerOptions 配置
         // 优先级：指定名称的 HttpClientOptions -> HttpRemoteOptions -> 默认值
@@ -410,19 +410,16 @@ public static class HttpRemoteUtility
     }
 
     /// <summary>
-    ///     根据 HTTP 响应消息和服务提供器，解析出 <see cref="HttpClient" /> 客户端配置选项
+    ///     根据 HttpClient 实例的配置名称解析其配置选项
     /// </summary>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
     /// <param name="serviceProvider">
     ///     <see cref="IServiceProvider" />
     /// </param>
+    /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
     /// <returns>
     ///     <see cref="HttpClientOptions" />
     /// </returns>
-    internal static HttpClientOptions? ResolveHttpClientOptions(HttpResponseMessage? httpResponseMessage,
-        IServiceProvider? serviceProvider) =>
-        serviceProvider?.GetService<IOptionsMonitor<HttpClientOptions>>()
-            ?.Get(httpResponseMessage.ResolveHttpClientName());
+    internal static HttpClientOptions? ResolveHttpClientOptions(IServiceProvider? serviceProvider,
+        string? httpClientName) =>
+        serviceProvider?.GetService<IOptionsMonitor<HttpClientOptions>>()?.Get(httpClientName);
 }

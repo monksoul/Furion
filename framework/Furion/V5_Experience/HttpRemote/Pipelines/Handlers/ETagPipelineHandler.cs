@@ -35,7 +35,11 @@ namespace Furion.HttpRemote;
 /// <param name="eTagCache">
 ///     <see cref="IHttpETagCache" />
 /// </param>
-internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache) : IHttpRequestPipelineHandler
+/// <param name="logger">
+///     <see cref="IHttpRemoteLogger" />
+/// </param>
+internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache, IHttpRemoteLogger logger)
+    : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
     public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
@@ -97,8 +101,20 @@ internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache) : IHttpReque
         }
 
         // 检查是否是成功请求状态码且包含 ETag 响应标头
-        if (httpResponseMessage.IsSuccessStatusCode && httpResponseMessage.Headers.ETag is { } entityTagHeaderValue)
+        // ReSharper disable once InvertIf
+        if (httpResponseMessage is { IsSuccessStatusCode: true, Headers.ETag: { } entityTagHeaderValue })
         {
+            // 如果 ETag 没有变化则跳过缓存更新
+            if (eTagCacheItem?.ETag == entityTagHeaderValue.Tag.Trim('"'))
+            {
+                // 打印警告日志：服务器可能没有正确实现 HTTP 条件请求规范
+                logger.LogWarning(
+                    "Server returned {StatusCode} with unchanged ETag for cache key '{CacheKey}'. It may not support conditional requests correctly.",
+                    (int)httpResponseMessage.StatusCode, cacheKey);
+
+                return httpResponseMessage;
+            }
+
             // 缓存 HttpResponseMessage 信息
             await CacheResponseAsync(cacheKey, httpResponseMessage, entityTagHeaderValue);
         }
@@ -151,6 +167,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache) : IHttpReque
         byte[]? contentBytes = null;
 
         // 空检查
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (httpResponseMessage.Content is not null)
         {
             // 读取响应内容字节数组

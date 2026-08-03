@@ -25,7 +25,6 @@
 
 using Furion.Extensions;
 using Furion.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Threading.Channels;
@@ -75,12 +74,13 @@ internal sealed class FileUploadManager
 
         // 解析 IHttpFileTransferEventHandler 事件处理程序
         FileTransferEventHandler = (httpFileUploadBuilder.FileTransferEventHandlerType is not null
-            ? httpRemoteService.ServiceProvider.GetService(httpFileUploadBuilder.FileTransferEventHandlerType)
+            ? httpRemoteService.For(httpFileUploadBuilder.FileTransferEventHandlerType)
             : null) as IHttpFileTransferEventHandler;
 
         // 构建 HttpRequestBuilder 实例
-        RequestBuilder = httpFileUploadBuilder.Build(httpRemoteService.ServiceProvider
-            .GetRequiredService<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue, _progressChannel);
+        RequestBuilder =
+            httpFileUploadBuilder.Build(httpRemoteService.For<IOptionsMonitor<HttpRemoteOptions>>().CurrentValue,
+                _progressChannel);
     }
 
     /// <summary>

@@ -59,10 +59,10 @@ internal sealed class AutoRedirectPipelineHandler(
         var originalHttpMethod = context.OriginalBuilder.HttpMethod!;
 
         // 处理请求重定向
-        while (httpResponseMessage is not null &&
+        while (httpResponseMessage is not null && remoteOptions.AllowAutoRedirect &&
+               redirections < remoteOptions.MaximumAutomaticRedirections &&
                Helpers.DetermineRedirectMethod(httpResponseMessage.StatusCode, originalHttpMethod,
-                   out var redirectMethod) && remoteOptions.AllowAutoRedirect &&
-               redirections < remoteOptions.MaximumAutomaticRedirections)
+                   out var redirectMethod))
         {
             // 获取重定向地址
             var redirectUrl = httpResponseMessage.Headers.Location;
@@ -73,13 +73,14 @@ internal sealed class AutoRedirectPipelineHandler(
                 break;
             }
 
+            // 获取或构建重定向地址
+            var redirectUri = redirectUrl.IsAbsoluteUri
+                ? redirectUrl
+                : new Uri(Helpers.ParseBaseAddress(context.RequestMessage?.RequestUri), redirectUrl);
+
             // 构建新的 HttpRequestMessage 实例
-            var redirectHttpRequestMessage = httpRequestBuilder
-                .ConfigureForRedirect(
-                    redirectUrl.IsAbsoluteUri
-                        ? redirectUrl
-                        : new Uri(Helpers.ParseBaseAddress(context.RequestMessage?.RequestUri), redirectUrl),
-                    redirectMethod).Build(remoteOptions, httpContentProcessorFactory,
+            var redirectHttpRequestMessage = httpRequestBuilder.ConfigureForRedirect(redirectUri, redirectMethod)
+                .Build(remoteOptions, httpContentProcessorFactory,
                     context.HttpClient.BaseAddress ?? remoteOptions.FallbackBaseAddress);
 
             // 释放前一个 HttpResponseMessage 实例

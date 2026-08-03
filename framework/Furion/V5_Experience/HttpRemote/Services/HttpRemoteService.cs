@@ -474,7 +474,7 @@ internal sealed partial class HttpRemoteService : IHttpRemoteService
                 e.Data[nameof(HttpResponseMessage)] = httpResponseMessage;
             }
 
-            // 将请求耗时写入异常数据中
+            // 将请求耗时附加到异常数据中
             e.Data[nameof(HttpRequestPipelineContext.RequestDuration)] = httpRequestPipelineContext.RequestDuration;
 
             throw;

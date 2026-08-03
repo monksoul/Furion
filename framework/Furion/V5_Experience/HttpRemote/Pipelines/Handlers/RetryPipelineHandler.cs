@@ -107,6 +107,7 @@ internal sealed class RetryPipelineHandler(IHttpRemoteLogger logger) : IHttpRequ
 
                     // 释放前一个 HttpResponseMessage 实例
                     httpResponseMessage.Dispose();
+                    context.ResponseMessage = null;
                 }
                 else
                 {

@@ -24,8 +24,6 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Furion.HttpRemote;
 
@@ -49,8 +47,8 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
         var httpRequestBuilder = context.Builder;
 
         // 获取当前 HttpClient 实例的配置名称的配置选项
-        var httpClientOptions = serviceProvider.GetService<IOptionsMonitor<HttpClientOptions>>()
-            ?.Get(httpRequestBuilder.HttpClientName);
+        var httpClientOptions =
+            HttpRemoteUtility.ResolveHttpClientOptions(serviceProvider, httpRequestBuilder.HttpClientName);
 
         // 获取全局的 IHttpRequestEventHandler 事件处理程序
         var globalEventHandler = httpClientOptions?.HttpRequestEventHandler;

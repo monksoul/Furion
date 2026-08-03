@@ -24,7 +24,6 @@
 // ------------------------------------------------------------------------
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace Furion.HttpRemote;
@@ -64,7 +63,7 @@ internal sealed class TokenManagementPipelineHandler(
         var httpClientName = httpRequestBuilder.HttpClientName;
 
         // 获取当前 HttpClient 实例的配置名称的配置选项
-        var httpClientOptions = serviceProvider.GetService<IOptionsMonitor<HttpClientOptions>>()?.Get(httpClientName);
+        var httpClientOptions = HttpRemoteUtility.ResolveHttpClientOptions(serviceProvider, httpClientName);
 
         // 检查是否配置了 Access Token 提供器
         if (httpClientOptions?.HttpAccessTokenProvider is not { } httpAccessTokenProvider)

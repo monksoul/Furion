@@ -229,5 +229,12 @@ internal sealed partial class HttpRemoteService
         new DeclarativeManager(this, httpDeclarativeBuilder).StartAsync<T>();
 
     /// <inheritdoc />
-    public T For<T>() where T : notnull => ServiceProvider.GetRequiredService<T>();
+    public T For<T>() where T : notnull => For<T>(true)!;
+
+    /// <inheritdoc />
+    public T? For<T>(bool required) where T : notnull =>
+        required ? ServiceProvider.GetRequiredService<T>() : ServiceProvider.GetService<T>();
+
+    /// <inheritdoc />
+    public object? For(Type serviceType) => ServiceProvider.GetService(serviceType);
 }
