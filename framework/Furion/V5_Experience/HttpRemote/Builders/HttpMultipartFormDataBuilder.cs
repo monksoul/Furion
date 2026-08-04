@@ -49,10 +49,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <summary>
     ///     多部分表单内容项排序委托
     /// </summary>
-    /// <remarks>
-    ///     接收原始 <see cref="MultipartFormDataItem" /> 集合，返回排序后的可枚举集合。为 <c>null</c>
-    ///     时使用默认排序：非二进制内容（如字符串、对象）优先，二进制内容（如文件流、字节数组）后置。
-    /// </remarks>
+    /// <remarks>接收原始 <see cref="MultipartFormDataItem" /> 集合，返回排序后的可枚举集合。为 <c>null</c> 时不排序（原始添加顺序）。</remarks>
     internal Func<IEnumerable<MultipartFormDataItem>, IEnumerable<MultipartFormDataItem>>? FormItemsSorter;
 
     /// <summary>
@@ -164,10 +161,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <summary>
     ///     设置多部分表单内容项的排序规则
     /// </summary>
-    /// <param name="sorter">
-    ///     接收原始 <see cref="MultipartFormDataItem" /> 集合，返回排序后的可枚举集合。为 <c>null</c>
-    ///     时使用默认排序：非二进制内容（如字符串、对象）优先，二进制内容（如文件流、字节数组）后置
-    /// </param>
+    /// <param name="sorter">接收原始 <see cref="MultipartFormDataItem" /> 集合，返回排序后的可枚举集合。为 <c>null</c> 时不排序（原始添加顺序）</param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>

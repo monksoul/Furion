@@ -113,7 +113,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     查询参数排序委托
     /// </summary>
-    /// <remarks>接收所有查询键值对（包括原始 URL 参数和用户追加的参数），返回排序后的键值对序列。为 <c>null</c> 时不执行排序，保持参数的添加顺序。</remarks>
+    /// <remarks>接收所有查询键值对（包括原始 URL 参数和用户追加的参数），返回排序后的键值对序列。为 <c>null</c> 时不排序（原始添加顺序）。</remarks>
     public Func<IEnumerable<KeyValuePair<string, string?>>, IEnumerable<KeyValuePair<string, string?>>>?
         QueryParametersSorter { get; private set; }
 

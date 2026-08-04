@@ -318,16 +318,19 @@ public static partial class HttpRemoteExtensions
         // 最大处理大小限制，避免内存溢出（OOM）或缓冲区溢出
         const long maxAllowedSize = 5 * 1024 * 1024; // 5MB
 
+        // 默认只读取 5KB 的内容
+        const int maxBytesToDisplay = 5 * 1024; // 5KB
+
         // 判断当前内容来自请求还是响应
         var isResponse = httpResponseMessage is not null;
 
         // 获取内容类型
         var contentType = httpContent.Headers.ContentType?.ToString();
 
-        // 判断内容是否是 MultipartContent 类型
+        // 判断内容是否来自请求中的 MultipartContent
+        // 主要用于解决 MultipartContent.LoadIntoBufferAsync 会递归消费所有 Part 的底层流，导致流指针移到末尾（损坏）
         var isMultipartRequest = !isResponse && httpContent is MultipartContent;
 
-        // 如果不是 MultipartContent 类型
         if (!isMultipartRequest)
         {
             // 检查内容大小是否最大限制
@@ -406,24 +409,13 @@ public static partial class HttpRemoteExtensions
             }
             catch
             {
-                // 一旦发生异常，流将变为不可读状态，之后所有读取操作均会失败，所以这种情况提示开发者应该禁用请求分析工具
+                // 一旦发生异常，流将变为不可读状态，之后所有读取操作均会失败，所以这种情况应该禁用请求分析工具
                 throw new InvalidOperationException(
                     $"The {(isResponse ? "response body" : "request body")} for request '{(httpRequestMessage ?? httpResponseMessage?.RequestMessage)?.RequestUri?.OriginalString}' exceeds the maximum allowed size of 5 MB for profiling and cannot be printed. To resolve this, disable profiling by calling `HttpRequestBuilder.Profiler(false)`, applying the `[Profiler(false)]` attribute to declarative requests, or removing the global `.AddProfilerDelegatingHandler()` registration.");
             }
         }
 
-        // 默认只读取 5KB 的内容
-        const int maxBytesToDisplay = 5 * 1024; // 5KB
-
-        // 获取响应内容 Content-Encoding 标头
-        string? contentEncoding = null;
-
-        // 检查是否是响应内容
-        if (isResponse)
-        {
-            contentEncoding = httpResponseMessage!.Content.Headers.ContentEncoding.FirstOrDefault();
-        }
-
+        // 初始化最终显示的内容和实际大小
         string finalBody;
         string totalSizeInfo;
 
@@ -453,7 +445,7 @@ public static partial class HttpRemoteExtensions
             // 构建最终用于输出的 boundary 字符串
             var boundaryOutput = string.IsNullOrEmpty(boundary)
                 ? "\e[36m\e[1m[Warning: Missing boundary in Content-Type]\e[0m"
-                : boundary;
+                : $"\e[90m{boundary}\e[0m";
 
             // 初始化 StringBuilder 实例
             var stringBuilder = new StringBuilder();
@@ -531,6 +523,7 @@ public static partial class HttpRemoteExtensions
                 if (innerStream is not null)
                 {
                     // 初始化可读流原始位置
+                    // ReSharper disable once RedundantAssignment
                     var originalPosition = 0L;
 
                     try
@@ -662,6 +655,15 @@ public static partial class HttpRemoteExtensions
         // 处理非 MultipartContent 内容
         else
         {
+            // 获取响应内容 Content-Encoding 标头
+            string? contentEncoding = null;
+
+            // 检查是否是响应内容
+            if (isResponse)
+            {
+                contentEncoding = httpResponseMessage!.Content.Headers.ContentEncoding.FirstOrDefault();
+            }
+
             try
             {
                 // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
@@ -719,7 +721,8 @@ public static partial class HttpRemoteExtensions
         var isBinary = false;
         var nonPrintableCount = 0;
 
-        // 二进制检测，如果包含 0x00 (Null 字符)，或者非打印控制字符比例超过 10%，则判定为二进制文件
+        // 实现二进制检测
+        // 如果包含 0x00 (Null 字符)，或者非打印控制字符比例超过 10%，则判定为二进制文件
         for (var i = 0; i < bytesToShow; i++)
         {
             var b = buffer[i];
@@ -744,7 +747,7 @@ public static partial class HttpRemoteExtensions
         if (isBinary)
         {
             // 限制 Hex Dump 只打印 1KB 内容
-            const int maxHexDumpBytes = 1024;
+            const int maxHexDumpBytes = 1024; // 1KB
             var hexBytesToShow = Math.Min(bytesToShow, maxHexDumpBytes);
 
             // 生成 Hex Dump 格式内容
@@ -794,7 +797,7 @@ public static partial class HttpRemoteExtensions
             }
         }
 
-        // 如果是响应内容，根据状态码进行终端颜色高亮
+        // 如果是响应内容且不为空，则根据状态码进行终端颜色高亮
         if (isResponse && httpResponseMessage is not null)
         {
             partialContent = httpResponseMessage.GetColoredText(partialContent, false);
@@ -822,7 +825,10 @@ public static partial class HttpRemoteExtensions
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1,T2,T3}" />：包含格式化后的内容、实际读取字节数以及是否截断的值元组
+    ///     <para>
+    ///         <see cref="Tuple{T1,T2,T3}" />
+    ///     </para>
+    ///     <para>包含格式化后的内容、实际读取字节数以及是否截断的值元组</para>
     /// </returns>
     internal static async Task<(string Body, int TotalRead, bool IsTruncated)> FormatContentBodyAsync(
         HttpContent content, int maxBytesToDisplay, bool isResponse, string? contentEncoding,
@@ -834,7 +840,7 @@ public static partial class HttpRemoteExtensions
         // 检查流是否可读
         if (stream.CanSeek)
         {
-            // 确保流指针在起始位置
+            // 重置流指针至起始位置
             stream.Seek(0, SeekOrigin.Begin);
         }
 
@@ -932,9 +938,12 @@ public static partial class HttpRemoteExtensions
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
-    ///     <see cref="Tuple{T1,T2,T3}" />：包含解压后字节数组、实际读取字节数以及是否截断的值元组
+    ///     <para>
+    ///         <see cref="Tuple{T1,T2,T3}" />
+    ///     </para>
+    ///     <para>包含解压后字节数组、实际读取字节数以及是否截断的值元组</para>
     /// </returns>
-    internal static async Task<(byte[] buffer, int totalRead, bool isTruncated)> ReadAndDecompressFirstBytesAsync(
+    internal static async Task<(byte[] Buffer, int TotalRead, bool IsTruncated)> ReadAndDecompressFirstBytesAsync(
         Stream compressedStream, string? contentEncoding, int maxBytes, CancellationToken cancellationToken)
     {
         Stream? decompressor = null;
@@ -1019,22 +1028,31 @@ public static partial class HttpRemoteExtensions
         // 初始化 StringBuilder 实例
         var stringBuilder = new StringBuilder();
 
-        // 检查是否是成功请求状态码或 304 Not Modified
-        if (httpResponseMessage.IsSuccessStatusCode || httpResponseMessage.StatusCode == HttpStatusCode.NotModified)
+        // 获取响应状态码
+        var statusCode = (int)httpResponseMessage.StatusCode;
+
+        switch (statusCode)
         {
-            // 输出绿色内容
-            stringBuilder.Append("\e[32m");
-        }
-        else
-        {
-            // 检查是否是重定向状态码
-            stringBuilder.Append(httpResponseMessage.StatusCode is HttpStatusCode.Ambiguous or HttpStatusCode.Moved
-                or HttpStatusCode.Redirect
-                or HttpStatusCode.RedirectMethod
-                // 输出黄色内容
-                ? "\e[33m"
-                // 输出红色内容
-                : "\e[31m");
+            // 1xx 信息性状态码呈现蓝色
+            case >= 100 and < 200:
+                stringBuilder.Append("\e[34m");
+                break;
+            // 2xx 成功 和 304 未修改呈现绿色
+            case >= 200 and < 300 or 304:
+                stringBuilder.Append("\e[32m");
+                break;
+            // 3xx 重定向呈现黄色
+            case >= 300 and < 400:
+                stringBuilder.Append("\e[33m");
+                break;
+            // 4xx 客户端错误 和 5xx 服务端错误呈现红色
+            case >= 400 and < 600:
+                stringBuilder.Append("\e[31m");
+                break;
+            // 未知或自定义状态码呈现灰色
+            default:
+                stringBuilder.Append("\e[90m");
+                break;
         }
 
         // 加粗处理

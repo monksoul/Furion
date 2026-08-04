@@ -686,7 +686,7 @@ internal class FileLoggingWriter
                     await _textWriter.WriteLineAsync(logMsg.Message);
                     if (flush) await _textWriter.FlushAsync();
 
-                    // 智能检查：显式 flush 时 或 每 100 次写入 检查文件是否存在
+                    // 显式 flush 时或每 100 次写入时检查文件是否存在
                     if (flush || Interlocked.Increment(ref _writeCount) >= PeriodicCheckInterval)
                     {
                         // 重置计数器
