@@ -59,9 +59,24 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     internal IServiceScope _serviceScope;
 
     /// <summary>
-    /// 数据库日志写入器
+    /// 服务提供器
     /// </summary>
-    private readonly Lazy<IDatabaseLoggingWriter> _writerLazy;
+    private readonly IServiceProvider _serviceProvider;
+
+    /// <summary>
+    /// 写入器类型
+    /// </summary>
+    private readonly Type _writerType;
+
+    /// <summary>
+    /// 数据库日志写入器实例
+    /// </summary>
+    private IDatabaseLoggingWriter _databaseLoggingWriter;
+
+    /// <summary>
+    /// 写入器初始化锁
+    /// </summary>
+    private readonly object _writerLock = new object();
 
     /// <summary>
     /// 长时间运行的后台任务
@@ -83,6 +98,11 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     internal static readonly AsyncLocal<Type> CurrentWritingWriterType = new();
 
     /// <summary>
+    /// 是否已释放标志
+    /// </summary>
+    private volatile bool _isDisposed;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="databaseLoggerOptions">数据库日志记录器配置选项</param>
@@ -91,26 +111,8 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     public DatabaseLoggerProvider(DatabaseLoggerOptions databaseLoggerOptions, IServiceProvider serviceProvider, Type writerType)
     {
         LoggerOptions = databaseLoggerOptions;
-
-        _writerLazy = new Lazy<IDatabaseLoggingWriter>(() =>
-        {
-            _isResolvingWriter = true;
-            try
-            {
-                // 解析服务作用域工厂服务
-                var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
-
-                // 创建服务作用域
-                _serviceScope = scopeFactory.CreateScope();
-
-                // 基于当前作用域创建数据库日志写入器
-                return _serviceScope.ServiceProvider.GetRequiredService(writerType) as IDatabaseLoggingWriter;
-            }
-            finally
-            {
-                _isResolvingWriter = false;
-            }
-        });
+        _serviceProvider = serviceProvider;
+        _writerType = writerType;
 
         _logMessageChannel = Channel.CreateBounded<LogMessage>(new BoundedChannelOptions(12000)
         {
@@ -162,6 +164,9 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     /// <remarks>控制日志消息队列</remarks>
     public void Dispose()
     {
+        // 标识已释放
+        _isDisposed = true;
+
         // 标记通道已完成写入
         _logMessageChannel.Writer.Complete();
 
@@ -196,12 +201,12 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     /// </summary>
     private async Task ProcessQueueAsync()
     {
-        // 获取数据库日志写入器实例（仅第一次执行时解析）
-        var databaseLoggingWriter = _writerLazy.Value;
-
         // 持续读取通道中的消息，直到通道关闭
         while (await _logMessageChannel.Reader.WaitToReadAsync())
         {
+            // 检查是否已释放
+            if (_isDisposed) break;
+
             // 读取一批消息（最多 100 条）
             var batch = new List<LogMessage>(100);
             while (_logMessageChannel.Reader.TryRead(out var logMsg) && batch.Count < 100)
@@ -215,13 +220,34 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
             // 判断通道中是否还有更多消息
             var hasMore = _logMessageChannel.Reader.Count > 0;
 
+            IDatabaseLoggingWriter databaseLoggingWriter = null;
+            try
+            {
+                databaseLoggingWriter = GetWriter();
+            }
+            catch (Exception ex)
+            {
+                LoggerOptions.HandleWriteError?.Invoke(new DatabaseWriteError(ex));
+
+                foreach (var msg in batch)
+                {
+                    msg.Context?.Dispose();
+                }
+
+                continue;
+            }
+
             // 记录当前正在执行的写入器类型
             CurrentWritingWriterType.Value = databaseLoggingWriter?.GetType();
 
             try
             {
-                // 调用数据库写入器的批量写入方法
-                await databaseLoggingWriter.WriteAsync(batch, !hasMore);
+                // 检查是否已释放
+                if (!_isDisposed)
+                {
+                    // 调用数据库写入器的批量写入方法
+                    await databaseLoggingWriter.WriteAsync(batch, !hasMore);
+                }
             }
             catch (Exception ex)
             {
@@ -243,5 +269,39 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 获取数据库日志写入器
+    /// </summary>
+    private IDatabaseLoggingWriter GetWriter()
+    {
+        if (_databaseLoggingWriter == null)
+        {
+            lock (_writerLock)
+            {
+                if (_databaseLoggingWriter == null)
+                {
+                    _isResolvingWriter = true;
+                    try
+                    {
+                        // 解析服务作用域工厂服务
+                        var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+
+                        // 创建服务作用域
+                        _serviceScope = scopeFactory.CreateScope();
+
+                        // 基于当前作用域创建数据库日志写入器
+                        _databaseLoggingWriter = _serviceScope.ServiceProvider.GetRequiredService(_writerType) as IDatabaseLoggingWriter;
+                    }
+                    finally
+                    {
+                        _isResolvingWriter = false;
+                    }
+                }
+            }
+        }
+
+        return _databaseLoggingWriter;
     }
 }

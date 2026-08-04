@@ -120,48 +120,58 @@ public sealed class DatabaseLogger : ILogger
             Context = Penetrates.SetLogContext(_databaseLoggerProvider.ScopeProvider, _options.IncludeScopes)
         };
 
-        // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
-        if (_options.WriteFilter?.Invoke(logMsg) == false)
-        {
-            logMsg.Context?.Dispose();
-            return;
-        }
+        var isEnqueued = false;
 
-        // 设置日志消息模板
-        logMsg.Message = _options.MessageFormat != null
-            ? _options.MessageFormat(logMsg)
-            : Penetrates.OutputStandardMessage(logMsg, _options.DateFormat, withTraceId: _options.WithTraceId, withStackFrame: _options.WithStackFrame, provider: _options.FormatProvider);
-
-        // 空检查
-        if (logMsg.Message is null)
+        try
         {
-            logMsg.Context?.Dispose();
-            return;
-        }
-
-        // 判断是否忽略循环输出日志，解决数据库日志提供程序中也输出日志导致写入递归问题
-        if (_options.IgnoreReferenceLoop)
-        {
-            // 第一道防线：丢弃当前正在执行的写入器自身发出的日志
-            var currentWriterType = DatabaseLoggerProvider.CurrentWritingWriterType.Value;
-            if (currentWriterType != null && _logName == currentWriterType.FullName)
+            // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
+            if (_options.WriteFilter?.Invoke(logMsg) == false)
             {
-                _options.FallbackLogAction?.Invoke(logMsg);
-                logMsg.Context?.Dispose();
                 return;
             }
 
-            // 第二道防线：调用栈检测（用于处理其他复杂递归场景）
-            if (IsInWriterCallStack())
+            // 设置日志消息模板
+            logMsg.Message = _options.MessageFormat != null
+                ? _options.MessageFormat(logMsg)
+                : Penetrates.OutputStandardMessage(logMsg, _options.DateFormat, withTraceId: _options.WithTraceId, withStackFrame: _options.WithStackFrame, provider: _options.FormatProvider);
+
+            // 空检查
+            if (logMsg.Message is null)
             {
-                _options.FallbackLogAction?.Invoke(logMsg);
-                logMsg.Context?.Dispose();
                 return;
             }
-        }
 
-        // 写入日志队列
-        _databaseLoggerProvider.WriteToQueue(logMsg);
+            // 判断是否忽略循环输出日志，解决数据库日志提供程序中也输出日志导致写入递归问题
+            if (_options.IgnoreReferenceLoop)
+            {
+                // 第一道防线：丢弃当前正在执行的写入器自身发出的日志
+                var currentWriterType = DatabaseLoggerProvider.CurrentWritingWriterType.Value;
+                if (currentWriterType != null)
+                {
+                    _options.FallbackLogAction?.Invoke(logMsg);
+                    return;
+                }
+
+                // 第二道防线：调用栈检测（用于处理其他复杂递归场景）
+                if (IsInWriterCallStack())
+                {
+                    _options.FallbackLogAction?.Invoke(logMsg);
+                    return;
+                }
+            }
+
+            // 写入日志队列
+            _databaseLoggerProvider.WriteToQueue(logMsg);
+
+            isEnqueued = true;
+        }
+        finally
+        {
+            if (!isEnqueued)
+            {
+                logMsg.Context?.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -170,7 +180,7 @@ public sealed class DatabaseLogger : ILogger
     /// <returns></returns>
     private bool IsInWriterCallStack()
     {
-        var stackTrace = new StackTrace();
+        var stackTrace = new StackTrace(1, false);
         return stackTrace.GetFrames().Any(u => u.HasMethod() && typeof(IDatabaseLoggingWriter).IsAssignableFrom(u.GetMethod().DeclaringType));
     }
 }

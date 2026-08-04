@@ -55,7 +55,7 @@ public static class LogMessageExtensions
 
         writer.Flush();
 
-        return Encoding.UTF8.GetString(stream.ToArray());
+        return Encoding.UTF8.GetString(stream.GetBuffer(), 0, (int)stream.Length);
     }
 
     /// <summary>

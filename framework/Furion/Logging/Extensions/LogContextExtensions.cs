@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using System.Collections.Concurrent;
 
 namespace Furion.Logging;
 
@@ -43,10 +44,8 @@ public static class LogContextExtensions
     {
         if (logContext == null || key == null) return logContext;
 
-        logContext.Properties ??= new Dictionary<object, object>();
-
-        logContext.Properties.Remove(key);
-        logContext.Properties.Add(key, value);
+        logContext.Properties ??= new ConcurrentDictionary<object, object>();
+        logContext.Properties[key] = value;
         return logContext;
     }
 

@@ -114,6 +114,11 @@ internal class FileLoggingWriter
     private int _reconnecting = 0;
 
     /// <summary>
+    /// 是否已释放标志
+    /// </summary>
+    private volatile bool _isDisposed = false;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="fileLoggerProvider">文件日志记录器提供程序</param>
@@ -312,21 +317,19 @@ internal class FileLoggingWriter
         // 获取日志基础文件名
         var baseFileName = EnsureAbsolutePath(GetBaseFileName(), GetSafeDefaultLogDirectory());
 
-        // 如果文件不存在或没有达到 FileSizeLimitBytes 限制大小，则返回基础文件名
-        if (!System.IO.File.Exists(baseFileName)
-            || _options.FileSizeLimitBytes <= 0
-            || new FileInfo(baseFileName).Length < _options.FileSizeLimitBytes)
-        {
-            return baseFileName;
-        }
-
         // 获取日志基础文件名和当前日志文件名
         var currentFileIndex = 0;
         var baseFileNameOnly = Path.GetFileNameWithoutExtension(baseFileName);
         var currentFileNameOnly = Path.GetFileNameWithoutExtension(_fileName);
 
         // 解析日志文件名【递增】部分
-        var suffix = currentFileNameOnly[baseFileNameOnly.Length..];
+        var suffix = string.Empty;
+        if (currentFileNameOnly.Length > baseFileNameOnly.Length &&
+            currentFileNameOnly.StartsWith(baseFileNameOnly, StringComparison.OrdinalIgnoreCase))
+        {
+            suffix = currentFileNameOnly[baseFileNameOnly.Length..];
+        }
+
         if (suffix.Length > 0 && int.TryParse(suffix, out var parsedIndex))
         {
             currentFileIndex = parsedIndex;
@@ -384,7 +387,7 @@ internal class FileLoggingWriter
         // 初始化文本写入器
         _textWriter = new StreamWriter(_fileStream, _utf8Encoding, 4096, leaveOpen: true)
         {
-            AutoFlush = true,
+            AutoFlush = false,
             NewLine = Environment.NewLine
         };
 
@@ -564,7 +567,7 @@ internal class FileLoggingWriter
             // 批量异步删除
             if (filesToDelete.Count > 0)
             {
-                Task.Run(async () =>
+                Task.Run(() =>
                 {
                     foreach (var filePath in filesToDelete)
                     {
@@ -587,6 +590,9 @@ internal class FileLoggingWriter
     /// </summary>
     private async Task ReconnectFileAsync()
     {
+        // 检查是否已释放
+        if (_isDisposed) return;
+
         // 轻量锁：避免多线程同时重连
         if (Interlocked.Exchange(ref _reconnecting, 1) == 1)
             return; // 已有线程在重连，直接返回
@@ -636,6 +642,9 @@ internal class FileLoggingWriter
     /// <returns><see cref="Task"/></returns>
     internal async Task WriteAsync(LogMessage logMsg, bool flush)
     {
+        // 检查是否已释放
+        if (_isDisposed) return;
+
         // 检查是否是兼容模式
         if (_isCompatibleMode)
         {
@@ -643,14 +652,14 @@ internal class FileLoggingWriter
             {
                 await WriteWithCompatibleModeAsync(logMsg.Message);
             }
-            catch (Exception ex) when (_options.HandleWriteError != null)
+            catch (Exception ex)
             {
-                var fileWriteError = new FileWriteError(_fileName, ex);
-                _options.HandleWriteError(fileWriteError);
-            }
-            finally
-            {
-                logMsg.Context?.Dispose();
+                // 检查是否已释放
+                if (_options.HandleWriteError != null)
+                {
+                    var fileWriteError = new FileWriteError(_fileName, ex);
+                    _options.HandleWriteError(fileWriteError);
+                }
             }
             return;
         }
@@ -668,6 +677,9 @@ internal class FileLoggingWriter
 
             while (retry < maxRetries)
             {
+                // 检查是否已释放
+                if (_isDisposed) return;
+
                 try
                 {
                     // 直接写入
@@ -703,19 +715,18 @@ internal class FileLoggingWriter
             }
         }
         // 处理文件写入错误
-        catch (Exception ex) when (_options.HandleWriteError != null)
+        catch (Exception ex)
         {
-            var fileWriteError = new FileWriteError(_fileName, ex);
-            _options.HandleWriteError(fileWriteError);
-        }
-        finally
-        {
-            logMsg.Context?.Dispose();
+            if (_options.HandleWriteError != null)
+            {
+                var fileWriteError = new FileWriteError(_fileName, ex);
+                _options.HandleWriteError(fileWriteError);
+            }
         }
     }
 
     /// <summary>
-    /// 关闭文本写入器并释放（仅长连接模式使用）
+    /// 关闭文本写入器并释放（用于滚动文件或重连时关闭当前流）
     /// </summary>
     /// <returns><see cref="Task"/></returns>
     internal async Task CloseAsync()
@@ -740,5 +751,19 @@ internal class FileLoggingWriter
 
             _textWriter = null;
         }
+    }
+
+    /// <summary>
+    /// 释放写入器资源
+    /// </summary>
+    /// <returns><see cref="Task"/></returns>
+    internal async Task DisposeAsync()
+    {
+        // 检查是否已释放
+        if (_isDisposed) return;
+
+        _isDisposed = true;
+
+        await CloseAsync();
     }
 }

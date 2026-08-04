@@ -119,26 +119,38 @@ public sealed class FileLogger : ILogger
             Context = Penetrates.SetLogContext(_fileLoggerProvider.ScopeProvider, _options.IncludeScopes)
         };
 
-        // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
-        if (_options.WriteFilter?.Invoke(logMsg) == false)
+        var isEnqueued = false;
+
+        try
         {
-            logMsg.Context?.Dispose();
-            return;
+            // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
+            if (_options.WriteFilter?.Invoke(logMsg) == false)
+            {
+                return;
+            }
+
+            // 设置日志消息模板
+            logMsg.Message = _options.MessageFormat != null
+                ? _options.MessageFormat(logMsg)
+                : Penetrates.OutputStandardMessage(logMsg, _options.DateFormat, withTraceId: _options.WithTraceId, withStackFrame: _options.WithStackFrame, provider: _options.FormatProvider);
+
+            // 空检查
+            if (logMsg.Message is null)
+            {
+                return;
+            }
+
+            // 写入日志队列
+            _fileLoggerProvider.WriteToQueue(logMsg);
+
+            isEnqueued = true;
         }
-
-        // 设置日志消息模板
-        logMsg.Message = _options.MessageFormat != null
-            ? _options.MessageFormat(logMsg)
-            : Penetrates.OutputStandardMessage(logMsg, _options.DateFormat, withTraceId: _options.WithTraceId, withStackFrame: _options.WithStackFrame, provider: _options.FormatProvider);
-
-        // 空检查
-        if (logMsg.Message is null)
+        finally
         {
-            logMsg.Context?.Dispose();
-            return;
+            if (!isEnqueued)
+            {
+                logMsg.Context?.Dispose();
+            }
         }
-
-        // 写入日志队列
-        _fileLoggerProvider.WriteToQueue(logMsg);
     }
 }

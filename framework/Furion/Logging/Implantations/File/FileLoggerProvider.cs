@@ -174,7 +174,7 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
         // 释放内部文件写入器
         try
         {
-            _fileLoggingWriter?.CloseAsync().Wait(500);
+            _fileLoggingWriter?.DisposeAsync().Wait(500);
         }
         catch { }
     }
@@ -218,6 +218,9 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
                 {
                     // 调用文件日志写入器的写入方法
                     await _fileLoggingWriter.WriteAsync(item, !hasMore && i == batch.Count - 1);
+                }
+                catch
+                {
                 }
                 finally
                 {

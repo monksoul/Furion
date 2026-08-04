@@ -98,12 +98,25 @@ public sealed class LoggerScope : IDisposable
         {
             if (disposing)
             {
-                foreach (var disposable in _disposables)
+                List<Exception> exceptions = null;
+
+                while (_disposables.TryTake(out var disposable))
                 {
-                    disposable.Dispose();
+                    try
+                    {
+                        disposable?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions ??= [];
+                        exceptions.Add(ex);
+                    }
                 }
 
-                _disposables.Clear();
+                if (exceptions != null && exceptions.Count > 0)
+                {
+                    throw new AggregateException("One or more errors occurred while disposing logger scopes.", exceptions);
+                }
             }
 
             disposedValue = true;
@@ -111,7 +124,6 @@ public sealed class LoggerScope : IDisposable
     }
 
     /// <inheritdoc/>
-
     public void Dispose()
     {
         Dispose(disposing: true);

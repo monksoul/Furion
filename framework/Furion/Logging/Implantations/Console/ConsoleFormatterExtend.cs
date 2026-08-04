@@ -70,69 +70,76 @@ public sealed class ConsoleFormatterExtend : ConsoleFormatter, IDisposable
     /// <param name="textWriter"></param>
     public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider scopeProvider, TextWriter textWriter)
     {
+        // 获取当前配置快照
+        var options = _formatterOptions;
+        var disableColors = _disableColors;
+
         // 获取格式化后的消息
         var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
 
         // 日志消息内容转换（如脱敏处理）
-        if (_formatterOptions.MessageProcess != null)
+        if (options.MessageProcess != null && message != null)
         {
-            message = _formatterOptions.MessageProcess(message);
+            message = options.MessageProcess(message);
         }
 
         // 创建日志消息
-        var logDateTime = _formatterOptions.UseUtcTimestamp ? DateTime.UtcNow : DateTime.Now;
-        var logMsg = new LogMessage(logEntry.Category, logEntry.LogLevel, logEntry.EventId, message, logEntry.Exception, null, logEntry.State, logDateTime, Environment.CurrentManagedThreadId, _formatterOptions.UseUtcTimestamp, App.GetTraceId())
+        var logDateTime = options.UseUtcTimestamp ? DateTime.UtcNow : DateTime.Now;
+        var logMsg = new LogMessage(logEntry.Category, logEntry.LogLevel, logEntry.EventId, message, logEntry.Exception, null, logEntry.State, logDateTime, Environment.CurrentManagedThreadId, options.UseUtcTimestamp, App.GetTraceId())
         {
             // 设置日志上下文
-            Context = Penetrates.SetLogContext(scopeProvider, _formatterOptions.IncludeScopes)
+            Context = Penetrates.SetLogContext(scopeProvider, options.IncludeScopes)
         };
 
-        string standardMessage;
-
-        // 是否自定义了自定义日志格式化程序，如果是则使用
-        if (_formatterOptions.MessageFormat != null)
+        try
         {
-            // 设置日志消息模板
-            standardMessage = _formatterOptions.MessageFormat(logMsg);
-        }
-        else
-        {
-            // 获取标准化日志消息
-            standardMessage = Penetrates.OutputStandardMessage(logMsg
-               , _formatterOptions.DateFormat
-               , true
-               , _disableColors
-               , _formatterOptions.WithTraceId
-               , _formatterOptions.WithStackFrame
-               , _formatterOptions.FormatProvider);
-        }
+            string standardMessage = null;
 
-        // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
-        if (_formatterOptions.WriteFilter?.Invoke(logMsg) == false)
+            // 是否自定义了自定义日志格式化程序，如果是则使用
+            if (options.MessageFormat != null)
+            {
+                // 设置日志消息模板
+                standardMessage = options.MessageFormat(logMsg);
+            }
+            else
+            {
+                // 获取标准化日志消息
+                standardMessage = Penetrates.OutputStandardMessage(logMsg
+                   , options.DateFormat
+                   , true
+                   , disableColors
+                   , options.WithTraceId
+                   , options.WithStackFrame
+                   , options.FormatProvider);
+            }
+
+            // 判断是否自定义了日志筛选器，如果是则检查是否符合条件
+            if (options.WriteFilter?.Invoke(logMsg) == false)
+            {
+                return;
+            }
+
+            // 空检查
+            if (standardMessage is null)
+            {
+                return;
+            }
+
+            // 判断是否自定义了日志格式化程序
+            if (options.WriteHandler != null)
+            {
+                options.WriteHandler?.Invoke(logMsg, scopeProvider, textWriter, standardMessage, options);
+            }
+            else
+            {
+                // 写入控制台
+                textWriter.WriteLine(standardMessage);
+            }
+        }
+        finally
         {
             logMsg.Context?.Dispose();
-            return;
         }
-
-        // 空检查
-        if (message is null)
-        {
-            logMsg.Context?.Dispose();
-            return;
-        }
-
-        // 判断是否自定义了日志格式化程序
-        if (_formatterOptions.WriteHandler != null)
-        {
-            _formatterOptions.WriteHandler?.Invoke(logMsg, scopeProvider, textWriter, standardMessage, _formatterOptions);
-        }
-        else
-        {
-            // 写入控制台
-            textWriter.WriteLine(standardMessage);
-        }
-
-        logMsg.Context?.Dispose();
     }
 
     /// <summary>
