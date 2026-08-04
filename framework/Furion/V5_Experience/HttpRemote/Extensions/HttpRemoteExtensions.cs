@@ -34,9 +34,11 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using StringWithQualityHeaderValue = System.Net.Http.Headers.StringWithQualityHeaderValue;
 
 namespace Furion.HttpRemote.Extensions;
@@ -46,6 +48,13 @@ namespace Furion.HttpRemote.Extensions;
 /// </summary>
 public static partial class HttpRemoteExtensions
 {
+    /// <summary>
+    ///     <see cref="StreamContent" /> 内部流字段缓存
+    /// </summary>
+    /// <remarks>用于请求分析工具反射读取内部流。</remarks>
+    internal static readonly FieldInfo[] StreamContentInternalFields =
+        typeof(StreamContent).GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+
     /// <summary>
     ///     添加 HTTP 远程请求分析工具处理委托
     /// </summary>
@@ -306,70 +315,105 @@ public static partial class HttpRemoteExtensions
         // 修复无效的响应内容字符编码
         httpContent.FixInvalidCharset();
 
-        // 新增最大处理大小限制，避免内存溢出（OOM）或缓冲区溢出
-        const long maxAllowedSize = 10 * 1024 * 1024; // 10MB
+        // 最大处理大小限制，避免内存溢出（OOM）或缓冲区溢出
+        const long maxAllowedSize = 5 * 1024 * 1024; // 5MB
 
         // 判断当前内容来自请求还是响应
         var isResponse = httpResponseMessage is not null;
 
-        // 检查内容是否包含 Content-Length 标头
-        if (httpContent.Headers.ContentLength.HasValue)
-        {
-            // 获取内容长度
-            var contentLength = httpContent.Headers.ContentLength.Value;
+        // 获取内容类型
+        var contentType = httpContent.Headers.ContentType?.ToString();
 
-            // 检查内容长度是否大于 maxAllowedSize
-            if (contentLength > maxAllowedSize)
+        // 判断内容是否是 MultipartContent 类型
+        var isMultipartRequest = !isResponse && httpContent is MultipartContent;
+
+        // 如果不是 MultipartContent 类型
+        if (!isMultipartRequest)
+        {
+            // 检查内容大小是否最大限制
+            if (httpContent.Headers.ContentLength is > maxAllowedSize)
             {
                 return StringUtility.FormatKeyValuesSummary(
                     [
                         new KeyValuePair<string, IEnumerable<string>>(string.Empty,
-                            [$"\e[33m[Skipped: content too large ({contentLength} bytes) > {maxAllowedSize}]\e[0m"])
+                        [
+                            $"\e[36m\e[1m[Skipped: content too large ({httpContent.Headers.ContentLength.Value} bytes) > {maxAllowedSize}]\e[0m"
+                        ])
                     ],
-                    $"{summary} ({httpContent.GetType().Name}, total: {contentLength} bytes)");
+                    $"{summary} ({httpContent.GetType().Name}, total: {httpContent.Headers.ContentLength.Value} bytes)");
+            }
+
+            // 处理请求内容是 StreamContent 情况，尝试反射获取内部流
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
+            if (!isResponse && httpContent is StreamContent)
+            {
+                Stream? topInnerStream = null;
+
+                // 遍历查找内部流
+                foreach (var field in StreamContentInternalFields)
+                {
+                    if (!typeof(Stream).IsAssignableFrom(field.FieldType))
+                    {
+                        continue;
+                    }
+
+                    // 获取内部流的值
+                    topInnerStream = field.GetValue(httpContent) as Stream;
+
+                    // 空检查
+                    if (topInnerStream is not null)
+                    {
+                        break;
+                    }
+                }
+
+                // 处理流不可读的情况
+                if (topInnerStream is not { CanSeek: true })
+                {
+                    return StringUtility.FormatKeyValuesSummary(
+                        [
+                            new KeyValuePair<string, IEnumerable<string>>(string.Empty,
+                            [
+                                $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), buffering disabled to protect underlying stream]\e[0m"
+                            ])
+                        ], $"{summary} ({httpContent.GetType().Name}, Skipped to protect stream)");
+                }
+            }
+
+            // 处理流式内容
+            if (isResponse &&
+                httpResponseMessage?.RequestMessage?.Options.TryGetValue(
+                    new HttpRequestOptionsKey<HttpCompletionOption>(Constants.HTTP_COMPLETION_OPTION_KEY),
+                    out var completionOption) == true && completionOption == HttpCompletionOption.ResponseHeadersRead)
+            {
+                return StringUtility.FormatKeyValuesSummary(
+                    [
+                        new KeyValuePair<string, IEnumerable<string>>(string.Empty,
+                        [
+                            $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"})]\e[0m"
+                        ])
+                    ], $"{summary} ({httpContent.GetType().Name}, Skipped due to streaming)");
+            }
+
+            try
+            {
+                // 尝试将 HttpContent 缓冲到内存，但限制最大大小以防止内存溢出（OOM）
+#if NET8_0
+                await httpContent.LoadIntoBufferAsync(maxAllowedSize);
+#else
+                await httpContent.LoadIntoBufferAsync(maxAllowedSize, cancellationToken);
+#endif
+            }
+            catch
+            {
+                // 一旦发生异常，流将变为不可读状态，之后所有读取操作均会失败，所以这种情况提示开发者应该禁用请求分析工具
+                throw new InvalidOperationException(
+                    $"The {(isResponse ? "response body" : "request body")} for request '{(httpRequestMessage ?? httpResponseMessage?.RequestMessage)?.RequestUri?.OriginalString}' exceeds the maximum allowed size of 5 MB for profiling and cannot be printed. To resolve this, disable profiling by calling `HttpRequestBuilder.Profiler(false)`, applying the `[Profiler(false)]` attribute to declarative requests, or removing the global `.AddProfilerDelegatingHandler()` registration.");
             }
         }
-        // 跳过流式响应
-        else if (httpResponseMessage?.RequestMessage?.Options.TryGetValue(
-                     new HttpRequestOptionsKey<HttpCompletionOption>(Constants.HTTP_COMPLETION_OPTION_KEY),
-                     out var completionOption) == true && completionOption == HttpCompletionOption.ResponseHeadersRead)
-        {
-            return StringUtility.FormatKeyValuesSummary(
-                [
-                    new KeyValuePair<string, IEnumerable<string>>(string.Empty,
-                    [
-                        $"\e[33m[Skipped: streaming content ({httpContent.Headers.ContentType?.ToString() ?? "unknown"})]\e[0m"
-                    ])
-                ], $"{summary} ({httpContent.GetType().Name}, Skipped due to streaming)");
-        }
 
-        try
-        {
-            // 尝试将 HttpContent 缓冲到内存，但限制最大大小以防止内存溢出（OOM）
-#if NET8_0
-            await httpContent.LoadIntoBufferAsync(maxAllowedSize);
-#else
-            await httpContent.LoadIntoBufferAsync(maxAllowedSize, cancellationToken);
-#endif
-        }
-        catch
-        {
-            // 这里存在一个问题：一旦发生异常，流将变为不可读状态，之后所有读取操作均会失败
-            // return StringUtility.FormatKeyValuesSummary(
-            //     [
-            //         new KeyValuePair<string, IEnumerable<string>>(string.Empty,
-            //             [$"\e[33m[Skipped: content unreadable or exceeds {maxAllowedSize} bytes]\e[0m"])
-            //     ], $"{summary} ({httpContent.GetType().Key}, Skipped due to size)");
-            throw new InvalidOperationException(
-                $"The {(isResponse ? "response body" : "request body")} for request '{(httpRequestMessage ?? httpResponseMessage?.RequestMessage)?.RequestUri?.OriginalString}' exceeds the maximum allowed size of 10 MB for profiling and cannot be printed. To resolve this, disable profiling by calling `HttpRequestBuilder.Profiler(false)`, applying the `[Profiler(false)]` attribute to declarative requests, or removing the global `.AddProfilerDelegatingHandler()` registration.");
-        }
-
-        // 获取已缓冲的内部流
-        var stream = await httpContent.ReadAsStreamAsync(cancellationToken);
-        stream.Seek(0, SeekOrigin.Begin);
-
-        // 默认只读取 10KB 的内容
-        const int maxBytesToDisplay = 10 * 1024;
+        // 默认只读取 5KB 的内容
+        const int maxBytesToDisplay = 5 * 1024; // 5KB
 
         // 获取响应内容 Content-Encoding 标头
         string? contentEncoding = null;
@@ -380,47 +424,502 @@ public static partial class HttpRemoteExtensions
             contentEncoding = httpResponseMessage!.Content.Headers.ContentEncoding.FirstOrDefault();
         }
 
-        // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
-        var (partialBuffer, totalRead, isTruncated) =
-            await ReadAndDecompressFirstBytesAsync(stream, contentEncoding, maxBytesToDisplay + 1, cancellationToken);
+        string finalBody;
+        string totalSizeInfo;
 
-        // 重置流位置
-        stream.Seek(0, SeekOrigin.Begin);
+        // 处理 MultipartContent 内容
+        if (httpContent is MultipartContent multipartContent)
+        {
+            string? boundary = null;
+
+            // 尝试解析 boundary 参数
+            if (!string.IsNullOrWhiteSpace(contentType) &&
+                MediaTypeHeaderValue.TryParse(contentType, out var parsedContentType))
+            {
+                // 移除前后双引号
+                boundary = parsedContentType.Boundary.Value?.TrimStart('"').TrimEnd('"');
+            }
+
+            // 如果解析失败，尝试直接从内容类型中获取原值
+            if (string.IsNullOrEmpty(boundary))
+            {
+                var boundaryParam = httpContent.Headers.ContentType?.Parameters.FirstOrDefault(p =>
+                    string.Equals(p.Name, "boundary", StringComparison.OrdinalIgnoreCase));
+
+                // 移除前后双引号
+                boundary = boundaryParam?.Value?.TrimStart('"').TrimEnd('"');
+            }
+
+            // 构建最终用于输出的 boundary 字符串
+            var boundaryOutput = string.IsNullOrEmpty(boundary)
+                ? "\e[36m\e[1m[Warning: Missing boundary in Content-Type]\e[0m"
+                : boundary;
+
+            // 初始化 StringBuilder 实例
+            var stringBuilder = new StringBuilder();
+            long totalMultipartSize = 0;
+
+            // 遍历 Multipart 的每一个 Part
+            foreach (var part in multipartContent)
+            {
+                // 追加 boundary
+                stringBuilder.AppendLine(boundaryOutput);
+
+                Stream? innerStream = null;
+                string? skipReason = null;
+
+                // 处理请求内容是 StreamContent 情况，尝试反射获取内部流
+                if (part is StreamContent streamContent)
+                {
+                    try
+                    {
+                        // 遍历查找内部流
+                        foreach (var field in StreamContentInternalFields)
+                        {
+                            if (!typeof(Stream).IsAssignableFrom(field.FieldType))
+                            {
+                                continue;
+                            }
+
+                            // 获取内部流的值
+                            innerStream = field.GetValue(streamContent) as Stream;
+
+                            // 空检查
+                            if (innerStream is not null)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        innerStream = null;
+                    }
+
+                    // 空检查
+                    if (innerStream == null)
+                    {
+                        skipReason = "Unable to access internal stream of StreamContent";
+                    }
+                    // 检查流是否可读
+                    else if (!innerStream.CanSeek)
+                    {
+                        skipReason =
+                            "Forward-only stream (e.g., network stream), reading it would consume the stream and break the actual request";
+                    }
+                }
+
+                // 遍历并追加内容头
+                foreach (var header in part.Headers)
+                {
+                    stringBuilder.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
+                }
+
+                // 追加空行
+                stringBuilder.AppendLine();
+
+                // 空检查
+                if (skipReason is not null)
+                {
+                    stringBuilder.AppendLine($"\e[36m\e[1m[Skipped: {skipReason}]\e[0m");
+                    totalMultipartSize += part.Headers.ContentLength ?? 0;
+
+                    continue;
+                }
+
+                // 空检查
+                if (innerStream is not null)
+                {
+                    // 初始化可读流原始位置
+                    var originalPosition = 0L;
+
+                    try
+                    {
+                        originalPosition = innerStream.Position;
+                        innerStream.Position = 0;
+                    }
+                    catch
+                    {
+                        stringBuilder.AppendLine(
+                            "\e[36m\e[1m[Skipped: Unable to determine or reset stream position]\e[0m");
+                        totalMultipartSize += part.Headers.ContentLength ?? 0;
+
+                        continue;
+                    }
+
+                    try
+                    {
+                        // 获取流内容编码
+                        var streamPartEncoding = part.Headers.ContentEncoding.FirstOrDefault();
+
+                        // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
+                        var (partialBuffer, totalRead, isTruncated) =
+                            await ReadAndDecompressFirstBytesAsync(innerStream, streamPartEncoding,
+                                maxBytesToDisplay + 1, cancellationToken);
+
+                        // 计算实际需要显示的字节数和获取内容字符编码
+                        var bytesToShow = isTruncated ? maxBytesToDisplay : totalRead;
+                        var charset = part.Headers.ContentType?.CharSet;
+
+                        // 将字节数组格式化为可读文本或 Hex Dump
+                        var bodyString = FormatBytes(partialBuffer, bytesToShow, maxBytesToDisplay, isTruncated,
+                            totalRead, isResponse, httpResponseMessage, charset);
+
+                        stringBuilder.AppendLine(bodyString);
+                    }
+                    catch (Exception ex)
+                    {
+                        stringBuilder.AppendLine(
+                            $"\e[36m\e[1m[Skipped: Failed to read stream content - {ex.Message}]\e[0m");
+                    }
+                    finally
+                    {
+                        // 恢复可读流的原始位置
+                        try
+                        {
+                            innerStream.Position = originalPosition;
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                    }
+
+                    // 获取当前内容大小
+                    var partSize = part.Headers.ContentLength ?? 0;
+
+                    // 空检查
+                    if (partSize == 0)
+                    {
+                        try
+                        {
+                            // 检查流是否可读
+                            if (innerStream.CanSeek)
+                            {
+                                partSize = innerStream.Length;
+                            }
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                    }
+
+                    totalMultipartSize += partSize;
+
+                    continue;
+                }
+
+                // 处理非 StreamContent 内容
+                try
+                {
+                    // 尝试将 HttpContent 缓冲到内存，但限制最大大小以防止内存溢出（OOM）
+#if NET8_0
+                    await part.LoadIntoBufferAsync(maxAllowedSize);
+#else
+                    await part.LoadIntoBufferAsync(maxAllowedSize, cancellationToken);
+#endif
+                }
+                catch
+                {
+                    stringBuilder.AppendLine("\e[36m\e[1m[Skipped: part unreadable or exceeds size limit]\e[0m");
+
+                    continue;
+                }
+
+                try
+                {
+                    // 获取内容编码
+                    var partEncoding = part.Headers.ContentEncoding.FirstOrDefault();
+
+                    // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
+                    var (partBody, partRead, _) = await FormatContentBodyAsync(part, maxBytesToDisplay, isResponse,
+                        partEncoding, httpResponseMessage, cancellationToken);
+
+                    stringBuilder.AppendLine(partBody);
+                    totalMultipartSize += partRead;
+                }
+                catch (Exception ex)
+                {
+                    stringBuilder.AppendLine(
+                        $"\e[36m\e[1m[Skipped: Failed to format part content - {ex.Message}]\e[0m");
+                }
+            }
+
+            // 移除末尾换行
+            finalBody = stringBuilder.ToString().TrimEnd('\r', '\n');
+
+            // 处理 304 Not Modified 状态码且响应内容为空的情况
+            if (isResponse && httpResponseMessage!.StatusCode == HttpStatusCode.NotModified &&
+                totalMultipartSize == 0 && string.IsNullOrWhiteSpace(finalBody))
+            {
+                finalBody =
+                    $"\e[36m\e[1m[Empty: {(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}, no content returned by server]\e[0m";
+            }
+
+            totalSizeInfo = totalMultipartSize.ToString();
+        }
+        // 处理非 MultipartContent 内容
+        else
+        {
+            try
+            {
+                // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节，用于判断是否发生截断
+                var (body, totalRead, isTruncated) = await FormatContentBodyAsync(httpContent, maxBytesToDisplay,
+                    isResponse, contentEncoding, httpResponseMessage, cancellationToken);
+
+                // 处理 304 Not Modified 状态码且响应内容为空的情况
+                if (isResponse && httpResponseMessage!.StatusCode == HttpStatusCode.NotModified && totalRead == 0 &&
+                    string.IsNullOrWhiteSpace(body))
+                {
+                    body =
+                        $"\e[36m\e[1m[Empty: {(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}, no content returned by server]\e[0m";
+                }
+
+                finalBody = body;
+                totalSizeInfo = isTruncated ? $"> {maxBytesToDisplay}" : totalRead.ToString();
+            }
+            catch (Exception ex)
+            {
+                finalBody = $"\e[36m\e[1m[Skipped: Failed to format content - {ex.Message}]\e[0m";
+                totalSizeInfo = "0";
+            }
+        }
+
+        return StringUtility.FormatKeyValuesSummary(
+            [new KeyValuePair<string, IEnumerable<string>>(string.Empty, [finalBody])],
+            $"{summary} ({httpContent.GetType().Name}, total: {totalSizeInfo} bytes)");
+    }
+
+    /// <summary>
+    ///     将字节数组格式化为可读文本或 Hex Dump
+    /// </summary>
+    /// <param name="buffer">字节缓冲区</param>
+    /// <param name="bytesToShow">实际显示的字节数</param>
+    /// <param name="maxBytesLimit">配置的最大预览字节数</param>
+    /// <param name="isTruncated">是否被截断</param>
+    /// <param name="totalRead">实际读取的总字节数</param>
+    /// <param name="isResponse">是否为响应内容</param>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="charset">内容字符编码</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string FormatBytes(byte[] buffer, int bytesToShow, int maxBytesLimit, bool isTruncated,
+        int totalRead, bool isResponse, HttpResponseMessage? httpResponseMessage, string? charset = null)
+    {
+        // 空检查
+        if (bytesToShow == 0)
+        {
+            return string.Empty;
+        }
+
+        var isBinary = false;
+        var nonPrintableCount = 0;
+
+        // 二进制检测，如果包含 0x00 (Null 字符)，或者非打印控制字符比例超过 10%，则判定为二进制文件
+        for (var i = 0; i < bytesToShow; i++)
+        {
+            var b = buffer[i];
+            if (b == 0)
+            {
+                isBinary = true;
+                break;
+            }
+
+            if (b < 32 && b != 9 && b != 10 && b != 13)
+            {
+                nonPrintableCount++;
+            }
+        }
+
+        if (!isBinary && nonPrintableCount > bytesToShow / 10)
+        {
+            isBinary = true;
+        }
+
+        // 二进制内容处理
+        if (isBinary)
+        {
+            // 限制 Hex Dump 只打印 1KB 内容
+            const int maxHexDumpBytes = 1024;
+            var hexBytesToShow = Math.Min(bytesToShow, maxHexDumpBytes);
+
+            // 生成 Hex Dump 格式内容
+            var bodyString = GetHexDump(buffer, hexBytesToShow);
+
+            // 如果内容被截断，或者实际大小超过了 Hex 显示限制，则追加提示信息
+            if (isTruncated || bytesToShow > maxHexDumpBytes)
+            {
+                bodyString +=
+                    $"\e[36m\e[1m... [Binary content, showing first {hexBytesToShow} bytes of {totalRead} total bytes]\e[0m";
+            }
+
+            return bodyString;
+        }
 
         // 注册 CodePagesEncodingProvider，使得程序能够识别并使用 Windows 代码页中的各种编码
         EncodingUtility.Initialize();
 
-        // 获取内容编码
-        var charset = httpContent.Headers.ContentType?.CharSet ?? "utf-8";
-        var bytesToShow = isTruncated ? maxBytesToDisplay : totalRead;
-        var partialContent = Encoding.GetEncoding(charset).GetString(partialBuffer, 0, bytesToShow);
+        // 获取 Charset 编码，如果无效则回退到 UTF-8
+        Encoding encoding;
+        try
+        {
+            encoding = Encoding.GetEncoding(charset ?? "utf-8");
+        }
+        catch
+        {
+            encoding = Encoding.UTF8;
+        }
 
-        // 解决退格导致显示不全问题：保留 \n 和 \r，仅过滤其他 ASCII 控制字符（ASCII < 32 且不是 \n 或 \r）
-        partialContent = new string(partialContent
-            .Where(c => c >= 32 || c == '\n' || c == '\r')
-            .ToArray());
+        // 将字节数组解码为字符串
+        var partialContent = encoding.GetString(buffer, 0, bytesToShow);
 
-        // 检查是否是完整的 Unicode 转义字符串
+        // 过滤掉不可见的 ASCII 控制字符，保留换行、回车和制表符，防止控制台排版错乱
+        partialContent =
+            new string(partialContent.Where(c => c >= 32 || c == '\n' || c == '\r' || c == '\t').ToArray());
+
+        // 尝试反转义 Unicode 字符 (如 \u003c 转为 <)
         if (!isTruncated && UnicodeEscapeRegex().IsMatch(partialContent))
         {
-            partialContent = Regex.Unescape(partialContent);
+            try
+            {
+                partialContent = Regex.Unescape(partialContent);
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
-        // 检查是否是响应内容
-        if (isResponse)
+        // 如果是响应内容，根据状态码进行终端颜色高亮
+        if (isResponse && httpResponseMessage is not null)
         {
-            // 对响应内容进行着色
-            partialContent = httpResponseMessage!.GetColoredText(partialContent, false);
+            partialContent = httpResponseMessage.GetColoredText(partialContent, false);
         }
 
-        // 如果未发生截断，则直接返回；否则，添加省略号表示内容被截断
-        var bodyString = !isTruncated
+        // 如果内容超长被截断，追加省略号提示
+        return !isTruncated
             ? partialContent
-            : partialContent + $"\e[36m\e[1m ... [truncated, > {maxBytesToDisplay} bytes]\e[0m";
+            : partialContent + $"\e[36m\e[1m ... [truncated, > {maxBytesLimit} bytes]\e[0m";
+    }
 
-        return StringUtility.FormatKeyValuesSummary(
-            [new KeyValuePair<string, IEnumerable<string>>(string.Empty, [bodyString])],
-            $"{summary} ({httpContent.GetType().Name}, total: {(isTruncated ? $"> {maxBytesToDisplay}" : totalRead.ToString())} bytes)");
+    /// <summary>
+    ///     格式化 <see cref="HttpContent" />
+    /// </summary>
+    /// <param name="content">
+    ///     <see cref="HttpContent" />
+    /// </param>
+    /// <param name="maxBytesToDisplay">最大显示字节数</param>
+    /// <param name="isResponse">是否为响应内容</param>
+    /// <param name="contentEncoding">内容编码（gzip, deflate, br, zstd 等）</param>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Tuple{T1,T2,T3}" />：包含格式化后的内容、实际读取字节数以及是否截断的值元组
+    /// </returns>
+    internal static async Task<(string Body, int TotalRead, bool IsTruncated)> FormatContentBodyAsync(
+        HttpContent content, int maxBytesToDisplay, bool isResponse, string? contentEncoding,
+        HttpResponseMessage? httpResponseMessage, CancellationToken cancellationToken)
+    {
+        // 获取已缓冲的内部流
+        var stream = await content.ReadAsStreamAsync(cancellationToken);
+
+        // 检查流是否可读
+        if (stream.CanSeek)
+        {
+            // 确保流指针在起始位置
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+
+        // 从流中按需解压并读取前 (maxBytesToDisplay + 1) 字节
+        var (partialBuffer, totalRead, isTruncated) =
+            await ReadAndDecompressFirstBytesAsync(stream, contentEncoding, maxBytesToDisplay + 1, cancellationToken);
+
+        // 检查流是否可读
+        if (stream.CanSeek)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+
+        // 计算实际需要显示的字节数和获取内容字符编码
+        var bytesToShow = isTruncated ? maxBytesToDisplay : totalRead;
+        var charset = content.Headers.ContentType?.CharSet;
+
+        // 将字节数组格式化为可读文本或 Hex Dump
+        var bodyString = FormatBytes(partialBuffer, bytesToShow, maxBytesToDisplay, isTruncated, totalRead, isResponse,
+            httpResponseMessage, charset);
+
+        return (bodyString, totalRead, isTruncated);
+    }
+
+    /// <summary>
+    ///     将字节数组格式化为 Hex Dump 格式
+    /// </summary>
+    /// <param name="buffer">字节数组</param>
+    /// <param name="length">需要格式化的长度</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string GetHexDump(byte[] buffer, int length)
+    {
+        // 初始化 StringBuilder 实例
+        var stringBuilder = new StringBuilder();
+
+        // 每次处理 16 个字节 (标准 Hex Dump 行宽)
+        for (var i = 0; i < length; i += 16)
+        {
+            // 输出偏移量 (8位十六进制)
+            stringBuilder.Append($"{i:X8}  ");
+
+            // 输出十六进制数值
+            for (var j = 0; j < 16; j++)
+            {
+                if (i + j < length)
+                {
+                    stringBuilder.Append($"{buffer[i + j]:X2} ");
+                }
+                else
+                {
+                    // 不足 16 字节时补空格
+                    stringBuilder.Append("   ");
+                }
+
+                // 8 字节一断
+                if (j == 7)
+                {
+                    stringBuilder.Append(' ');
+                }
+            }
+
+            // 输出 ASCII 可打印字符
+            stringBuilder.Append(" |");
+
+            for (var j = 0; j < 16; j++)
+            {
+                if (i + j < length)
+                {
+                    var bytes = buffer[i + j];
+
+                    // 仅显示标准 ASCII 可打印字符，其余显示为 '.'
+                    stringBuilder.Append(bytes is >= 32 and <= 126 ? (char)bytes : '.');
+                }
+                else
+                {
+                    stringBuilder.Append(' ');
+                }
+            }
+
+            stringBuilder.AppendLine("|");
+        }
+
+        return stringBuilder.ToString();
     }
 
     /// <summary>

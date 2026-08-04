@@ -79,7 +79,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <summary>
     ///     多部分表单内容的边界
     /// </summary>
-    public string? Boundary { get; set; } = $"--------------------------{DateTime.Now.Ticks:x}";
+    public string? Boundary { get; set; } = $"----{DateTime.Now.Ticks:x}";
 
     /// <summary>
     ///     是否移除默认的多部分内容的 <c>Content-Type</c>
@@ -937,10 +937,8 @@ public sealed class HttpMultipartFormDataBuilder
                 MediaTypeHeaderValue.Parse($"{MediaTypeNames.Multipart.FormData}; boundary={boundary}");
         }
 
-        // 调用自定义多部分表单内容项排序委托
-        // 为 null 时使用默认排序：非二进制内容（如字符串、对象）优先，二进制内容（如文件流、字节数组）后置：主要解决请求分析工具不能完整显示所有表单数据问题（避免因打印裁剪导致信息丢失）
-        var sortedPartContents = FormItemsSorter?.Invoke(_partContents) ??
-                                 _partContents.OrderBy(u => u.RawContent is byte[] or Stream or HttpContent ? 1 : 0);
+        // 调用自定义多部分表单内容项排序委托，返回 null 时不排序（原始添加顺序）
+        var sortedPartContents = FormItemsSorter?.Invoke(_partContents) ?? _partContents;
 
         // 逐条遍历添加
         foreach (var dataItem in sortedPartContents)
