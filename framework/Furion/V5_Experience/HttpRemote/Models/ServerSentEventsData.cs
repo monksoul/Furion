@@ -45,9 +45,19 @@ public sealed class ServerSentEventsData
     internal readonly StringBuilder _dataBuffer;
 
     /// <summary>
+    ///     原始消息数据构建器
+    /// </summary>
+    internal readonly StringBuilder _rawLineBuffer;
+
+    /// <summary>
     ///     消息数据缓存字段
     /// </summary>
     internal string? _cachedData;
+
+    /// <summary>
+    ///     原始消息数据缓存字段
+    /// </summary>
+    internal string? _cachedRawLine;
 
     /// <summary>
     ///     <inheritdoc cref="ServerSentEventsData" />
@@ -55,6 +65,7 @@ public sealed class ServerSentEventsData
     internal ServerSentEventsData()
     {
         _dataBuffer = new StringBuilder();
+        _rawLineBuffer = new StringBuilder();
         _customFields = [];
     }
 
@@ -84,13 +95,43 @@ public sealed class ServerSentEventsData
             var data = _dataBuffer.ToString();
 
             // 移除末尾的换行符
-            _cachedData = data.Length > 0 && data[^1] == '\n'
-                ? data[..^1]
-                : data;
+            _cachedData = data.Length > 0 && data[^1] == '\n' ? data[..^1] : data;
 
             return _cachedData;
         }
     }
+
+    /// <summary>
+    ///     未经解析的原始消息行
+    /// </summary>
+    /// <remarks>服务器发送的原始格式（排除了心跳注释和空行）。</remarks>
+    public string RawLine
+    {
+        get
+        {
+            // 空检查
+            if (_cachedRawLine is not null)
+            {
+                return _cachedRawLine;
+            }
+
+            var rawLine = _rawLineBuffer.ToString();
+
+            // 移除末尾的换行符
+            _cachedRawLine = rawLine.Length > 0 && rawLine[^1] == '\n' ? rawLine[..^1] : rawLine;
+
+            return _cachedRawLine;
+        }
+    }
+
+    /// <summary>
+    ///     判断当前事件是否为流式输出的结束标记
+    /// </summary>
+    /// <remarks>
+    ///     许多主流 AI 模型（如 OpenAI, DeepSeek 等）在流式响应结束时，会发送 <c>data: [DONE]</c>。此属性通过检查 <see cref="Data" /> 是否严格等于
+    ///     <c>"[DONE]"</c> 来提供便捷的结束判断。
+    /// </remarks>
+    public bool IsDone => Data == "[DONE]";
 
     /// <summary>
     ///     事件 ID
@@ -116,9 +157,18 @@ public sealed class ServerSentEventsData
     /// <param name="value">消息数据</param>
     internal void AppendData(string? value)
     {
-        _dataBuffer.Append(value);
-        _dataBuffer.Append('\n');
+        _dataBuffer.Append(value).Append('\n');
         _cachedData = null;
+    }
+
+    /// <summary>
+    ///     追加原始消息行
+    /// </summary>
+    /// <param name="line">原始消息行</param>
+    internal void AppendRawLine(string line)
+    {
+        _rawLineBuffer.Append(line).Append('\n');
+        _cachedRawLine = null;
     }
 
     /// <summary>

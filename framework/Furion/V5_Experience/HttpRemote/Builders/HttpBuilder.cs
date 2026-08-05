@@ -32,7 +32,7 @@ namespace Furion.HttpRemote;
 ///     <see cref="HttpRequestMessage" /> 构建器
 /// </summary>
 /// <remarks>用于简化 <see cref="HttpRequestBuilder" /> 名称过长问题。</remarks>
-public sealed class HttpBuilder
+public static class HttpBuilder
 {
     /// <summary>
     ///     获取一个用于配置当前 <see cref="HttpRequestBuilder" /> 的实例
@@ -334,6 +334,27 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
+    public static HttpFileDownloadBuilder DownloadFile(HttpMethod httpMethod, string? requestUri,
+        string? destinationPath = null, Func<FileTransferProgress, Task>? onProgressChanged = null,
+        FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
+        Action<HttpFileDownloadBuilder>? configure = null) =>
+        HttpRequestBuilder.DownloadFile(httpMethod, requestUri, destinationPath, onProgressChanged, fileExistsBehavior,
+            configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpFileDownloadBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="destinationPath">文件保存的目标路径</param>
+    /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
+    /// <param name="fileExistsBehavior">
+    ///     <see cref="FileExistsBehavior" />
+    /// </param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpFileDownloadBuilder" />
+    /// </returns>
     public static HttpFileDownloadBuilder DownloadFile(HttpMethod httpMethod, Uri? requestUri,
         string? destinationPath = null, Func<FileTransferProgress, Task>? onProgressChanged = null,
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
@@ -377,6 +398,24 @@ public sealed class HttpBuilder
         FileExistsBehavior fileExistsBehavior = FileExistsBehavior.CreateNew,
         Action<HttpFileDownloadBuilder>? configure = null) => HttpRequestBuilder.DownloadFile(requestUri,
         destinationPath, onProgressChanged, fileExistsBehavior, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpFileUploadBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpFileUploadBuilder" />
+    /// </returns>
+    public static HttpFileUploadBuilder UploadFile(HttpMethod httpMethod, string? requestUri, string filePath,
+        string name = "file", Func<FileTransferProgress, Task>? onProgressChanged = null, string? fileName = null,
+        Action<HttpFileUploadBuilder>? configure = null) =>
+        HttpRequestBuilder.UploadFile(httpMethod, requestUri, filePath, name, onProgressChanged, fileName, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpFileUploadBuilder" /> 构建器
@@ -491,6 +530,37 @@ public sealed class HttpBuilder
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, string? requestUri,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        HttpRequestBuilder.ServerSentEvents(httpMethod,
+            requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onMessage">用于在从事件源接收到数据时的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, string? requestUri,
+        Func<ServerSentEventsData, CancellationToken, Task> onMessage,
+        Action<HttpServerSentEventsBuilder>? configure = null) =>
+        HttpRequestBuilder.ServerSentEvents(httpMethod,
+            requestUri, onMessage,
+            configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpServerSentEventsBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
     public static HttpServerSentEventsBuilder ServerSentEvents(HttpMethod httpMethod, Uri? requestUri,
         Action<HttpServerSentEventsBuilder>? configure = null) =>
         HttpRequestBuilder.ServerSentEvents(httpMethod, requestUri, configure);
@@ -509,6 +579,20 @@ public sealed class HttpBuilder
         Func<ServerSentEventsData, CancellationToken, Task> onMessage,
         Action<HttpServerSentEventsBuilder>? configure = null) =>
         HttpRequestBuilder.ServerSentEvents(httpMethod, requestUri, onMessage, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpStressTestHarnessBuilder" />
+    /// </returns>
+    public static HttpStressTestHarnessBuilder StressTestHarness(HttpMethod httpMethod, string? requestUri,
+        int numberOfRequests = 100, Action<HttpStressTestHarnessBuilder>? configure = null) =>
+        HttpRequestBuilder.StressTestHarness(httpMethod, requestUri, numberOfRequests, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
@@ -599,6 +683,35 @@ public sealed class HttpBuilder
         Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
         Action<HttpLongPollingBuilder>? configure = null) =>
         HttpRequestBuilder.LongPolling(requestUri, onDataReceived, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, string? requestUri,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        HttpRequestBuilder.LongPolling(httpMethod,
+            requestUri, configure);
+
+    /// <summary>
+    ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <param name="requestUri">请求地址</param>
+    /// <param name="onDataReceived">用于接收服务器返回 <c>200~299</c> 状态码的数据的操作</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpLongPollingBuilder" />
+    /// </returns>
+    public static HttpLongPollingBuilder LongPolling(HttpMethod httpMethod, string? requestUri,
+        Func<HttpResponseMessage, CancellationToken, Task> onDataReceived,
+        Action<HttpLongPollingBuilder>? configure = null) =>
+        HttpRequestBuilder.LongPolling(httpMethod, requestUri, onDataReceived, configure);
 
     /// <summary>
     ///     创建 <see cref="HttpLongPollingBuilder" /> 构建器

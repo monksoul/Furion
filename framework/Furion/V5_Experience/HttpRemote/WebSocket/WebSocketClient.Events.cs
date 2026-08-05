@@ -35,92 +35,100 @@ public sealed partial class WebSocketClient
     /// <summary>
     ///     开始连接时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Connecting;
+    public event AsyncEventHandler<EventArgs>? Connecting;
 
     /// <summary>
     ///     连接成功时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Connected;
+    public event AsyncEventHandler<EventArgs>? Connected;
 
     /// <summary>
     ///     开始重新连接时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Reconnecting;
+    public event AsyncEventHandler<EventArgs>? Reconnecting;
 
     /// <summary>
     ///     重新连接成功时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Reconnected;
+    public event AsyncEventHandler<EventArgs>? Reconnected;
 
     /// <summary>
     ///     开始关闭连接时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Closing;
+    public event AsyncEventHandler<EventArgs>? Closing;
 
     /// <summary>
     ///     关闭连接成功时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? Closed;
+    public event AsyncEventHandler<EventArgs>? Closed;
 
     /// <summary>
     ///     开始接收消息时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? ReceivingStarted;
+    public event AsyncEventHandler<EventArgs>? ReceivingStarted;
 
     /// <summary>
     ///     停止接收消息时触发事件
     /// </summary>
-    public event EventHandler<EventArgs>? ReceivingStopped;
+    public event AsyncEventHandler<EventArgs>? ReceivingStopped;
 
     /// <summary>
     ///     接收文本消息事件
     /// </summary>
-    public event EventHandler<WebSocketTextReceiveResult>? TextReceived;
+    public event AsyncEventHandler<WebSocketTextReceiveResult>? TextReceived;
 
     /// <summary>
     ///     接收二进制消息事件
     /// </summary>
-    public event EventHandler<WebSocketBinaryReceiveResult>? BinaryReceived;
+    public event AsyncEventHandler<WebSocketBinaryReceiveResult>? BinaryReceived;
 
     /// <summary>
     ///     触发开始连接事件
     /// </summary>
-    internal void OnConnecting() => Connecting?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnConnectingAsync() =>
+        await Connecting.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发连接成功事件
     /// </summary>
-    internal void OnConnected() => Connected?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnConnectedAsync() =>
+        await Connected.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发开始重新连接事件
     /// </summary>
-    internal void OnReconnecting() => Reconnecting?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnReconnectingAsync() =>
+        await Reconnecting.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发重新连接成功事件
     /// </summary>
-    internal void OnReconnected() => Reconnected?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnReconnectedAsync() =>
+        await Reconnected.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发开始关闭连接事件
     /// </summary>
-    internal void OnClosing() => Closing?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnClosingAsync() =>
+        await Closing.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发关闭连接成功事件
     /// </summary>
-    internal void OnClosed() => Closed?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnClosedAsync() =>
+        await Closed.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发开始接收消息事件
     /// </summary>
-    internal void OnReceivingStarted() => ReceivingStarted?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnReceivingStartedAsync() =>
+        await ReceivingStarted.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发停止接收消息事件
     /// </summary>
-    internal void OnReceivingStopped() => ReceivingStopped?.TryInvoke(this, EventArgs.Empty);
+    internal async Task OnReceivingStoppedAsync() =>
+        await ReceivingStopped.TryInvokeAsync(this, EventArgs.Empty);
 
     /// <summary>
     ///     触发接收文本消息事件
@@ -128,8 +136,8 @@ public sealed partial class WebSocketClient
     /// <param name="receiveResult">
     ///     <see cref="WebSocketTextReceiveResult" />
     /// </param>
-    internal void OnTextReceived(WebSocketTextReceiveResult receiveResult) =>
-        TextReceived?.TryInvoke(this, receiveResult);
+    internal async Task OnTextReceivedAsync(WebSocketTextReceiveResult receiveResult) =>
+        await TextReceived.TryInvokeAsync(this, receiveResult);
 
     /// <summary>
     ///     触发接收二进制消息事件
@@ -137,6 +145,6 @@ public sealed partial class WebSocketClient
     /// <param name="receiveResult">
     ///     <see cref="WebSocketBinaryReceiveResult" />
     /// </param>
-    internal void OnBinaryReceived(WebSocketBinaryReceiveResult receiveResult) =>
-        BinaryReceived?.TryInvoke(this, receiveResult);
+    internal async Task OnBinaryReceivedAsync(WebSocketBinaryReceiveResult receiveResult) =>
+        await BinaryReceived.TryInvokeAsync(this, receiveResult);
 }

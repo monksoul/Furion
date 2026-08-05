@@ -60,6 +60,55 @@ public static partial class HttpContextExtensions
     ];
 
     /// <summary>
+    ///     将 <see cref="HttpResponse" /> 配置为 Server-Sent Events 标准流式响应格式
+    /// </summary>
+    /// <param name="httpResponse">
+    ///     <see cref="HttpResponse" />
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void EnableServerSentEvents(this HttpResponse httpResponse)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(httpResponse);
+
+        // 设置标准的 SSE Content-Type
+        httpResponse.ContentType = "text/event-stream; charset=utf-8";
+
+        // 禁用缓存，确保客户端每次都能拿到最新数据
+        httpResponse.Headers.CacheControl = "no-cache";
+
+        // 禁用 Nginx 等反向代理的缓冲，确保数据实时推送到客户端
+        httpResponse.Headers["X-Accel-Buffering"] = "no";
+    }
+
+    /// <summary>
+    ///     向客户端写入一条消息并立即刷新响应流
+    /// </summary>
+    /// <param name="httpResponse">
+    ///     <see cref="HttpResponse" />
+    /// </param>
+    /// <param name="text">消息文本</param>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static async Task WriteAndFlushAsync(this HttpResponse httpResponse, string? text,
+        CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(httpResponse);
+
+        // 空检查
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        await httpResponse.WriteAsync(text, cancellationToken);
+        await httpResponse.Body.FlushAsync(cancellationToken);
+    }
+
+    /// <summary>
     ///     转发 <see cref="HttpContext" /> 到新的 HTTP 远程地址
     /// </summary>
     /// <param name="httpContext">

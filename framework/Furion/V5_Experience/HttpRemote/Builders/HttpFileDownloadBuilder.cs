@@ -23,21 +23,14 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Furion.Extensions;
-
 namespace Furion.HttpRemote;
 
 /// <summary>
 ///     HTTP 文件下载构建器
 /// </summary>
 /// <remarks>使用 <c>HttpRequestBuilder.DownloadFile(requestUri, destinationPath)</c> 静态方法创建。</remarks>
-public sealed class HttpFileDownloadBuilder
+public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<HttpFileDownloadBuilder>
 {
-    /// <summary>
-    ///     <see cref="HttpRequestBuilder" /> 配置委托
-    /// </summary>
-    internal Action<HttpRequestBuilder>? _configureRequest;
-
     /// <summary>
     ///     <inheritdoc cref="HttpFileDownloadBuilder" />
     /// </summary>
@@ -357,54 +350,6 @@ public sealed class HttpFileDownloadBuilder
         SetEventHandler(typeof(TFileTransferEventHandler));
 
     /// <summary>
-    ///     配置 <see cref="HttpRequestBuilder" /> 实例
-    /// </summary>
-    /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">
-    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
-    /// </param>
-    /// <returns>
-    ///     <see cref="HttpFileDownloadBuilder" />
-    /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public HttpFileDownloadBuilder With(Action<HttpRequestBuilder> configure)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        _configureRequest += configure;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpFileDownloadBuilder" />
-    /// </returns>
-    public HttpFileDownloadBuilder Profiler() => With(builder => builder.Profiler(true));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="enabled">是否启用</param>
-    /// <returns>
-    ///     <see cref="HttpFileDownloadBuilder" />
-    /// </returns>
-    public HttpFileDownloadBuilder Profiler(bool enabled) => With(builder => builder.Profiler(enabled));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="predicate">自定义处理委托</param>
-    /// <returns>
-    ///     <see cref="HttpFileDownloadBuilder" />
-    /// </returns>
-    public HttpFileDownloadBuilder Profiler(Action<HttpRemoteAnalyzer> predicate) =>
-        With(builder => builder.Profiler(predicate));
-
-    /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="httpRemoteOptions">
@@ -438,7 +383,7 @@ public sealed class HttpFileDownloadBuilder
         }
 
         // 调用自定义配置委托
-        _configureRequest?.Invoke(httpRequestBuilder);
+        Configure?.Invoke(httpRequestBuilder);
 
         return httpRequestBuilder;
     }

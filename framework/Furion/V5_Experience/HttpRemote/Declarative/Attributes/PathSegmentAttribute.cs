@@ -65,6 +65,6 @@ public sealed class PathSegmentAttribute : Attribute
     /// <summary>
     ///     是否标记为待删除
     /// </summary>
-    /// <remarks>默认为 <c>false</c>。设置为 <c>true</c> 表示移除路径片段。</remarks>
+    /// <remarks>默认值为：<c>false</c>。设置为 <c>true</c> 表示移除路径片段。</remarks>
     public bool Remove { get; set; }
 }

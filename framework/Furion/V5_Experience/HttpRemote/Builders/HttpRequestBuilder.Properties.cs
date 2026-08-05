@@ -123,6 +123,12 @@ public sealed partial class HttpRequestBuilder
     public HashSet<string>? QueryParametersToRemove { get; private set; }
 
     /// <summary>
+    ///     标记为“替换模式”的查询参数键集合
+    /// </summary>
+    /// <remarks>当 <c>WithQueryParameters</c> 的 <c>replace</c> 为 <c>true</c> 时，这些键会从原始 URL 中移除，再追加新值。</remarks>
+    internal HashSet<string>? ReplacedQueryParameterKeys { get; private set; }
+
+    /// <summary>
     ///     路径参数集合
     /// </summary>
     /// <remarks>用于替换请求地址中符合 <c>\{\s*(\w+\s*(\.\s*\w+\s*)*)\s*\}</c> 正则表达式匹配的数据。</remarks>
@@ -212,7 +218,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在设置 <see cref="HttpRequestMessage" /> 的请求消息的内容时的操作
     /// </summary>
-    public Action<HttpContent>? OnPreSetContent { get; private set; }
+    public Action<HttpContent?>? OnPreSetContent { get; private set; }
 
     /// <summary>
     ///     用于处理在发送 HTTP 请求之前的操作
@@ -222,7 +228,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     用于处理在收到 HTTP 响应之后的操作
     /// </summary>
-    public Action<HttpResponseMessage>? OnPostReceiveResponse { get; private set; }
+    public Func<HttpResponseMessage, CancellationToken, Task>? OnPostReceiveResponse { get; private set; }
 
     /// <summary>
     ///     用于处理在发送 HTTP 请求发生异常时的操作
@@ -360,6 +366,12 @@ public sealed partial class HttpRequestBuilder
     ///     用于处理在构建最终请求 URL 的操作
     /// </summary>
     internal Action<UriBuilder>? OnUriBuilding { get; private set; }
+
+    /// <summary>
+    ///     用于在创建重定向构建器时进行额外配置的委托
+    /// </summary>
+    /// <remarks>第一个参数是当前（原始）构建器，第二个参数是即将用于重定向的克隆构建器。可以在此处移除敏感的 Header、修改 URL 等。</remarks>
+    internal Action<HttpRequestBuilder, HttpRequestBuilder>? OnRedirect { get; set; }
 
     /// <summary>
     ///     表示启用 JSON 响应反序列化包装器

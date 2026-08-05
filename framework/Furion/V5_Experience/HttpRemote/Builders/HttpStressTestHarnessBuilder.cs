@@ -29,13 +29,8 @@ namespace Furion.HttpRemote;
 ///     压力测试构建器
 /// </summary>
 /// <remarks>使用 <c>HttpRequestBuilder.StressTestHarness(requestUri, numberOfRequests)</c> 静态方法创建。</remarks>
-public sealed class HttpStressTestHarnessBuilder
+public sealed class HttpStressTestHarnessBuilder : HttpRequestBuilderConfigurator<HttpStressTestHarnessBuilder>
 {
-    /// <summary>
-    ///     <see cref="HttpRequestBuilder" /> 配置委托
-    /// </summary>
-    internal Action<HttpRequestBuilder>? _configureRequest;
-
     /// <summary>
     ///     <inheritdoc cref="HttpStressTestHarnessBuilder" />
     /// </summary>
@@ -145,45 +140,6 @@ public sealed class HttpStressTestHarnessBuilder
     }
 
     /// <summary>
-    ///     配置 <see cref="HttpRequestBuilder" /> 实例
-    /// </summary>
-    /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">
-    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
-    /// </param>
-    /// <returns>
-    ///     <see cref="HttpStressTestHarnessBuilder" />
-    /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public HttpStressTestHarnessBuilder With(Action<HttpRequestBuilder> configure)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        _configureRequest += configure;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置禁用 HTTP 缓存
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpStressTestHarnessBuilder" />
-    /// </returns>
-    public HttpStressTestHarnessBuilder DisableCache() => With(builder => builder.DisableCache());
-
-    /// <summary>
-    ///     设置禁用 HTTP 缓存
-    /// </summary>
-    /// <param name="disabled">是否禁用</param>
-    /// <returns>
-    ///     <see cref="HttpStressTestHarnessBuilder" />
-    /// </returns>
-    public HttpStressTestHarnessBuilder DisableCache(bool disabled) =>
-        With(builder => builder.DisableCache(disabled));
-
-    /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="httpRemoteOptions">
@@ -201,11 +157,11 @@ public sealed class HttpStressTestHarnessBuilder
         // 初始化 HttpRequestBuilder 实例，并确保请求标头中添加了 X-Stress-Test: Harness；
         // 同时禁用请求分析工具和启用 HttpClient 池化管理
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri)
-            .WithHeader(Constants.X_STRESS_TEST_HEADER, Constants.X_STRESS_TEST_VALUE, replace: true).Profiler(false)
+            .WithHeader(Constants.X_STRESS_TEST_HEADER, Constants.X_STRESS_TEST_VALUE, replace: true).DisableProfiler()
             .PerformanceOptimization().UseHttpClientPool();
 
         // 调用自定义配置委托
-        _configureRequest?.Invoke(httpRequestBuilder);
+        Configure?.Invoke(httpRequestBuilder);
 
         return httpRequestBuilder;
     }

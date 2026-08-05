@@ -29,13 +29,8 @@ namespace Furion.HttpRemote;
 ///     HTTP 长轮询构建器
 /// </summary>
 /// <remarks>使用 <c>HttpRequestBuilder.LongPolling(httpMethod, requestUri, onDataReceived)</c> 静态方法创建。</remarks>
-public sealed class HttpLongPollingBuilder
+public sealed class HttpLongPollingBuilder : HttpRequestBuilderConfigurator<HttpLongPollingBuilder>
 {
-    /// <summary>
-    ///     <see cref="HttpRequestBuilder" /> 配置委托
-    /// </summary>
-    internal Action<HttpRequestBuilder>? _configureRequest;
-
     /// <summary>
     ///     <inheritdoc cref="HttpLongPollingBuilder" />
     /// </summary>
@@ -230,54 +225,6 @@ public sealed class HttpLongPollingBuilder
         SetEventHandler(typeof(TLongPollingEventHandler));
 
     /// <summary>
-    ///     配置 <see cref="HttpRequestBuilder" /> 实例
-    /// </summary>
-    /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">
-    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
-    /// </param>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public HttpLongPollingBuilder With(Action<HttpRequestBuilder> configure)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        _configureRequest += configure;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    public HttpLongPollingBuilder Profiler() => With(builder => builder.Profiler(true));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="enabled">是否启用</param>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    public HttpLongPollingBuilder Profiler(bool enabled) => With(builder => builder.Profiler(enabled));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="predicate">自定义处理委托</param>
-    /// <returns>
-    ///     <see cref="HttpLongPollingBuilder" />
-    /// </returns>
-    public HttpLongPollingBuilder Profiler(Action<HttpRemoteAnalyzer> predicate) =>
-        With(builder => builder.Profiler(predicate));
-
-    /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="httpRemoteOptions">
@@ -303,7 +250,7 @@ public sealed class HttpLongPollingBuilder
         }
 
         // 调用自定义配置委托
-        _configureRequest?.Invoke(httpRequestBuilder);
+        Configure?.Invoke(httpRequestBuilder);
 
         return httpRequestBuilder;
     }

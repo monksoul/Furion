@@ -30,7 +30,13 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     提供静态访问 <see cref="IHttpRemoteService" /> 服务的方式
 /// </summary>
-/// <remarks>支持服务的延迟初始化、配置更新以及资源释放。</remarks>
+/// <remarks>
+///     <para>支持服务的延迟初始化、配置更新以及资源释放。</para>
+///     <para>
+///         注意：可通过 <see cref="SetServiceProvider" /> 方法注入应用程序的主 <see cref="IServiceProvider" />，此时将优先从该容器解析
+///         <see cref="IHttpRemoteService" />，与应用的 DI 体系保持共享；若未注入外部容器，则本类维护一套独立的 DI 容器。
+///     </para>
+/// </remarks>
 public static class HttpRemoteClient
 {
     /// <summary>
@@ -43,8 +49,15 @@ public static class HttpRemoteClient
     /// </summary>
     internal static volatile IHttpRemoteService? _serviceInstance;
 
-    /// <inheritdoc cref="IServiceProvider" />
+    /// <summary>
+    ///     自行构建的内部 <see cref="IServiceProvider" />
+    /// </summary>
     internal static IServiceProvider? _serviceProvider;
+
+    /// <summary>
+    ///     外部注入的应用程序主 <see cref="IServiceProvider" />
+    /// </summary>
+    internal static IServiceProvider? _externalServiceProvider;
 
     /// <summary>
     ///     并发锁对象
@@ -89,8 +102,43 @@ public static class HttpRemoteClient
     }
 
     /// <summary>
+    ///     设置应用程序的主 <see cref="IServiceProvider" />
+    /// </summary>
+    /// <remarks>
+    ///     <para>优先使用该容器解析服务。</para>
+    ///     <para>调用此方法后，后续访问 <see cref="Service" /> 将直接从外部容器获取实例，而非构建独立容器。外部容器的生命周期由调用方管理，本类不会释放它。</para>
+    ///     <para>
+    ///         注意：传入的 <paramref name="serviceProvider" /> 必须已完成 <see cref="IHttpRemoteService" /> 的注册，否则后续访问
+    ///         <see cref="Service" /> 时将抛出异常。
+    ///     </para>
+    /// </remarks>
+    /// <param name="serviceProvider">外部注入的应用程序主 <see cref="IServiceProvider" /></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public static void SetServiceProvider(IServiceProvider serviceProvider)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+
+        lock (_lock)
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, typeof(HttpRemoteClient));
+
+            // 释放自行构建的内部服务提供器
+            ReleaseInternalServiceProvider();
+            _serviceInstance = null;
+
+            _externalServiceProvider = serviceProvider;
+        }
+    }
+
+    /// <summary>
     ///     自定义服务注册逻辑
     /// </summary>
+    /// <remarks>仅影响自行构建的内部容器。</remarks>
+    /// <param name="configure">自定义配置委托</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
     public static void Configure(Action<IServiceCollection> configure)
     {
         // 空检查
@@ -126,7 +174,10 @@ public static class HttpRemoteClient
     /// <summary>
     ///     释放服务提供器及相关资源
     /// </summary>
-    /// <remarks>通常在应用程序关闭或不再需要 HTTP 远程请求服务时调用。</remarks>
+    /// <remarks>
+    ///     <para>通常在应用程序关闭或不再需要 HTTP 远程请求服务时调用。</para>
+    ///     <para>注意：释放自行构建的内部容器及相关资源，外部注入的容器不受影响。</para>
+    /// </remarks>
     public static void Dispose()
     {
         lock (_lock)
@@ -136,9 +187,10 @@ public static class HttpRemoteClient
                 return;
             }
 
-            // 清理资源并重置实例
-            ReleaseServiceProvider();
+            // 释放自行构建的内部服务提供器
+            ReleaseInternalServiceProvider();
             _serviceInstance = null;
+            _externalServiceProvider = null;
 
             // 标记为已释放状态
             _isDisposed = true;
@@ -156,7 +208,13 @@ public static class HttpRemoteClient
     {
         try
         {
-            // 初始化 ServiceCollection 实例
+            // 优先使用外部容器
+            if (_externalServiceProvider is not null)
+            {
+                return _externalServiceProvider.GetRequiredService<IHttpRemoteService>();
+            }
+
+            // 回退处理：初始化 ServiceCollection 实例
             var services = new ServiceCollection();
 
             // 调用自定义服务注册逻辑的委托
@@ -171,8 +229,8 @@ public static class HttpRemoteClient
         }
         catch (Exception ex)
         {
-            // 清理资源
-            ReleaseServiceProvider();
+            // 释放自行构建的内部服务提供器
+            ReleaseInternalServiceProvider();
 
             throw new InvalidOperationException("Failed to initialize IHttpRemoteService.", ex);
         }
@@ -183,15 +241,15 @@ public static class HttpRemoteClient
     /// </summary>
     internal static void Reinitialize()
     {
-        // 释放旧资源
-        ReleaseServiceProvider();
+        // 释放自行构建的内部服务提供器
+        ReleaseInternalServiceProvider();
         _serviceInstance = null;
     }
 
     /// <summary>
-    ///     释放服务提供器
+    ///     释放自行构建的内部服务提供器
     /// </summary>
-    internal static void ReleaseServiceProvider()
+    internal static void ReleaseInternalServiceProvider()
     {
         // 如果服务提供器支持释放资源，则执行释放操作
         if (_serviceProvider is IDisposable disposable)

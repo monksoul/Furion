@@ -98,7 +98,20 @@ public sealed class HttpAssertionContext
     /// </returns>
     public async Task<string?> ReadAsStringAsync(CancellationToken cancellationToken = default)
     {
-        _cachedContent ??= await ResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+        // 空检查
+        if (_cachedContent is not null)
+        {
+            return _cachedContent;
+        }
+
+        // 启用缓冲，可重复读取
+#if NET8_0
+        await ResponseMessage.Content.LoadIntoBufferAsync();
+#else
+        await ResponseMessage.Content.LoadIntoBufferAsync(cancellationToken);
+#endif
+
+        _cachedContent = await ResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
         return _cachedContent;
     }

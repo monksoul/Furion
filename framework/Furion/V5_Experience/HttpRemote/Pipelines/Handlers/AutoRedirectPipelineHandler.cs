@@ -58,6 +58,9 @@ internal sealed class AutoRedirectPipelineHandler(
         var redirections = 0;
         var originalHttpMethod = context.OriginalBuilder.HttpMethod!;
 
+        // 用于跟踪最后一个重定向构建器
+        HttpRequestBuilder? lastRedirectBuilder = null;
+
         // 处理请求重定向
         while (httpResponseMessage is not null && remoteOptions.AllowAutoRedirect &&
                redirections < remoteOptions.MaximumAutomaticRedirections &&
@@ -73,15 +76,23 @@ internal sealed class AutoRedirectPipelineHandler(
                 break;
             }
 
+            // 释放前一个重定向构建器（如果有）
+            if (lastRedirectBuilder is { HttpClientPoolingEnabled: false })
+            {
+                lastRedirectBuilder.ReleaseResources();
+            }
+
             // 获取或构建重定向地址
             var redirectUri = redirectUrl.IsAbsoluteUri
                 ? redirectUrl
                 : new Uri(Helpers.ParseBaseAddress(context.RequestMessage?.RequestUri), redirectUrl);
 
+            // 基于当前构建器创建一个用于重定向的新构建器
+            var redirectBuilder = httpRequestBuilder.CreateRedirectBuilder(redirectUri, redirectMethod);
+
             // 构建新的 HttpRequestMessage 实例
-            var redirectHttpRequestMessage = httpRequestBuilder.ConfigureForRedirect(redirectUri, redirectMethod)
-                .Build(remoteOptions, httpContentProcessorFactory,
-                    context.HttpClient.BaseAddress ?? remoteOptions.FallbackBaseAddress);
+            var redirectHttpRequestMessage = redirectBuilder.Build(remoteOptions, httpContentProcessorFactory,
+                context.HttpClient.BaseAddress ?? remoteOptions.FallbackBaseAddress);
 
             // 释放前一个 HttpResponseMessage 实例
             httpResponseMessage.Dispose();
@@ -93,8 +104,18 @@ internal sealed class AutoRedirectPipelineHandler(
             // 修复无效的响应内容字符编码
             httpResponseMessage.FixInvalidCharset();
 
+            // 更新上下文
+            lastRedirectBuilder = redirectBuilder;
+            httpRequestBuilder = redirectBuilder;
+
             // 递增重定向次数
             redirections++;
+        }
+
+        // 循环结束后释放最后一个重定向构建器
+        if (lastRedirectBuilder is { HttpClientPoolingEnabled: false })
+        {
+            lastRedirectBuilder.ReleaseResources();
         }
 
         // 更新上下文

@@ -33,13 +33,8 @@ namespace Furion.HttpRemote;
 ///     HTTP 文件上传构建器
 /// </summary>
 /// <remarks>使用 <c>HttpRequestBuilder.UploadFile(requestUri, filePath, name)</c> 静态方法创建。</remarks>
-public sealed class HttpFileUploadBuilder
+public sealed class HttpFileUploadBuilder : HttpRequestBuilderConfigurator<HttpFileUploadBuilder>
 {
-    /// <summary>
-    ///     <see cref="HttpRequestBuilder" /> 配置委托
-    /// </summary>
-    internal Action<HttpRequestBuilder>? _configureRequest;
-
     /// <summary>
     ///     <inheritdoc cref="HttpFileUploadBuilder" />
     /// </summary>
@@ -350,52 +345,14 @@ public sealed class HttpFileUploadBuilder
         SetEventHandler(typeof(TFileTransferEventHandler));
 
     /// <summary>
-    ///     配置 <see cref="HttpRequestBuilder" /> 实例
+    ///     追加多部分表单内容
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">
-    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
-    /// </param>
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public HttpFileUploadBuilder With(Action<HttpRequestBuilder> configure)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        _configureRequest += configure;
-
-        return this;
-    }
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpFileUploadBuilder" />
-    /// </returns>
-    public HttpFileUploadBuilder Profiler() => With(builder => builder.Profiler(true));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="enabled">是否启用</param>
-    /// <returns>
-    ///     <see cref="HttpFileUploadBuilder" />
-    /// </returns>
-    public HttpFileUploadBuilder Profiler(bool enabled) => With(builder => builder.Profiler(enabled));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="predicate">自定义处理委托</param>
-    /// <returns>
-    ///     <see cref="HttpFileUploadBuilder" />
-    /// </returns>
-    public HttpFileUploadBuilder Profiler(Action<HttpRemoteAnalyzer> predicate) =>
-        With(builder => builder.Profiler(predicate));
+    public HttpFileUploadBuilder WithMultipart(Action<HttpMultipartFormDataBuilder> configure) =>
+        With(builder => builder.WithMultipart(configure));
 
     /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
@@ -420,7 +377,9 @@ public sealed class HttpFileUploadBuilder
 
         // 初始化 HttpRequestBuilder 实例
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).SetMultipartContent(builder =>
-            builder.AddFileWithProgressAsStream(FilePath, progressChannel, Name, FileName, ContentType));
+        {
+            builder.AddFileWithProgressAsStream(FilePath, progressChannel, Name, FileName, ContentType);
+        });
 
         // 检查是否设置了事件处理程序且该处理程序实现了 IHttpRequestEventHandler 接口，如果有则设置给 httpRequestBuilder
         if (FileTransferEventHandlerType is not null &&
@@ -430,7 +389,7 @@ public sealed class HttpFileUploadBuilder
         }
 
         // 调用自定义配置委托
-        _configureRequest?.Invoke(httpRequestBuilder);
+        Configure?.Invoke(httpRequestBuilder);
 
         return httpRequestBuilder;
     }

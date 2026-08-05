@@ -746,8 +746,8 @@ public static partial class HttpRemoteExtensions
         // 二进制内容处理
         if (isBinary)
         {
-            // 限制 Hex Dump 只打印 1KB 内容
-            const int maxHexDumpBytes = 1024; // 1KB
+            // 限制 Hex Dump 只打印 0.5KB 内容
+            const int maxHexDumpBytes = 512; // 0.5KB
             var hexBytesToShow = Math.Min(bytesToShow, maxHexDumpBytes);
 
             // 生成 Hex Dump 格式内容

@@ -278,6 +278,50 @@ public sealed partial class HttpRequestBuilder
             originalPairs.RemoveAll(u => QueryParametersToRemove.Contains(u.Key));
         }
 
+        // 处理需要替换原始 URL 地址上的键
+        if (ReplacedQueryParameterKeys is { Count: > 0 })
+        {
+            var handledKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var newOriginalPairs = new List<KeyValuePair<string, string?>>();
+
+            // 遍历所有原始参数的键
+            foreach (var pair in originalPairs)
+            {
+                // 检查是否需要替换（保留原有顺序）
+                if (ReplacedQueryParameterKeys.Contains(pair.Key))
+                {
+                    // 检查是否已替换过
+                    if (!handledKeys.Add(pair.Key))
+                    {
+                        continue;
+                    }
+
+                    // 对每个替换键只保留第一次出现，并用新值替换
+                    if (QueryParameters is not null && QueryParameters.TryGetValue(pair.Key, out var vals) &&
+                        vals.Count > 0)
+                    {
+                        newOriginalPairs.Add(new KeyValuePair<string, string?>(pair.Key, vals[0]?.ToString()));
+                    }
+                    else
+                    {
+                        newOriginalPairs.Add(pair);
+                    }
+                }
+                else
+                {
+                    newOriginalPairs.Add(pair);
+                }
+            }
+
+            originalPairs = newOriginalPairs;
+
+            // 双重检查
+            foreach (var key in handledKeys)
+            {
+                QueryParameters?.Remove(key);
+            }
+        }
+
         // 初始化 URL 参数格式化程序实例
         var formatter = urlParameterFormatter ?? new UrlParameterFormatter();
 

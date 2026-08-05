@@ -34,13 +34,8 @@ namespace Furion.HttpRemote;
 ///     <para>使用 <c>HttpRequestBuilder.ServerSentEvents(requestUri, onMessage)</c> 静态方法创建。</para>
 ///     <para>参考文献：https://developer.mozilla.org/zh-CN/docs/Web/API/Server-sent_events/Using_server-sent_events。</para>
 /// </remarks>
-public sealed class HttpServerSentEventsBuilder
+public sealed class HttpServerSentEventsBuilder : HttpRequestBuilderConfigurator<HttpServerSentEventsBuilder>
 {
-    /// <summary>
-    ///     <see cref="HttpRequestBuilder" /> 配置委托
-    /// </summary>
-    internal Action<HttpRequestBuilder>? _configureRequest;
-
     /// <summary>
     ///     <inheritdoc cref="HttpServerSentEventsBuilder" />
     /// </summary>
@@ -107,6 +102,12 @@ public sealed class HttpServerSentEventsBuilder
     ///     实现 <see cref="IHttpServerSentEventsEventHandler" /> 的类型
     /// </summary>
     internal Type? ServerSentEventsEventHandlerType { get; private set; }
+
+    /// <summary>
+    ///     是否自动修正请求方法
+    /// </summary>
+    /// <remarks>默认值为：<c>true</c>。</remarks>
+    public bool AutoCorrectMethod { get; private set; } = true;
 
     /// <summary>
     ///     设置默认重新连接的间隔时间
@@ -245,52 +246,18 @@ public sealed class HttpServerSentEventsBuilder
         SetEventHandler(typeof(TServerSentEventsEventHandler));
 
     /// <summary>
-    ///     配置 <see cref="HttpRequestBuilder" /> 实例
+    ///     设置是否自动修正请求方法
     /// </summary>
-    /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">
-    ///     自定义配置委托；可直接传入 <c>HttpRequestBuilder.Setup</c>（或 <c>HttpBuilder.Setup</c>）的链式配置结果，替代 <![CDATA[builder => builder]]> 写法。
-    /// </param>
+    /// <param name="enabled">若为 <c>true</c> 则当请求为 GET 或 HEAD 且包含请求内容时，自动将方法改为 POST；默认值为：<c>true</c>。</param>
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public HttpServerSentEventsBuilder With(Action<HttpRequestBuilder> configure)
+    public HttpServerSentEventsBuilder SetAutoCorrectMethod(bool enabled)
     {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(configure);
-
-        _configureRequest += configure;
+        AutoCorrectMethod = enabled;
 
         return this;
     }
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <returns>
-    ///     <see cref="HttpServerSentEventsBuilder" />
-    /// </returns>
-    public HttpServerSentEventsBuilder Profiler() => With(builder => builder.Profiler(true));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="enabled">是否启用</param>
-    /// <returns>
-    ///     <see cref="HttpServerSentEventsBuilder" />
-    /// </returns>
-    public HttpServerSentEventsBuilder Profiler(bool enabled) => With(builder => builder.Profiler(enabled));
-
-    /// <summary>
-    ///     设置是否启用请求分析工具
-    /// </summary>
-    /// <param name="predicate">自定义处理委托</param>
-    /// <returns>
-    ///     <see cref="HttpServerSentEventsBuilder" />
-    /// </returns>
-    public HttpServerSentEventsBuilder Profiler(Action<HttpRemoteAnalyzer> predicate) =>
-        With(builder => builder.Profiler(predicate));
 
     /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
@@ -307,7 +274,7 @@ public sealed class HttpServerSentEventsBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteOptions);
 
-        // 初始化 HttpRequestBuilder 实例，并确保请求标头中添加了 Accept: text/event-stream；同时启用 HttpClient 池化管理
+        // 初始化 HttpRequestBuilder 实例，并确保请求标头中添加了 Accept: text/event-stream；同时启用 HttpClient 池化管理；
         // 如果请求失败，则应抛出异常。
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri)
             .WithHeader(nameof(HttpRequestHeaders.Accept), "text/event-stream", replace: true).DisableCache()
@@ -321,7 +288,14 @@ public sealed class HttpServerSentEventsBuilder
         }
 
         // 调用自定义配置委托
-        _configureRequest?.Invoke(httpRequestBuilder);
+        Configure?.Invoke(httpRequestBuilder);
+
+        // 自动修正携带请求内容的 GET 或 HEAD 请求，并将请求方式重设为 POST
+        if (AutoCorrectMethod && httpRequestBuilder.RawContent is not null &&
+            (httpRequestBuilder.HttpMethod == HttpMethod.Get || httpRequestBuilder.HttpMethod == HttpMethod.Head))
+        {
+            httpRequestBuilder.SetHttpMethod(HttpMethod.Post);
+        }
 
         return httpRequestBuilder;
     }

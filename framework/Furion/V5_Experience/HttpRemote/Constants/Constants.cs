@@ -41,9 +41,9 @@ internal static class Constants
     internal const string BASIC_AUTHENTICATION_SCHEME = "Basic";
 
     /// <summary>
-    ///     JWT (JSON Web Token) 授权标识
+    ///     Bearer 授权标识
     /// </summary>
-    internal const string JWT_BEARER_AUTHENTICATION_SCHEME = "Bearer";
+    internal const string BEARER_AUTHENTICATION_SCHEME = "Bearer";
 
     /// <summary>
     ///     Digest 授权标识

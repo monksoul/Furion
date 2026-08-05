@@ -315,10 +315,11 @@ public sealed partial class HttpRequestBuilder
     ///     如果 <see cref="RawContent" /> 实现了 <see cref="IDisposable" />，并且此前已通过 <see cref="AddDisposable" />
     ///     将其添加到可释放对象列表中，则该方法会将其从列表中移除。
     /// </remarks>
+    /// <param name="disposeRawContent">是否需要是否原始内容（若实现 <see cref="IDisposable" /> 接口）。默认值为：<c>false</c>。</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    public HttpRequestBuilder RemoveContent()
+    public HttpRequestBuilder RemoveContent(bool disposeRawContent = false)
     {
         // 获取原始请求内容
         var rawContent = RawContent;
@@ -326,6 +327,12 @@ public sealed partial class HttpRequestBuilder
         // 移除需要释放的原始请求内容
         if (rawContent is IDisposable disposable)
         {
+            // 检查是否需要是否原始内容
+            if (disposeRawContent)
+            {
+                disposable.Dispose();
+            }
+
             Disposables?.Remove(disposable);
         }
 
@@ -401,6 +408,30 @@ public sealed partial class HttpRequestBuilder
         ArgumentNullException.ThrowIfNull(httpMultipartFormDataBuilder);
 
         MultipartFormDataBuilder = httpMultipartFormDataBuilder;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     追加多部分表单内容
+    /// </summary>
+    /// <remarks>仅当 <see cref="HttpMultipartFormDataBuilder" /> 不为空时有效。</remarks>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpRequestBuilder WithMultipart(Action<HttpMultipartFormDataBuilder> configure)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        // 空检查
+        if (MultipartFormDataBuilder is not null)
+        {
+            // 调用自定义配置委托
+            configure.Invoke(MultipartFormDataBuilder);
+        }
 
         return this;
     }
@@ -688,6 +719,20 @@ public sealed partial class HttpRequestBuilder
         QueryParameters.AddOrUpdate(
             parameters.WhereIf(ignoreNullValues, u => u.Value is not null)
                 .ToDictionary(StringComparer.OrdinalIgnoreCase), false, replace);
+
+        // 检查是否替换已存在的查询参数
+        if (!replace)
+        {
+            return this;
+        }
+
+        ReplacedQueryParameterKeys ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // 记录这些需要替换的参数名
+        foreach (var key in parameters.Keys)
+        {
+            ReplacedQueryParameterKeys.Add(key);
+        }
 
         return this;
     }
@@ -1113,7 +1158,7 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    public HttpRequestBuilder SetOnPostReceiveResponse(Action<HttpResponseMessage> configure)
+    public HttpRequestBuilder SetOnPostReceiveResponse(Func<HttpResponseMessage, CancellationToken, Task> configure)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(configure);
@@ -1142,7 +1187,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     如果 HTTP 响应的 IsSuccessStatusCode 属性是 <c>false</c>，则引发异常。
+    ///     如果 HTTP 响应的 IsSuccessStatusCode 属性是 <c>false</c>，则引发异常
     /// </summary>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
@@ -1187,21 +1232,39 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 JWT (JSON Web Token) 身份验证凭据请求授权标头
+    ///     设置 Bearer 身份验证凭据请求授权标头
     /// </summary>
-    /// <param name="jwtToken">JWT 字符串</param>
+    /// <param name="token">令牌</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpRequestBuilder AddJwtBearerAuthentication(string jwtToken)
+    public HttpRequestBuilder AddBearerAuthentication(string token)
     {
         // 空检查
-        ArgumentException.ThrowIfNullOrWhiteSpace(jwtToken);
+        ArgumentException.ThrowIfNullOrWhiteSpace(token);
 
-        AddAuthentication(new AuthenticationHeaderValue(Constants.JWT_BEARER_AUTHENTICATION_SCHEME, jwtToken));
+        AddAuthentication(new AuthenticationHeaderValue(Constants.BEARER_AUTHENTICATION_SCHEME, token));
 
         return this;
+    }
+
+    /// <summary>
+    ///     设置 Bearer 身份验证凭据请求授权标头
+    /// </summary>
+    /// <param name="headerName">自定义标头</param>
+    /// <param name="token">令牌</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRequestBuilder AddBearerAuthentication(string headerName, string token)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(headerName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(token);
+
+        return WithHeader(headerName, $"Bearer {token}", replace: true);
     }
 
     /// <summary>
@@ -2013,12 +2076,30 @@ public sealed partial class HttpRequestBuilder
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    public HttpRequestBuilder SetUriBuilder(Action<UriBuilder> configure)
+    public HttpRequestBuilder SetOnUriBuilding(Action<UriBuilder> configure)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(configure);
 
         OnUriBuilding += configure;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置在创建重定向构建器时进行额外配置的委托
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="configure">自定义配置委托。第一个参数是当前（原始）构建器，第二个参数是即将用于重定向的克隆构建器。可以在此处移除敏感的 Header、修改 URL 等。</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder SetOnRedirect(Action<HttpRequestBuilder, HttpRequestBuilder>? configure)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(configure);
+
+        OnRedirect += configure;
 
         return this;
     }
@@ -2155,6 +2236,24 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     设置 SOAP 请求地址
+    /// </summary>
+    /// <param name="soapAction">SOAPAction 头的值</param>
+    /// <param name="addQuotes">是否自动为该值添加双引号（"）包裹。SOAP 1.1 规范建议将非空值用双引号括起，但并非强制。默认值为：<c>false</c>。</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    // ReSharper disable once InconsistentNaming
+    public HttpRequestBuilder SetSOAPAction(string soapAction, bool addQuotes = false)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(soapAction);
+
+        return WithHeader("SOAPAction", addQuotes ? soapAction.AddQuotes() : soapAction, replace: true);
+    }
+
+    /// <summary>
     ///     将一组标头合并到现有标头字典中
     /// </summary>
     /// <param name="existing">当前标头字典</param>
@@ -2232,7 +2331,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     配置重定向信息
+    ///     基于当前构建器创建一个用于重定向的新构建器
     /// </summary>
     /// <param name="redirectUri">重定向地址</param>
     /// <param name="redirectMethod">重定向方法</param>
@@ -2240,28 +2339,51 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
-    internal HttpRequestBuilder ConfigureForRedirect(Uri? redirectUri, HttpMethod redirectMethod)
+    internal HttpRequestBuilder CreateRedirectBuilder(Uri? redirectUri, HttpMethod redirectMethod)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(redirectMethod);
 
-        RequestUri = redirectUri;
-        HttpMethod = redirectMethod;
+        // 克隆时排除不应继承的属性
+        var redirectBuilder = Clone(nameof(Disposables), nameof(HttpClientPooling), nameof(PathParameters),
+            nameof(ObjectPathParameters), nameof(QueryParameters), nameof(QueryParametersToRemove),
+            nameof(ReplacedQueryParameterKeys), nameof(PathSegments), nameof(PathSegmentsToRemove));
 
-        // 重定向时不应拼接原始请求参数和路径片段
-        QueryParameters?.Clear();
-        QueryParametersToRemove?.Clear();
-        PathSegments?.Clear();
-        PathSegmentsToRemove?.Clear();
+        // 修改重定向特有的部分
+        redirectBuilder.RequestUri = redirectUri;
+        redirectBuilder.HttpMethod = redirectMethod;
 
         // 重定向时若请求方法为 GET 或 HEAD，则不应设置请求内容
-        // ReSharper disable once InvertIf
         // Query 允许携带请求内容，参考文献：https://www.rfc-editor.org/info/rfc10008
         if (redirectMethod == HttpMethod.Get || redirectMethod == HttpMethod.Head)
         {
-            RawContent = null;
-            MultipartFormDataBuilder = null;
+            redirectBuilder.RawContent = null;
+            redirectBuilder.MultipartFormDataBuilder = null;
+            redirectBuilder.ContentType = null;
+            redirectBuilder.ContentEncoding = null;
+            redirectBuilder.OmitContentType = false;
         }
+
+        // 调用自定义的重定向配置委托
+        OnRedirect?.Invoke(this, redirectBuilder);
+
+        return redirectBuilder;
+    }
+
+    /// <summary>
+    ///     设置请求方式
+    /// </summary>
+    /// <param name="httpMethod">请求方式</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    internal HttpRequestBuilder SetHttpMethod(HttpMethod httpMethod)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(httpMethod);
+
+        HttpMethod = httpMethod;
 
         return this;
     }

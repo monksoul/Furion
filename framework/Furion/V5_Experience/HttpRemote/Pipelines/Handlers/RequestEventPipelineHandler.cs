@@ -82,8 +82,8 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
         finally
         {
             // 处理收到 HTTP 响应之后
-            HandlePostReceiveResponse(httpRequestBuilder, globalEventHandler, requestEventHandler,
-                context.ResponseMessage);
+            await HandlePostReceiveResponseAsync(httpRequestBuilder, globalEventHandler, requestEventHandler,
+                context.ResponseMessage, context.CancellationToken);
         }
     }
 
@@ -135,9 +135,12 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
     /// </param>
-    internal static void HandlePostReceiveResponse(HttpRequestBuilder httpRequestBuilder,
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    internal static async Task HandlePostReceiveResponseAsync(HttpRequestBuilder httpRequestBuilder,
         IHttpRequestEventHandler? globalEventHandler, IHttpRequestEventHandler? requestEventHandler,
-        HttpResponseMessage? httpResponseMessage)
+        HttpResponseMessage? httpResponseMessage, CancellationToken cancellationToken)
     {
         // 空检查
         if (httpResponseMessage is null)
@@ -148,15 +151,17 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
         // 空检查
         if (globalEventHandler is not null)
         {
-            DelegateExtensions.TryInvoke(globalEventHandler.OnPostReceiveResponse, httpResponseMessage);
+            await DelegateExtensions.TryInvokeAsync(globalEventHandler.OnPostReceiveResponseAsync, httpResponseMessage,
+                cancellationToken);
         }
 
         // 空检查
         if (requestEventHandler is not null)
         {
-            DelegateExtensions.TryInvoke(requestEventHandler.OnPostReceiveResponse, httpResponseMessage);
+            await DelegateExtensions.TryInvokeAsync(requestEventHandler.OnPostReceiveResponseAsync, httpResponseMessage,
+                cancellationToken);
         }
 
-        httpRequestBuilder.OnPostReceiveResponse.TryInvoke(httpResponseMessage);
+        await httpRequestBuilder.OnPostReceiveResponse.TryInvokeAsync(httpResponseMessage, cancellationToken);
     }
 }

@@ -27,12 +27,14 @@ using Furion.Extensions;
 using Furion.Utilities;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
 
 namespace Furion.HttpRemote;
@@ -40,7 +42,7 @@ namespace Furion.HttpRemote;
 /// <summary>
 ///     HTTP 远程请求模块帮助类
 /// </summary>
-internal static class Helpers
+internal static partial class Helpers
 {
     /// <summary>
     ///     HTTP QUERY <see cref="HttpMethod" /> 静态实例
@@ -302,47 +304,37 @@ internal static class Helpers
     internal static string? ExtractFileNameFromContentDisposition(ContentDispositionHeaderValue? contentDisposition)
     {
         // 空检查
-        if (!string.IsNullOrWhiteSpace(contentDisposition?.FileNameStar))
+        if (contentDisposition is null)
         {
-            // 将字符串转换为其未转义表示形式
-            return Uri.UnescapeDataString(contentDisposition.FileNameStar.Trim('"'));
+            return null;
         }
+
+        // 优先检查并使用 filename*
+        if (!string.IsNullOrWhiteSpace(contentDisposition.FileNameStar))
+        {
+            return contentDisposition.FileNameStar;
+        }
+
+        // 回退检查并使用原始 "filename=" 参数值
+        var rawFileName = contentDisposition.Parameters
+            .FirstOrDefault(u => string.Equals(u.Name, "filename", StringComparison.OrdinalIgnoreCase))?.Value;
 
         // 空检查
-        // ReSharper disable once InvertIf
-        if (!string.IsNullOrWhiteSpace(contentDisposition?.FileName))
+        if (string.IsNullOrWhiteSpace(rawFileName))
         {
-            var decodedFileName = contentDisposition.FileName.Trim('"');
-
-            // 获取原始 "filename=" 参数值
-            var rawFileName = contentDisposition.Parameters
-                .FirstOrDefault(p => string.Equals(p.Name, "filename", StringComparison.OrdinalIgnoreCase))?.Value;
-
-            // 空检查
-            // ReSharper disable once InvertIf
-            if (rawFileName is not null)
-            {
-                // 检查首尾是否包含双引号
-                // ReSharper disable once InvertIf
-                if (rawFileName.StartsWith('"') && rawFileName.EndsWith('"'))
-                {
-                    rawFileName = rawFileName.Trim('"');
-
-                    // 检查是否为 MIME 编码格式（如 =?UTF-8?B?...?=），若是则跳过乱码修复
-                    if (!(rawFileName.StartsWith("=?") && rawFileName.EndsWith("?=")))
-                    {
-                        // 尝试修复乱码，如 UTF-8 字节被错误解释为 ISO-8859-1
-                        decodedFileName =
-                            Encoding.UTF8.GetString(Encoding.GetEncoding("ISO-8859-1").GetBytes(rawFileName));
-                    }
-                }
-            }
-
-            // 将字符串转换为其未转义表示形式
-            return Uri.UnescapeDataString(decodedFileName);
+            // 如果 Parameters 中没有，尝试使用 FileName 属性
+            return string.IsNullOrWhiteSpace(contentDisposition.FileName) ? null : contentDisposition.FileName;
         }
 
-        return null;
+        // 去除首尾可能存在的空白和双引号
+        var fileName = rawFileName.Trim();
+        if (fileName.StartsWith('"') && fileName.EndsWith('"') && fileName.Length >= 2)
+        {
+            fileName = fileName[1..^1];
+        }
+
+        // 尝试解码 RFC 2047、RFC 5987 或修复 Mojibake
+        return DecodeEncodedWord(fileName);
     }
 
     /// <summary>
@@ -395,4 +387,178 @@ internal static class Helpers
 
         return baseUrl.TrimEnd('/') + "/" + requestUrl.TrimStart('/');
     }
+
+    /// <summary>
+    ///     解码 HTTP Header 中的编码字
+    /// </summary>
+    /// <remarks>
+    ///     自动识别并解码 RFC 2047（=?charset?encoding?text?=）、RFC 5987（charset'language'value）以及 UTF-8 字节被误读为 Latin-1
+    ///     的编码错乱（Mojibake）情况。
+    /// </remarks>
+    /// <param name="input">待解码的字符串</param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal static string DecodeEncodedWord(string? input)
+    {
+        // 空检查
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return string.Empty;
+        }
+
+        // 尝试解码 RFC 2047
+        if (RFC2047Regex().IsMatch(input))
+        {
+            // RFC 2047 规定：相邻编码字之间的空白应被忽略
+            var collapsed = EncodedWordGapRegex().Replace(input, "?==?");
+
+            return RFC2047Regex().Replace(collapsed, match =>
+            {
+                var charset = match.Groups["charset"].Value;
+                var encoding = match.Groups["encoding"].Value.ToUpperInvariant();
+                var encodedText = match.Groups["text"].Value;
+
+                try
+                {
+                    var bytes = encoding == "B"
+                        ? Convert.FromBase64String(encodedText)
+                        : DecodeEncodedBytes(encodedText, '=');
+
+                    return GetEncodingSafe(charset).GetString(bytes);
+                }
+                catch
+                {
+                    return match.Value;
+                }
+            });
+        }
+
+        // 尝试解码 RFC 5987
+        var firstQuote = input.IndexOf('\'');
+        if (firstQuote > 0)
+        {
+            var secondQuote = input.IndexOf('\'', firstQuote + 1);
+            if (secondQuote > firstQuote)
+            {
+                var charset = input[..firstQuote];
+                var encodedValue = input[(secondQuote + 1)..];
+
+                try
+                {
+                    var bytes = DecodeEncodedBytes(encodedValue, '%');
+                    return GetEncodingSafe(charset).GetString(bytes);
+                }
+                catch
+                {
+                    return input;
+                }
+            }
+        }
+
+        // 尝试修复 UTF-8 字节被误读为 Latin-1 的编码错乱（Mojibake）
+        // ReSharper disable once InvertIf
+        if (input.Any(c => c > 127) && !input.Contains('\uFFFD'))
+        {
+            try
+            {
+                var bytes = Encoding.Latin1.GetBytes(input);
+                var utf8Result = Encoding.UTF8.GetString(bytes);
+
+                // 确保转换后没有替换字符（U+FFFD），且结果不等于原始输入
+                if (!utf8Result.Contains('\uFFFD') && utf8Result != input)
+                {
+                    return utf8Result;
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        return input;
+    }
+
+    /// <summary>
+    ///     解码编码字节序列
+    /// </summary>
+    /// <remarks>支持 RFC 2047 Q 编码（=XX，下划线表示空格）和 RFC 5987 百分号编码（%XX）。</remarks>
+    /// <param name="input">编码后的字符串</param>
+    /// <param name="escapeChar">转义前缀字符（'=' 或 '%'）</param>
+    /// <returns>
+    ///     <see cref="byte" /> 数组
+    /// </returns>
+    internal static byte[] DecodeEncodedBytes(string input, char escapeChar)
+    {
+        var bytes = new List<byte>();
+
+        for (var i = 0; i < input.Length; i++)
+        {
+            if (input[i] == escapeChar && i + 2 < input.Length)
+            {
+                var hex = input.AsSpan(i + 1, 2);
+                if (byte.TryParse(hex, NumberStyles.HexNumber, null, out var b))
+                {
+                    bytes.Add(b);
+                    i += 2;
+                }
+                else
+                {
+                    bytes.Add((byte)input[i]);
+                }
+            }
+            else if (escapeChar == '=' && input[i] == '_')
+            {
+                // RFC 2047 Q 编码中，下划线表示空格
+                bytes.Add(0x20);
+            }
+            else
+            {
+                bytes.Add((byte)input[i]);
+            }
+        }
+
+        return bytes.ToArray();
+    }
+
+    /// <summary>
+    ///     获取字符编码
+    /// </summary>
+    /// <param name="charset">字符集名称</param>
+    /// <returns>
+    ///     <see cref="Encoding" />
+    /// </returns>
+    internal static Encoding GetEncodingSafe(string charset)
+    {
+        try
+        {
+            // 注册 CodePagesEncodingProvider，使得程序能够识别并使用 Windows 代码页中的各种编码
+            EncodingUtility.Initialize();
+
+            return Encoding.GetEncoding(charset);
+        }
+        catch
+        {
+            return Encoding.UTF8;
+        }
+    }
+
+    /// <summary>
+    ///     RFC 2027 编码正则表达式
+    /// </summary>
+    /// <returns>
+    ///     <see cref="Regex" />
+    /// </returns>
+    [GeneratedRegex(@"=\?(?<charset>[^?]+)\?(?<encoding>[BbQq])\?(?<text>[^?]*)\?=")]
+    private static partial Regex RFC2047Regex();
+
+    /// <summary>
+    ///     RFC 2047 编码字之间的可忽略空白字符正则表达式
+    /// </summary>
+    /// <returns>
+    ///     <see cref="Regex" />
+    /// </returns>
+    [GeneratedRegex(@"\?=\s+=\?")]
+    private static partial Regex EncodedWordGapRegex();
 }

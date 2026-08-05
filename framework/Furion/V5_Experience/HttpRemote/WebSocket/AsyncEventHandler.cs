@@ -26,40 +26,49 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 远程请求事件处理程序
+///     异步事件委托
 /// </summary>
-public interface IHttpRequestEventHandler
+/// <typeparam name="TEventArgs">事件参数类型</typeparam>
+public delegate Task AsyncEventHandler<in TEventArgs>(object sender, TEventArgs e);
+
+/// <summary>
+///     <see cref="AsyncEventHandler{TEventArgs}" /> 扩展类
+/// </summary>
+internal static class AsyncEventHandlerExtensions
 {
     /// <summary>
-    ///     用于处理在发送 HTTP 请求之前的操作
+    ///     尝试异步执行事件处理程序
     /// </summary>
-    /// <param name="httpRequestMessage">
-    ///     <see cref="HttpRequestMessage" />
+    /// <param name="handler">
+    ///     <see cref="AsyncEventHandler{TEventArgs}" />
     /// </param>
-    void OnPreSendRequest(HttpRequestMessage httpRequestMessage);
+    /// <param name="sender">
+    ///     <see cref="object" />
+    /// </param>
+    /// <param name="args">
+    ///     <typeparamref name="TEventArgs" />
+    /// </param>
+    /// <typeparam name="TEventArgs">事件参数类型</typeparam>
+    internal static async Task TryInvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? handler, object sender,
+        TEventArgs args)
+    {
+        // 空检查
+        if (handler is null)
+        {
+            return;
+        }
 
-    /// <summary>
-    ///     用于处理在收到 HTTP 响应之后的操作
-    /// </summary>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <param name="cancellationToken">
-    ///     <see cref="CancellationToken" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="Task" />
-    /// </returns>
-    Task OnPostReceiveResponseAsync(HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken);
-
-    /// <summary>
-    ///     用于处理在发送 HTTP 请求发生异常时的操作
-    /// </summary>
-    /// <param name="exception">
-    ///     <see cref="Exception" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    void OnRequestFailed(Exception exception, HttpResponseMessage? httpResponseMessage);
+        // 等待所有操作完成并按顺序执行
+        foreach (var asyncHandler in handler.GetInvocationList())
+        {
+            try
+            {
+                await ((AsyncEventHandler<TEventArgs>)asyncHandler).Invoke(sender, args).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+    }
 }

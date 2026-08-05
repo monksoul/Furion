@@ -40,10 +40,10 @@ internal sealed class HttpMultipartFormDataBuilderDeclarativeExtractor : IFrozen
             return;
         }
 
-        // 处理和 [Multipart] 特性冲突问题
+        // 处理和 [Multipart] 特性提取器冲突问题
         if (httpRequestBuilder.MultipartFormDataBuilder is not null)
         {
-            multipartFormDataBuilderAction.Invoke(httpRequestBuilder.MultipartFormDataBuilder);
+            httpRequestBuilder.WithMultipart(multipartFormDataBuilderAction);
         }
         else
         {

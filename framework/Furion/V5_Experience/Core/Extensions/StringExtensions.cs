@@ -57,7 +57,7 @@ internal static partial class StringExtensions
         }
 
         // 检查是否已经有双引号，防止重复添加
-        if (input.StartsWith('"') && input.EndsWith('"'))
+        if (input.StartsWith('"') && input.EndsWith('"') && input.Length >= 2)
         {
             return input;
         }

@@ -51,14 +51,18 @@ internal static class EventHandlerExtensions
             return;
         }
 
-        try
+        // 等待所有操作完成并按顺序执行
+        foreach (var singleDelegate in handler.GetInvocationList())
         {
-            handler(sender, args);
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                ((EventHandler<TEventArgs>)singleDelegate).Invoke(sender, args);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 }

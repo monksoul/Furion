@@ -321,6 +321,9 @@ internal sealed class ServerSentEventsManager
         // 初始化 ServerSentEventsData 实例
         serverSentEventsData ??= new ServerSentEventsData();
 
+        // 记录原始行
+        serverSentEventsData.AppendRawLine(line);
+
         string key;
         string value;
         // 获取首个冒号位置

@@ -46,14 +46,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 等待所有操作完成并按顺序执行
+        foreach (var handler in func.GetInvocationList())
         {
-            await func(parameter1, parameter2);
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                await ((Func<T1, T2, Task>)handler).Invoke(parameter1, parameter2).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
@@ -71,14 +75,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 等待所有操作完成并按顺序执行
+        foreach (var handler in func.GetInvocationList())
         {
-            await func(parameter);
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                await ((Func<T, Task>)handler).Invoke(parameter).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
@@ -94,14 +102,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 等待所有操作完成并按顺序执行
+        foreach (var handler in func.GetInvocationList())
         {
-            await func();
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                await ((Func<Task>)handler).Invoke().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
@@ -121,14 +133,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 按顺序依次执行所有操作
+        foreach (var handler in action.GetInvocationList())
         {
-            action(parameter1, parameter2);
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                ((Action<T1, T2>)handler).Invoke(parameter1, parameter2);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
@@ -146,14 +162,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 按顺序依次执行所有操作
+        foreach (var handler in action.GetInvocationList())
         {
-            action(parameter);
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                ((Action<T>)handler).Invoke(parameter);
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
@@ -169,14 +189,18 @@ internal static class DelegateExtensions
             return;
         }
 
-        try
+        // 按顺序依次执行所有操作
+        foreach (var handler in action.GetInvocationList())
         {
-            action();
-        }
-        catch (Exception e)
-        {
-            // 输出调试事件
-            Debugging.Error(e.Message);
+            try
+            {
+                ((Action)handler).Invoke();
+            }
+            catch (Exception e)
+            {
+                // 输出调试事件
+                Debugging.Error(e.Message);
+            }
         }
     }
 
