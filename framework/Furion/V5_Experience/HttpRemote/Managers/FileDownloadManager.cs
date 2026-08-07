@@ -44,6 +44,9 @@ internal sealed class FileDownloadManager
     /// <inheritdoc cref="IHttpRemoteService" />
     internal readonly IHttpRemoteService _httpRemoteService;
 
+    /// <inheritdoc cref="IHttpRemoteLogger" />
+    internal readonly IHttpRemoteLogger _logger;
+
     /// <summary>
     ///     文件传输进度信息的通道
     /// </summary>
@@ -64,17 +67,23 @@ internal sealed class FileDownloadManager
     /// <param name="httpRemoteService">
     ///     <see cref="IHttpRemoteService" />
     /// </param>
+    /// <param name="logger">
+    ///     <see cref="IHttpRemoteLogger" />
+    /// </param>
     /// <param name="httpFileDownloadBuilder">
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal FileDownloadManager(IHttpRemoteService httpRemoteService, HttpFileDownloadBuilder httpFileDownloadBuilder)
+    internal FileDownloadManager(IHttpRemoteService httpRemoteService, IHttpRemoteLogger logger,
+        HttpFileDownloadBuilder httpFileDownloadBuilder)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteService);
+        ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(httpFileDownloadBuilder);
 
         _httpRemoteService = httpRemoteService;
+        _logger = logger;
         _httpFileDownloadBuilder = httpFileDownloadBuilder;
 
         // 初始化文件传输进度信息的通道
@@ -175,6 +184,10 @@ internal sealed class FileDownloadManager
             // 根据文件是否存在及配置的行为来决定是否应继续进行文件下载
             if (!ShouldContinueWithDownload(httpResponseMessage, out var destinationPath))
             {
+                // 记录因文件存在而跳过下载
+                _logger.LogInformation("File already exists at '{DestinationPath}'. Skipping download as configured.",
+                    destinationPath);
+
                 // 处理文件存在且配置为跳过时的操作
                 HandleFileExistAndSkip();
 
@@ -190,6 +203,17 @@ internal sealed class FileDownloadManager
             var acceptRanges = httpResponseMessage.Headers.AcceptRanges;
             var supportsRange = acceptRanges.Count > 0 && acceptRanges.Contains("bytes");
 
+            // 判断是否启用了多线程下载，且服务器支持 Range 请求、文件大小有效
+            var isMultiThreaded = _httpFileDownloadBuilder.MaxThreads > 1 && supportsRange && contentLength > 0;
+
+            // 记录下载任务启动信息及所选模式
+            _logger.LogInformation(
+                "Starting file download. URL: '{RequestUri}'. Destination: '{DestinationPath}'. Size: {Size} bytes. Mode: {Mode}.",
+                fileTransferResult.RequestUri, destinationPath, contentLength,
+                isMultiThreaded
+                    ? $"Multi-threaded ({_httpFileDownloadBuilder.MaxThreads} threads)"
+                    : "Single-threaded");
+
             // 初始化 FileTransferProgress 实例
             var fileTransferProgress = new FileTransferProgress(destinationPath, contentLength);
 
@@ -200,8 +224,8 @@ internal sealed class FileDownloadManager
             // 实际接收到的字节大小
             long actualBytesReceived;
 
-            // 检查是否启用了多线程下载，且服务器支持 Range 请求、文件大小有效
-            if (_httpFileDownloadBuilder.MaxThreads > 1 && supportsRange && contentLength > 0)
+            // 检查是否启用了多线程下载
+            if (isMultiThreaded)
             {
                 // 多线程分块下载
                 await DownloadInChunksAsync(contentLength, fileStream, fileTransferProgress, stopwatch,
@@ -214,7 +238,7 @@ internal sealed class FileDownloadManager
             {
                 // 单线程下载
                 actualBytesReceived = await DownloadSingleThreadedAsync(httpResponseMessage, fileStream,
-                    fileTransferProgress, stopwatch, cancellationToken);
+                    fileTransferProgress, stopwatch, contentLength, cancellationToken);
             }
 
             // 移动临时文件至文件保存的目标路径
@@ -222,6 +246,11 @@ internal sealed class FileDownloadManager
 
             // 计算文件传输总花费时间
             var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            // 记录下载成功完成
+            _logger.LogInformation(
+                "File download completed successfully. Path: '{FilePath}'. Size: {FileSize} bytes. Elapsed: {ElapsedMilliseconds}ms.",
+                destinationPath, actualBytesReceived, elapsedMilliseconds);
 
             // 处理文件传输完成
             HandleTransferCompleted(elapsedMilliseconds);
@@ -235,6 +264,9 @@ internal sealed class FileDownloadManager
         }
         catch (Exception e)
         {
+            // 记录下载失败异常
+            _logger.LogError(e, "File download failed. URL: '{RequestUri}'.", fileTransferResult.RequestUri);
+
             // 清理临时文件
             fileStream?.Close();
             if (File.Exists(tempDestinationPath))
@@ -321,6 +353,11 @@ internal sealed class FileDownloadManager
         {
             // 等待所有分块下载任务完成
             await Task.WhenAll(tasks);
+
+            // 提示进入合并阶段
+            _logger.LogInformation(
+                "All chunks downloaded successfully. Merging {ChunkCount} temporary files into the final destination...",
+                maxThreads);
 
             // 重置文件流指针至起始位置
             fileStream.Seek(0, SeekOrigin.Begin);
@@ -419,7 +456,7 @@ internal sealed class FileDownloadManager
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
         var bytesReceived = 0L;
 
-        //  获取分块的重试和超时参数以及当前重试次数
+        //  获取分块下载的最大重试次数和单次读取数据的最大空闲等待时间以及当前重试次数
         var maxRetries = _httpFileDownloadBuilder.ChunkMaxRetries;
         var chunkTimeout = _httpFileDownloadBuilder.ChunkTimeout;
         var currentRetry = 0;
@@ -446,10 +483,10 @@ internal sealed class FileDownloadManager
                     .WithoutTimeout().SetRetry(0)
                     .WithHeader(HeaderNames.Range, $"bytes={currentStart}-{end}", replace: true);
 
-                // 初始化当前重试取消令牌实例
+                // 初始化当前重试的超时取消令牌
                 using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                // 如果不是永不超时，那么就在规定时间内取消操作
+                // 若未配置永不超时，则在规定时间内取消操作
                 if (chunkTimeout != Timeout.InfiniteTimeSpan)
                 {
                     attemptCts.CancelAfter(chunkTimeout);
@@ -545,10 +582,17 @@ internal sealed class FileDownloadManager
                 // 下载失败递增重试次数
                 currentRetry++;
 
+                // 记录分块下载失败、已下载字节数及重试状态
+                _logger.LogWarning(ex,
+                    "Chunk download failed. Target range: bytes={Start}-{End}. Downloaded before failure: {Downloaded} bytes. Retrying ({CurrentRetry}/{MaxRetries})...",
+                    start, end, bytesReceived, currentRetry, maxRetries);
+
                 // 检查最大重试次数
                 if (currentRetry > maxRetries)
                 {
-                    throw new InvalidOperationException($"Chunk download failed after {maxRetries} retries.", ex);
+                    throw new InvalidOperationException(
+                        $"Chunk download failed after {maxRetries} retries. Target range: bytes={start}-{end}, Downloaded before failure: {bytesReceived} bytes.",
+                        ex);
                 }
 
                 // 指数退避重试
@@ -573,19 +617,26 @@ internal sealed class FileDownloadManager
     /// <param name="stopwatch">
     ///     <see cref="Stopwatch" />
     /// </param>
+    /// <param name="expectedContentLength">预期的文件总大小</param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <returns>
     ///     <see cref="long" />
     /// </returns>
+    /// <exception cref="InvalidOperationException"></exception>
     internal async Task<long> DownloadSingleThreadedAsync(HttpResponseMessage httpResponseMessage,
         FileStream fileStream,
-        FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
+        FileTransferProgress fileTransferProgress, Stopwatch stopwatch,
+        long expectedContentLength,
+        CancellationToken cancellationToken)
     {
         // 初始化读取数据的缓冲区和记录进度所需的变量
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
         var bytesReceived = 0L;
+
+        // 获取单次读取数据的最大空闲等待时间
+        var chunkTimeout = _httpFileDownloadBuilder.ChunkTimeout;
 
         // 获取 HTTP 响应内容中的内容流
         await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
@@ -594,23 +645,56 @@ internal sealed class FileDownloadManager
         await using var decompressedStream = Helpers.WrapDecompressionStream(stream, httpResponseMessage);
 
         // 循环读取数据直到取消请求或读取完毕
-        int numBytesRead;
-        while (!cancellationToken.IsCancellationRequested &&
-               (numBytesRead = await decompressedStream.ReadAsync(buffer, cancellationToken)) > 0)
+        while (!cancellationToken.IsCancellationRequested)
         {
+            // 初始化单次读取网络响应流的超时取消令牌
+            using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            // 若未配置永不超时，则在规定时间内取消操作
+            if (chunkTimeout != Timeout.InfiniteTimeSpan)
+            {
+                readCts.CancelAfter(chunkTimeout);
+            }
+
+            int numBytesRead;
+            try
+            {
+                // 读取流
+                numBytesRead = await decompressedStream.ReadAsync(buffer, readCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                     readCts.IsCancellationRequested)
+            {
+                throw new TimeoutException($"Single-thread read idle timeout after {chunkTimeout.TotalSeconds}s.");
+            }
+
+            // 检查是否存在读取到的内容
+            if (numBytesRead == 0)
+            {
+                break;
+            }
+
             // 将读取的数据写入文件
             await fileStream.WriteAsync(buffer.AsMemory(0, numBytesRead), cancellationToken);
 
             // 更新文件传输进度
             bytesReceived += numBytesRead;
 
-            // 发送文件传输进度到通道
+            // 判断当前是否允许执行操作
             // ReSharper disable once InvertIf
             if (_throttler.TryEnter())
             {
+                // 发送文件传输进度到通道
                 fileTransferProgress.UpdateProgress(bytesReceived, stopwatch.Elapsed);
                 await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
             }
+        }
+
+        // 最终完整性校验
+        if (expectedContentLength > 0 && stream == decompressedStream && bytesReceived != expectedContentLength)
+        {
+            throw new InvalidOperationException(
+                $"Download incomplete. Expected {expectedContentLength} bytes, but received {bytesReceived} bytes.");
         }
 
         // 更新下载完成时的传输进度

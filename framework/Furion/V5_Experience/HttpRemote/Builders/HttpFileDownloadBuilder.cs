@@ -89,18 +89,31 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     public int MaxThreads { get; private set; } = 1;
 
     /// <summary>
-    ///     分块下载单次读取数据的最大空闲等待时间
+    ///     单次读取数据的最大空闲等待时间（滑动窗口超时）
     /// </summary>
     /// <remarks>
-    ///     注意：这是“读取空闲超时”而非“总超时”。只要数据在持续流入，下载不会中断；若在此时间内未读取到任何字节，则视为网络假死并触发重试。设置为 <see cref="Timeout.InfiniteTimeSpan" />
-    ///     表示不超时。默认值为 30 秒。
+    ///     <para>注意：这是“读取空闲超时”而非“总耗时限制”。只要网络在持续传输数据（哪怕每秒 1 Byte），计时器就会不断重置，下载不会中断。</para>
+    ///     <para>该配置同时作用于单线程和多线程模式：</para>
+    ///     <list type="bullet">
+    ///         <item>
+    ///             <description><b>多线程模式</b>：控制单个分块（Chunk）的读取超时。若超时则触发断点续传重试。</description>
+    ///         </item>
+    ///         <item>
+    ///             <description><b>单线程模式</b>：控制整个文件流的读取超时。若超时则视为网络假死并直接抛出异常（单线程模式不支持自动重试，大文件建议使用多线程）。</description>
+    ///         </item>
+    ///     </list>
+    ///     <para>设置为 <see cref="Timeout.InfiniteTimeSpan" /> 表示永不超时。默认值为 100 秒。</para>
     /// </remarks>
-    public TimeSpan ChunkTimeout { get; private set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan ChunkTimeout { get; private set; } = TimeSpan.FromSeconds(100);
 
     /// <summary>
-    ///     分块下载最大重试次数
+    ///     多线程分块下载的最大重试次数
     /// </summary>
-    /// <remarks>默认值为 3 次。</remarks>
+    /// <remarks>
+    ///     <para>仅在<b>多线程模式</b>下生效。当单个分块因网络抖动或触发 <see cref="ChunkTimeout" /> 失败时，自动进行断点续传重试。</para>
+    ///     <para>注：单线程模式下若发生超时或网络断开，将直接导致整体下载失败，不会触发此重试机制。</para>
+    ///     <para>默认值为 3 次。</para>
+    /// </remarks>
     public int ChunkMaxRetries { get; private set; } = 3;
 
     /// <summary>
@@ -235,9 +248,9 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     }
 
     /// <summary>
-    ///     设置分块下载单次读取数据的最大空闲等待时间
+    ///     设置单次读取数据的最大空闲等待时间（滑动窗口超时）
     /// </summary>
-    /// <param name="chunkTimeout">分块下载单次读取数据的最大空闲等待时间</param>
+    /// <param name="chunkTimeout">单次读取数据的最大空闲等待时间</param>
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
@@ -257,9 +270,9 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     }
 
     /// <summary>
-    ///     设置分块下载最大重试次数
+    ///     设置多线程分块下载的最大重试次数
     /// </summary>
-    /// <param name="chunkMaxRetries">分块下载最大重试次数</param>
+    /// <param name="chunkMaxRetries">多线程分块下载的最大重试次数</param>
     /// <returns>
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </returns>
@@ -274,6 +287,40 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
         }
 
         ChunkMaxRetries = chunkMaxRetries;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     开启高速下载模式
+    /// </summary>
+    /// <remarks>该模式专为大文件和千兆网络环境优化，通过多线程分块和大缓冲区显著突破带宽瓶颈。</remarks>
+    /// <returns>
+    ///     <see cref="HttpFileDownloadBuilder" />
+    /// </returns>
+    public HttpFileDownloadBuilder EnableHighSpeedMode() =>
+        EnableHighSpeedMode(Math.Min(Environment.ProcessorCount, 4));
+
+    /// <summary>
+    ///     开启高速下载模式
+    /// </summary>
+    /// <param name="maxThreads">下载最大线程数。公网下载推荐 4~8，局域网 NAS 推荐 16~32</param>
+    /// <returns>
+    ///     <see cref="HttpFileDownloadBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpFileDownloadBuilder EnableHighSpeedMode(int maxThreads)
+    {
+        // 小于或等于 0 检查
+        if (maxThreads <= 0)
+        {
+            throw new ArgumentException("Max Threads must be greater than 0.", nameof(maxThreads));
+        }
+
+        MaxThreads = maxThreads;
+        BufferSize = 4 * 1024 * 1024;
+        ChunkMaxRetries = 5;
+        ChunkTimeout = TimeSpan.FromMinutes(2);
 
         return this;
     }

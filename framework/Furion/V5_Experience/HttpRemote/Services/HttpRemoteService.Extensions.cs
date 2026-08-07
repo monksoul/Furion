@@ -73,12 +73,12 @@ internal sealed partial class HttpRemoteService
     /// <inheritdoc />
     public FileTransferResult Send(HttpFileDownloadBuilder httpFileDownloadBuilder,
         CancellationToken cancellationToken = default) =>
-        new FileDownloadManager(this, httpFileDownloadBuilder).Start(cancellationToken);
+        new FileDownloadManager(this, _logger, httpFileDownloadBuilder).Start(cancellationToken);
 
     /// <inheritdoc />
     public Task<FileTransferResult> SendAsync(HttpFileDownloadBuilder httpFileDownloadBuilder,
         CancellationToken cancellationToken = default) =>
-        new FileDownloadManager(this, httpFileDownloadBuilder).StartAsync(cancellationToken);
+        new FileDownloadManager(this, _logger, httpFileDownloadBuilder).StartAsync(cancellationToken);
 
     /// <inheritdoc />
     public HttpResponseMessage? UploadFile(string? requestUri, string filePath, string name = "file",
@@ -114,12 +114,12 @@ internal sealed partial class HttpRemoteService
     /// <inheritdoc />
     public HttpResponseMessage? Send(HttpFileUploadBuilder httpFileUploadBuilder,
         CancellationToken cancellationToken = default) =>
-        new FileUploadManager(this, httpFileUploadBuilder).Start(cancellationToken);
+        new FileUploadManager(this, _logger, httpFileUploadBuilder).Start(cancellationToken);
 
     /// <inheritdoc />
     public Task<HttpResponseMessage?> SendAsync(HttpFileUploadBuilder httpFileUploadBuilder,
         CancellationToken cancellationToken = default) =>
-        new FileUploadManager(this, httpFileUploadBuilder).StartAsync(cancellationToken);
+        new FileUploadManager(this, _logger, httpFileUploadBuilder).StartAsync(cancellationToken);
 
     /// <inheritdoc />
     public void ServerSentEvents(string? requestUri, Func<ServerSentEventsData, CancellationToken, Task> onMessage,

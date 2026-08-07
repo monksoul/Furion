@@ -42,6 +42,9 @@ internal sealed class FileUploadManager
     /// <inheritdoc cref="IHttpRemoteService" />
     internal readonly IHttpRemoteService _httpRemoteService;
 
+    /// <inheritdoc cref="IHttpRemoteLogger" />
+    internal readonly IHttpRemoteLogger _logger;
+
     /// <summary>
     ///     文件传输进度信息的通道
     /// </summary>
@@ -53,17 +56,23 @@ internal sealed class FileUploadManager
     /// <param name="httpRemoteService">
     ///     <see cref="IHttpRemoteService" />
     /// </param>
+    /// <param name="logger">
+    ///     <see cref="IHttpRemoteLogger" />
+    /// </param>
     /// <param name="httpFileUploadBuilder">
     ///     <see cref="HttpFileUploadBuilder" />
     /// </param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal FileUploadManager(IHttpRemoteService httpRemoteService, HttpFileUploadBuilder httpFileUploadBuilder)
+    internal FileUploadManager(IHttpRemoteService httpRemoteService, IHttpRemoteLogger logger,
+        HttpFileUploadBuilder httpFileUploadBuilder)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteService);
+        ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(httpFileUploadBuilder);
 
         _httpRemoteService = httpRemoteService;
+        _logger = logger;
         _httpFileUploadBuilder = httpFileUploadBuilder;
 
         // 初始化文件传输进度信息的通道
@@ -139,14 +148,28 @@ internal sealed class FileUploadManager
 
         try
         {
+            // 记录上传任务启动信息
+            _logger.LogInformation("Starting file upload. URL: '{RequestUri}'.", RequestBuilder.RequestUri);
+
             // 发送 HTTP 远程请求
             httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder, cancellationToken);
 
-            // 计算文件传输总花费时间并处理文件传输完成
-            HandleTransferCompleted(stopwatch.ElapsedMilliseconds);
+            // 计算文件传输总花费时间
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            // 记录上传成功完成及服务器响应状态码
+            _logger.LogInformation(
+                "File upload completed successfully. URL: '{RequestUri}'. Status: {StatusCode}. Elapsed: {ElapsedMilliseconds}ms.",
+                RequestBuilder.RequestUri, httpResponseMessage?.StatusCode, elapsedMilliseconds);
+
+            // 处理文件传输完成
+            HandleTransferCompleted(elapsedMilliseconds);
         }
         catch (Exception e)
         {
+            // 记录上传失败异常
+            _logger.LogError(e, "File upload failed. URL: '{RequestUri}'.", RequestBuilder.RequestUri);
+
             // 处理文件传输失败
             HandleTransferFailed(e);
 
