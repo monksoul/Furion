@@ -12,9 +12,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Furion" Version="4.9.9.65" />
-		<PackageReference Include="Furion.Extras.Authentication.JwtBearer" Version="4.9.9.65" />
-		<PackageReference Include="Furion.Extras.ObjectMapper.Mapster" Version="4.9.9.65" />
+		<PackageReference Include="Furion" Version="4.9.9.66" />
+		<PackageReference Include="Furion.Extras.Authentication.JwtBearer" Version="4.9.9.66" />
+		<PackageReference Include="Furion.Extras.ObjectMapper.Mapster" Version="4.9.9.66" />
 	</ItemGroup>
 
 </Project>
