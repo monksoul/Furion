@@ -91,14 +91,14 @@ internal sealed class AutoRedirectPipelineHandler(
             var redirectBuilder = httpRequestBuilder.CreateRedirectBuilder(redirectUri, redirectMethod);
 
             // 构建新的 HttpRequestMessage 实例
-            var redirectHttpRequestMessage = redirectBuilder.Build(remoteOptions, httpContentProcessorFactory,
+            var redirectRequestMessage = redirectBuilder.Build(remoteOptions, httpContentProcessorFactory,
                 context.HttpClient.BaseAddress ?? remoteOptions.FallbackBaseAddress);
 
             // 释放前一个 HttpResponseMessage 实例
             httpResponseMessage.Dispose();
 
             // 重新调用发送 HTTP 请求委托
-            httpResponseMessage = await context.SendAsync(context.HttpClient, redirectHttpRequestMessage,
+            httpResponseMessage = await context.SendAsync(context.HttpClient, redirectRequestMessage,
                 context.CompletionOption, context.CancellationToken);
 
             // 修复无效的响应内容字符编码

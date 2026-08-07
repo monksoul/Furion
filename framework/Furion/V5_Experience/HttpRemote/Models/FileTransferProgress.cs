@@ -61,7 +61,7 @@ public sealed partial class FileTransferProgress
     internal static readonly List<FileTransferProgress> _multiLineRegistrations = [];
 
     /// <summary>
-    ///     多行进度条模式下已输出的总行数
+    ///     多行模式下已输出的总行数
     /// </summary>
     internal static int _multiLineTotalRows;
 
@@ -550,10 +550,14 @@ public sealed partial class FileTransferProgress
         // 获取当前 UTC 时间
         var now = DateTimeOffset.UtcNow;
 
+        // 记录最后一个元素
+        (DateTimeOffset Timestamp, long Bytes) lastRecord;
+
         lock (_historyLock)
         {
             // 记录当前传输点
             _transferHistory.Enqueue((now, transferred));
+            lastRecord = (now, transferred);
 
             // 清理过期记录（早于当前时间 - 窗口大小）
             while (_transferHistory.Count > 1 &&
@@ -575,11 +579,10 @@ public sealed partial class FileTransferProgress
             else
             {
                 var first = _transferHistory.Peek();
-                var last = _transferHistory.ElementAt(_transferHistory.Count - 1);
 
                 // 计算窗口期内的字节增量和时间增量
-                var bytesDelta = last.Bytes - first.Bytes;
-                var timeDelta = (last.Timestamp - first.Timestamp).TotalSeconds;
+                var bytesDelta = lastRecord.Bytes - first.Bytes;
+                var timeDelta = (lastRecord.Timestamp - first.Timestamp).TotalSeconds;
 
                 // 计算瞬时速率（字节/秒）
                 transferRate = timeDelta > _epsilon ? bytesDelta / timeDelta : 0;
@@ -616,10 +619,14 @@ public sealed partial class FileTransferProgress
         // 计算剩余时间
         var secondsRemaining = (FileSize - Transferred) / TransferRate;
 
-        // 如果剩余时间超过最大值，则返回最大值
-        return secondsRemaining > TimeSpan.MaxValue.TotalSeconds
-            ? TimeSpan.MaxValue
-            : TimeSpan.FromSeconds(secondsRemaining);
+        // 如果剩余时间为 Infinity、NaN 或超过最大值，则返回最大值
+        if (double.IsNaN(secondsRemaining) || double.IsInfinity(secondsRemaining) ||
+            secondsRemaining > TimeSpan.MaxValue.TotalSeconds)
+        {
+            return TimeSpan.MaxValue;
+        }
+
+        return TimeSpan.FromSeconds(secondsRemaining);
     }
 
     /// <summary>
@@ -629,30 +636,37 @@ public sealed partial class FileTransferProgress
     /// <param name="isComplete">是否已完成传输</param>
     internal void FallbackWrite(string text, bool isComplete)
     {
-        // 获取文本的显示长度
-        var displayLen = GetDisplayLength(text);
-
-        // 初始化需要填充的最长显示长度
-        var fillLen = Math.Max(_lastDisplayLength, displayLen);
-        var padding = fillLen - displayLen;
-
-        // 输出文本
-        Console.Write("\r" + text);
-
-        // 填充空格
-        if (padding > 0)
+        try
         {
-            Console.Write(new string(' ', padding));
-        }
+            // 获取文本的显示长度
+            var displayLen = GetDisplayLength(text);
 
-        // 完成时换行并重置头标记
-        if (isComplete)
+            // 初始化需要填充的最长显示长度
+            var fillLen = Math.Max(_lastDisplayLength, displayLen);
+            var padding = fillLen - displayLen;
+
+            // 输出文本
+            Console.Write("\r" + text);
+
+            // 填充空格
+            if (padding > 0)
+            {
+                Console.Write(new string(' ', padding));
+            }
+
+            // 完成时换行并重置头标记
+            if (isComplete)
+            {
+                Console.WriteLine();
+                _hasPrintedHeader = false;
+            }
+
+            _lastDisplayLength = fillLen;
+        }
+        catch
         {
-            Console.WriteLine();
-            _hasPrintedHeader = false;
+            // ignored
         }
-
-        _lastDisplayLength = fillLen;
     }
 
     /// <summary>
@@ -679,6 +693,6 @@ public sealed partial class FileTransferProgress
     /// <returns>
     ///     <see cref="Regex" />
     /// </returns>
-    [GeneratedRegex(@"\e\[[\d;]*[a-zA-Z]")]
+    [GeneratedRegex(@"\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07")]
     private static partial Regex AnsiRegex();
 }

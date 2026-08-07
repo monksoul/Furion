@@ -28,6 +28,7 @@ using Furion.Utilities;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Mime;
@@ -48,6 +49,65 @@ internal static partial class Helpers
     ///     HTTP QUERY <see cref="HttpMethod" /> 静态实例
     /// </summary>
     internal static readonly HttpMethod HttpQuery = new("QUERY");
+
+    /// <summary>
+    ///     根据 Content-Encoding 自动包装解压流
+    /// </summary>
+    /// <remarks>支持 gzip/deflate/br/zstd 解压。</remarks>
+    /// <param name="rawStream">
+    ///     <see cref="Stream" />
+    /// </param>
+    /// <param name="httpResponseMessage">
+    ///     <see cref="HttpResponseMessage" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="Stream" />
+    /// </returns>
+    internal static Stream WrapDecompressionStream(Stream rawStream, HttpResponseMessage httpResponseMessage) =>
+        WrapDecompressionStream(rawStream,
+            httpResponseMessage.Content.Headers.ContentEncoding.FirstOrDefault()?.Trim().ToLowerInvariant());
+
+    /// <summary>
+    ///     根据 Content-Encoding 自动包装解压流
+    /// </summary>
+    /// <remarks>支持 gzip/deflate/br/zstd 解压。</remarks>
+    /// <param name="rawStream">
+    ///     <see cref="Stream" />
+    /// </param>
+    /// <param name="contentEncoding">内容编码</param>
+    /// <returns>
+    ///     <see cref="Stream" />
+    /// </returns>
+    internal static Stream WrapDecompressionStream(Stream rawStream, string? contentEncoding)
+    {
+        // 检查是否是 WebAssembly 应用
+        if (OperatingSystem.IsBrowser())
+        {
+            return rawStream;
+        }
+
+        // 检查释放已是解压流
+        if (rawStream is GZipStream or DeflateStream or BrotliStream
+#if NET11_0_OR_GREATER
+            or ZstandardStream
+#endif
+           )
+        {
+            return rawStream;
+        }
+
+        // 尝试解压操作
+        return contentEncoding switch
+        {
+            "gzip" => new GZipStream(rawStream, CompressionMode.Decompress, true),
+            "deflate" => new DeflateStream(rawStream, CompressionMode.Decompress, true),
+            "br" => new BrotliStream(rawStream, CompressionMode.Decompress, true),
+#if NET11_0_OR_GREATER
+            "zstd" => new ZstandardStream(rawStream, CompressionMode.Decompress, true),
+#endif
+            _ => rawStream
+        };
+    }
 
     /// <summary>
     ///     从互联网 URL 地址中加载流

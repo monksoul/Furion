@@ -200,15 +200,23 @@ public sealed class StressTestHarnessResult
         }
 
         // 初始化计算所需变量
-        var min = double.MaxValue;
-        var max = double.MinValue;
+        var min = responseTimes[0];
+        var max = responseTimes[0];
         var sum = 0.0;
 
         // 计算总响应时间，同时更新最小和最大值（毫秒）
         foreach (var t in responseTimes)
         {
-            min = Math.Min(min, t);
-            max = Math.Max(max, t);
+            if (t < min)
+            {
+                min = t;
+            }
+
+            if (t > max)
+            {
+                max = t;
+            }
+
             sum += t;
         }
 
@@ -253,7 +261,7 @@ public sealed class StressTestHarnessResult
     /// </returns>
     internal static double CalculatePercentile(double[] sortedResponseTimes, double percentile)
     {
-        var index = (int)Math.Ceiling(percentile * sortedResponseTimes.Length) - 1;
+        var index = (int)Math.Ceiling((percentile * sortedResponseTimes.Length) - 1e-9) - 1;
         if (index >= sortedResponseTimes.Length)
         {
             index = sortedResponseTimes.Length - 1;

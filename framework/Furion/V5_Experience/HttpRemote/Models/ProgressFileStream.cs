@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Utilities;
 using System.Diagnostics;
 using System.Threading.Channels;
 
@@ -52,6 +53,9 @@ internal sealed class ProgressFileStream : Stream
     /// <inheritdoc cref="Stopwatch" />
     internal readonly Stopwatch _stopwatch;
 
+    /// <inheritdoc cref="Throttler" />
+    internal readonly Throttler _throttler;
+
     /// <summary>
     ///     是否已经开始读取或写入
     /// </summary>
@@ -70,9 +74,10 @@ internal sealed class ProgressFileStream : Stream
     /// </param>
     /// <param name="filePath">文件路径或文件的名称</param>
     /// <param name="progressChannel">文件传输进度信息的通道</param>
+    /// <param name="progressInterval">进度更新（通知）的间隔时间</param>
     /// <param name="fileName">文件的名称</param>
     internal ProgressFileStream(Stream fileStream, string filePath, Channel<FileTransferProgress> progressChannel,
-        string? fileName = null)
+        TimeSpan progressInterval, string? fileName = null)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(fileStream);
@@ -82,6 +87,9 @@ internal sealed class ProgressFileStream : Stream
         _fileStream = fileStream;
         _fileLength = fileStream.Length;
         _progressChannel = progressChannel;
+
+        // 初始化节流器实例
+        _throttler = new Throttler(progressInterval);
 
         // 初始化 FileTransferProgress 实例
         _fileTransferProgress = new FileTransferProgress(filePath, _fileLength, fileName);
@@ -256,11 +264,16 @@ internal sealed class ProgressFileStream : Stream
         // 更新当前已传输的数据量
         var transferred = Interlocked.Add(ref _transferred, increment);
 
-        // 更新文件传输进度信息
-        _fileTransferProgress.UpdateProgress(transferred, _stopwatch.Elapsed);
+        // 判断当前是否允许执行操作
+        // ReSharper disable once InvertIf
+        if (transferred >= _fileLength || _throttler.TryEnter())
+        {
+            // 更新文件传输进度信息
+            _fileTransferProgress.UpdateProgress(transferred, _stopwatch.Elapsed);
 
-        // 发送文件传输进度到通道
-        _progressChannel.Writer.TryWrite(_fileTransferProgress);
+            // 发送文件传输进度到通道
+            _progressChannel.Writer.TryWrite(_fileTransferProgress);
+        }
     }
 
     /// <summary>

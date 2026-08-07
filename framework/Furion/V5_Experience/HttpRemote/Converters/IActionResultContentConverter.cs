@@ -74,18 +74,31 @@ public class IActionResultContentConverter : HttpContentConverterBase<IActionRes
             case MediaTypeNames.Text.Html:
             case MediaTypeNames.Text.Plain:
             case MediaTypeNames.Application.Soap:
-                // 读取字符串内容
-                var stringContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-
-                return new ContentResult
                 {
-                    Content = stringContent, StatusCode = (int)statusCode, ContentType = contentType?.ToString()
-                };
+                    // 读取流内容
+                    var rawStream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
+
+                    // 尝试解压内容流，解决部分内容流被压缩的情况
+                    var decompressedStream = Helpers.WrapDecompressionStream(rawStream, httpResponseMessage);
+
+                    var streamResult = new FileStreamResult(decompressedStream, contentType?.ToString()!)
+                    {
+                        LastModified = contentHeaders.LastModified?.UtcDateTime
+                    };
+
+                    // 确保原始流被正确释放
+                    if (decompressedStream != rawStream)
+                    {
+                        await rawStream.DisposeAsync();
+                    }
+
+                    return streamResult;
+                }
             default:
                 // 读取流内容
-                var streamContent = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
+                var fileStream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 
-                return new FileStreamResult(streamContent, contentType?.ToString() ?? MediaTypeNames.Application.Octet)
+                return new FileStreamResult(fileStream, contentType?.ToString() ?? MediaTypeNames.Application.Octet)
                 {
                     // 尝试从响应标头 Content-Disposition 中解析文件名
                     FileDownloadName = Helpers.ExtractFileNameFromContentDisposition(contentHeaders.ContentDisposition),

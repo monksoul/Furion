@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.Utilities;
+using System.Net;
 
 namespace Furion.HttpRemote;
 
@@ -34,7 +35,10 @@ namespace Furion.HttpRemote;
 /// <param name="accessTokenManager">
 ///     <see cref="IHttpAccessTokenManager" />
 /// </param>
-public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManager)
+/// <param name="logger">
+///     <see cref="IHttpRemoteLogger" />
+/// </param>
+public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManager, IHttpRemoteLogger logger)
     : IHttpAccessTokenProvider, IHttpAccessTokenConfigurator
 {
     // Furion 框架相关常量定义
@@ -70,17 +74,47 @@ public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManage
             // 如果任意一个值为空则跳过
             if (string.IsNullOrWhiteSpace(newAccessToken) || string.IsNullOrWhiteSpace(newRefreshToken))
             {
+                logger.LogWarning("Furion access token response headers are present but empty or invalid.");
+
                 return;
             }
 
-            // 从新的 Access Token 的 JWT 中解析过期时间
-            var expiresAt = JwtTokenUtility.Parse(newAccessToken).GetExpirationTimeUtc()!;
+            // 如果服务端返回 "invalid_token"，说明 RefreshToken 也彻底失效了
+            if (newAccessToken == "invalid_token")
+            {
+                logger.LogWarning("Furion refresh token is invalid or expired. Server returned 'invalid_token'.");
 
-            // 创建新的 HttpAccessToken 实例
-            var updatedToken = new HttpAccessToken(newAccessToken, expiresAt.Value) { RefreshToken = newRefreshToken };
+                return;
+            }
 
-            // 更新 Access Token 缓存
-            await accessTokenManager.SetAsync(httpRequestBuilder.HttpClientName, updatedToken, cancellationToken);
+            try
+            {
+                // 从新的 Access Token 的 JWT 中解析过期时间
+                var expiresAt = JwtTokenUtility.Parse(newAccessToken).GetExpirationTimeUtc();
+
+                // 空检查
+                if (expiresAt is null)
+                {
+                    logger.LogWarning("Failed to parse expiration time from the new Furion access token.");
+
+                    return;
+                }
+
+                // 创建新的 HttpAccessToken 实例
+                var updatedToken =
+                    new HttpAccessToken(newAccessToken, expiresAt.Value) { RefreshToken = newRefreshToken };
+
+                // 更新 Access Token 缓存
+                await accessTokenManager.SetAsync(httpRequestBuilder.HttpClientName, updatedToken, cancellationToken);
+
+                // 记录刷新成功及新的过期时间
+                logger.LogInformation("Furion access token successfully refreshed. New expiration time: {ExpiresAt:O}.",
+                    expiresAt.Value);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "An error occurred while parsing or updating the Furion access token.");
+            }
         });
     }
 
@@ -90,7 +124,45 @@ public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManage
         Task.FromResult<HttpAccessToken?>(null);
 
     /// <inheritdoc />
+    public virtual Task<HttpAccessToken?> RefreshAsync(HttpAccessTokenContext context, HttpAccessToken? currentToken,
+        CancellationToken cancellationToken)
+    {
+        // 空检查
+        if (currentToken is null)
+        {
+            logger.LogWarning("Cannot refresh Furion access token because the current token is null.");
+
+            return Task.FromResult<HttpAccessToken?>(null);
+        }
+
+        // 初始化新的 HttpAccessToken 实例
+        var forcedExpiredToken = new HttpAccessToken(currentToken.Value, DateTimeOffset.MinValue)
+        {
+            RefreshToken = currentToken.RefreshToken, Scheme = currentToken.Scheme
+        };
+
+        // 复制自定义共享数据
+        foreach (var item in currentToken.Items)
+        {
+            forcedExpiredToken.Items[item.Key] = item.Value;
+        }
+
+        return Task.FromResult<HttpAccessToken?>(forcedExpiredToken);
+    }
+
+    /// <inheritdoc />
     public virtual Task<bool> ShouldRefreshAsync(HttpAccessTokenContext context,
-        HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken) =>
-        Task.FromResult(false);
+        HttpResponseMessage httpResponseMessage, CancellationToken cancellationToken)
+    {
+        // 检查响应状态码是否是 401 或 403
+        var shouldRefresh = httpResponseMessage.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+
+        // 判断是否需要刷新
+        if (shouldRefresh)
+        {
+            logger.LogWarning("Furion access token refresh triggered due to HTTP 401 Unauthorized response.");
+        }
+
+        return Task.FromResult(shouldRefresh);
+    }
 }

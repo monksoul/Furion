@@ -497,6 +497,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <param name="fileName">文件的名称</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="contentEncoding">内容编码</param>
+    /// <param name="progressInterval">进度更新（通知）的间隔时间。默认值为 250 毫秒。</param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>
@@ -505,7 +506,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <exception cref="FileNotFoundException"></exception>
     public HttpMultipartFormDataBuilder AddFileWithProgressAsStream(string filePath,
         Channel<FileTransferProgress> progressChannel, string name = "file", string? fileName = null,
-        string? contentType = null, Encoding? contentEncoding = null)
+        string? contentType = null, Encoding? contentEncoding = null, TimeSpan? progressInterval = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -524,11 +525,16 @@ public sealed class HttpMultipartFormDataBuilder
         // 读取文件流（没有 using）
         var fileStream = File.OpenRead(filePath);
 
-        // 初始化带读写进度的文件流
-        var progressFileStream = new ProgressFileStream(fileStream, filePath, progressChannel, newFileName);
+        // 设置进度更新（通知）的默认间隔时间
+        var actualProgressInterval = !progressInterval.HasValue || progressInterval.Value <= TimeSpan.Zero
+            ? TimeSpan.FromMilliseconds(250)
+            : progressInterval.Value;
 
-        return AddStream(progressFileStream, name, newFileName, contentType, contentEncoding,
-            true);
+        // 初始化带读写进度的文件流
+        var progressFileStream =
+            new ProgressFileStream(fileStream, filePath, progressChannel, actualProgressInterval, newFileName);
+
+        return AddStream(progressFileStream, name, newFileName, contentType, contentEncoding, true);
     }
 
     /// <summary>

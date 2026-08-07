@@ -27,6 +27,7 @@ using Furion.Extensions;
 using Furion.Utilities;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Channels;
 
@@ -115,6 +116,9 @@ internal sealed class ServerSentEventsManager
     /// <exception cref="InvalidOperationException"></exception>
     internal async Task StartAsync(CancellationToken cancellationToken = default)
     {
+        // 初始化关联取消 Token
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
         // 初始化事件消息传输的通道
         var messageChannel = Channel.CreateUnbounded<ServerSentEventsData>(new UnboundedChannelOptions
         {
@@ -122,23 +126,49 @@ internal sealed class ServerSentEventsManager
         });
 
         // 初始化接收事件消息任务
-        var receiveDataTask = ReceiveDataAsync(messageChannel, cancellationToken);
+        var receiveDataTask = ReceiveDataAsync(messageChannel, linkedCts.Token);
+
+        // 初始化记录原始异常
+        Exception? originalException = null;
 
         try
         {
             // 开始接收（核心）
-            await StartCoreAsync(messageChannel.Writer, cancellationToken);
+            await StartCoreAsync(messageChannel.Writer, linkedCts.Token);
+        }
+        catch (Exception ex)
+        {
+            // 生产者出错，取消订阅
+            await linkedCts.CancelAsync();
+            originalException = ex;
         }
         finally
         {
             // 关闭通道，通知接收任务结束
             messageChannel.Writer.TryComplete();
 
-            // 等待接收事件消息任务完成
-            await receiveDataTask;
+            try
+            {
+                // 等待接收事件消息任务完成
+                await receiveDataTask;
+            }
+            catch (Exception ex)
+            {
+                // 只有当生产者没出错，且消费者抛出的是真实的业务异常时才记录
+                if (originalException is null && ex is not OperationCanceledException)
+                {
+                    originalException = ex;
+                }
+            }
 
             // 释放资源集合
             RequestBuilder.ReleaseResources();
+        }
+
+        // 空检查
+        if (originalException is not null)
+        {
+            ExceptionDispatchInfo.Capture(originalException).Throw();
         }
     }
 
@@ -154,6 +184,9 @@ internal sealed class ServerSentEventsManager
     internal async IAsyncEnumerable<ServerSentEventsData> StartAsAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        // 初始化关联取消 Token
+        using var internalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
         // 初始化事件消息传输的通道
         var messageChannel = Channel.CreateUnbounded<ServerSentEventsData>(new UnboundedChannelOptions
         {
@@ -161,26 +194,36 @@ internal sealed class ServerSentEventsManager
         });
 
         // 开始接收（核心）
-        var producerTask = StartCoreAsync(messageChannel.Writer, cancellationToken);
+        var producerTask = StartCoreAsync(messageChannel.Writer, internalCts.Token);
 
         try
         {
             // 从通道中读取事件
-            await foreach (var eventData in messageChannel.Reader.ReadAllAsync(cancellationToken))
+            await foreach (var eventData in messageChannel.Reader.ReadAllAsync(internalCts.Token))
             {
                 yield return eventData;
             }
         }
         finally
         {
+            // 外部退出终止推送
+            await internalCts.CancelAsync();
+
             // 关闭通道，通知接收任务结束
             messageChannel.Writer.TryComplete();
 
             // 释放资源集合
             RequestBuilder.ReleaseResources();
 
-            // 等待接收服务器响应数据任务完成
-            await producerTask;
+            try
+            {
+                // 等待接收服务器响应数据任务完成
+                await producerTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // 忽略因外部退出导致的取消异常
+            }
         }
     }
 
@@ -195,6 +238,12 @@ internal sealed class ServerSentEventsManager
     /// </param>
     private async Task StartCoreAsync(ChannelWriter<ServerSentEventsData> writer, CancellationToken cancellationToken)
     {
+        // 记录最后的 Event ID，用于断线重连时实现 SSE 规范的断点续传
+        string? lastEventId = null;
+
+        // 初始化正常结束标志，用于区分服务器主动断开 (EOF) 是正常结束还是意外断开
+        var isGracefulShutdown = false;
+
         try
         {
             // 重试循环
@@ -202,8 +251,20 @@ internal sealed class ServerSentEventsManager
             {
                 try
                 {
+                    // 初始化当前构建器
+                    var activeRequestBuilder = RequestBuilder;
+
+                    // 重连时动态添加 Last-Event-ID 请求头，确保服务器能从断点处继续推送
+                    if (!string.IsNullOrWhiteSpace(lastEventId))
+                    {
+                        // 克隆 HttpRequestBuilder 并设置 Last-Event-ID 头
+                        activeRequestBuilder = RequestBuilder
+                            .Clone(nameof(HttpRequestBuilder.Disposables), nameof(HttpRequestBuilder.HttpClientPooling))
+                            .WithHeader("Last-Event-ID", lastEventId, replace: true);
+                    }
+
                     // 发送 HTTP 远程请求
-                    using var httpResponseMessage = await _httpRemoteService.SendAsync(RequestBuilder,
+                    using var httpResponseMessage = await _httpRemoteService.SendAsync(activeRequestBuilder,
                         HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
                     // 空检查
@@ -225,15 +286,55 @@ internal sealed class ServerSentEventsManager
                     ServerSentEventsData? currentEvent = null;
 
                     // 循环读取数据直到取消请求或读取完毕
-                    while (!cancellationToken.IsCancellationRequested &&
-                           await streamReader.ReadLineAsync(cancellationToken) is { } line)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        // 空检查
+                        // 读取一行消息
+                        var line = await streamReader.ReadLineAsync(cancellationToken);
+
+                        // 检查服务器是否主动关闭了连接 (EOF)
+                        if (line is null)
+                        {
+                            // 如果存在正在构建且完整的事件，则先派发它
+                            if (currentEvent is not null && IsEventComplete(currentEvent))
+                            {
+                                // 记录最后的 Event ID
+                                if (!string.IsNullOrWhiteSpace(currentEvent.Id))
+                                {
+                                    lastEventId = currentEvent.Id;
+                                }
+
+                                // 重置当前重试次数
+                                CurrentRetries = 0;
+
+                                // 发送事件数据到通道
+                                await writer.WriteAsync(currentEvent, cancellationToken);
+                            }
+
+                            // 标记为优雅关闭
+                            isGracefulShutdown = true;
+                            break;
+                        }
+
+                        // 空检查（SSE 规范：空行代表一个事件块的结束）
                         if (string.IsNullOrWhiteSpace(line))
                         {
                             // 检查是否有待派发的事件
                             if (currentEvent is not null && IsEventComplete(currentEvent))
                             {
+                                // 如果数据是 "[DONE]"，说明流已正常结束，AI 接口常见的结束标记（如 DeepSeek/OpenAI 的 "[DONE]"）
+                                if (currentEvent.Data.Trim() == "[DONE]")
+                                {
+                                    // 标记为优雅关闭，直接跳出循环
+                                    isGracefulShutdown = true;
+                                    break;
+                                }
+
+                                // 记录最后的 Event ID
+                                if (!string.IsNullOrWhiteSpace(currentEvent.Id))
+                                {
+                                    lastEventId = currentEvent.Id;
+                                }
+
                                 // 重置当前重试次数
                                 CurrentRetries = 0;
 
@@ -249,9 +350,24 @@ internal sealed class ServerSentEventsManager
 
                         // 尝试解析事件消息行文本
                         TryParseEventLine(line, ref currentEvent);
+
+                        // 如果服务器下发了极大的 retry 值（如 retry: 999999）
+                        // 那么在 SSE 规范中服务器暗示客户端“不要重连”的标准做法
+                        // ReSharper disable once InvertIf
+                        if (currentEvent?.Retry >= 999999)
+                        {
+                            // 标记为优雅关闭
+                            isGracefulShutdown = true;
+
+                            break;
+                        }
                     }
 
-                    break;
+                    // 如果是优雅关闭，直接跳出外层的重试循环
+                    if (isGracefulShutdown)
+                    {
+                        break;
+                    }
                 }
                 // 任务被取消
                 catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
@@ -381,6 +497,11 @@ internal sealed class ServerSentEventsManager
         // 空检查
         if (_httpServerSentEventsBuilder.OnMessage is null && ServerSentEventsEventHandler is null)
         {
+            // 没有接收数据的操作也要消费通道，避免内存泄漏
+            await foreach (var _ in messageChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+            }
+
             return;
         }
 
@@ -399,10 +520,6 @@ internal sealed class ServerSentEventsManager
         catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)
         {
             // 任务被取消
-        }
-        catch (Exception)
-        {
-            // ignored
         }
     }
 

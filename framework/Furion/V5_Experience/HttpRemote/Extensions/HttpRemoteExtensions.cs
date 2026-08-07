@@ -30,7 +30,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics.CodeAnalysis;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Mime;
@@ -377,9 +376,9 @@ public static partial class HttpRemoteExtensions
                         [
                             new KeyValuePair<string, IEnumerable<string>>(string.Empty,
                             [
-                                $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), buffering disabled to protect underlying stream]\e[0m"
+                                $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), underlying stream is not seekable and buffering is disabled to protect it]\e[0m"
                             ])
-                        ], $"{summary} ({httpContent.GetType().Name}, Skipped to protect stream)");
+                        ], $"{summary} ({httpContent.GetType().Name}, Skipped: stream not seekable)");
                 }
             }
 
@@ -393,9 +392,9 @@ public static partial class HttpRemoteExtensions
                     [
                         new KeyValuePair<string, IEnumerable<string>>(string.Empty,
                         [
-                            $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"})]\e[0m"
+                            $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), because HttpCompletionOption is {completionOption}]\e[0m"
                         ])
-                    ], $"{summary} ({httpContent.GetType().Name}, Skipped due to streaming)");
+                    ], $"{summary} ({httpContent.GetType().Name}, Skipped: {completionOption})");
             }
 
             try
@@ -931,7 +930,7 @@ public static partial class HttpRemoteExtensions
     /// <summary>
     ///     从流中读取最多指定数量的解压后字节
     /// </summary>
-    /// <param name="compressedStream">压缩数据流</param>
+    /// <param name="rawStream">压缩数据流</param>
     /// <param name="contentEncoding">内容编码（gzip, deflate, br, zstd 等）</param>
     /// <param name="maxBytes">最多读取的字节数（解压后）</param>
     /// <param name="cancellationToken">
@@ -944,31 +943,11 @@ public static partial class HttpRemoteExtensions
     ///     <para>包含解压后字节数组、实际读取字节数以及是否截断的值元组</para>
     /// </returns>
     internal static async Task<(byte[] Buffer, int TotalRead, bool IsTruncated)> ReadAndDecompressFirstBytesAsync(
-        Stream compressedStream, string? contentEncoding, int maxBytes, CancellationToken cancellationToken)
+        Stream rawStream, string? contentEncoding, int maxBytes, CancellationToken cancellationToken)
     {
-        Stream? decompressor = null;
+        // 根据 Content-Encoding 自动包装解压流
+        var decompressedStream = Helpers.WrapDecompressionStream(rawStream, contentEncoding);
 
-        // 空检查
-        if (!string.IsNullOrWhiteSpace(contentEncoding))
-        {
-            // 检查是否不是 WebAssembly 应用
-            if (!OperatingSystem.IsBrowser())
-            {
-                decompressor = contentEncoding.Trim().ToLowerInvariant() switch
-                {
-                    "gzip" => new GZipStream(compressedStream, CompressionMode.Decompress, true),
-                    "deflate" => new DeflateStream(compressedStream, CompressionMode.Decompress, true),
-                    "br" => new BrotliStream(compressedStream, CompressionMode.Decompress, true),
-#if NET11_0_OR_GREATER
-                    "zstd" => new ZstandardStream(compressedStream, CompressionMode.Decompress, true),
-#endif
-
-                    _ => null
-                };
-            }
-        }
-
-        var readStream = decompressor ?? compressedStream;
         try
         {
             // 初始化最大读取字节数的缓冲区
@@ -979,7 +958,7 @@ public static partial class HttpRemoteExtensions
             while (totalRead < buffer.Length)
             {
                 // 从流中读取数据并写入缓冲区
-                var read = await readStream.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead),
+                var read = await decompressedStream.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead),
                     cancellationToken);
 
                 // 检查流结束
@@ -1000,11 +979,10 @@ public static partial class HttpRemoteExtensions
         }
         finally
         {
-            // 空检查
-            if (decompressor is not null)
+            // 确保解压流被正确释放
+            if (decompressedStream != rawStream)
             {
-                // 确保解压流被正确释放
-                await decompressor.DisposeAsync();
+                await decompressedStream.DisposeAsync();
             }
         }
     }

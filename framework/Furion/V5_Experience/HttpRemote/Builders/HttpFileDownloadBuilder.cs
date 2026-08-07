@@ -89,6 +89,21 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     public int MaxThreads { get; private set; } = 1;
 
     /// <summary>
+    ///     分块下载单次读取数据的最大空闲等待时间
+    /// </summary>
+    /// <remarks>
+    ///     注意：这是“读取空闲超时”而非“总超时”。只要数据在持续流入，下载不会中断；若在此时间内未读取到任何字节，则视为网络假死并触发重试。设置为 <see cref="Timeout.InfiniteTimeSpan" />
+    ///     表示不超时。默认值为 30 秒。
+    /// </remarks>
+    public TimeSpan ChunkTimeout { get; private set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    ///     分块下载最大重试次数
+    /// </summary>
+    /// <remarks>默认值为 3 次。</remarks>
+    public int ChunkMaxRetries { get; private set; } = 3;
+
+    /// <summary>
     ///     用于处理在文件开始传输时的操作
     /// </summary>
     public Action? OnTransferStarted { get; private set; }
@@ -215,6 +230,50 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
         }
 
         MaxThreads = maxThreads;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置分块下载单次读取数据的最大空闲等待时间
+    /// </summary>
+    /// <param name="chunkTimeout">分块下载单次读取数据的最大空闲等待时间</param>
+    /// <returns>
+    ///     <see cref="HttpFileDownloadBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpFileDownloadBuilder SetChunkTimeout(TimeSpan chunkTimeout)
+    {
+        // 小于 0 或永不超时检查
+        if (chunkTimeout <= TimeSpan.Zero && chunkTimeout != Timeout.InfiniteTimeSpan)
+        {
+            throw new ArgumentException("Chunk timeout must be greater than 0 or Timeout.InfiniteTimeSpan.",
+                nameof(chunkTimeout));
+        }
+
+        ChunkTimeout = chunkTimeout;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置分块下载最大重试次数
+    /// </summary>
+    /// <param name="chunkMaxRetries">分块下载最大重试次数</param>
+    /// <returns>
+    ///     <see cref="HttpFileDownloadBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpFileDownloadBuilder SetChunkMaxRetries(int chunkMaxRetries)
+    {
+        // 小于 0 检查
+        if (chunkMaxRetries < 0)
+        {
+            throw new ArgumentException("Chunk max retries must be greater than or equal to 0.",
+                nameof(chunkMaxRetries));
+        }
+
+        ChunkMaxRetries = chunkMaxRetries;
 
         return this;
     }
@@ -371,7 +430,7 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(DestinationPath);
 
-        // 初始化 HttpRequestBuilder 实例；如果请求失败，则应抛出异常。
+        // 初始化 HttpRequestBuilder 实例，如果请求失败，则应抛出异常
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).PerformanceOptimization()
             .EnsureSuccessStatusCode();
 

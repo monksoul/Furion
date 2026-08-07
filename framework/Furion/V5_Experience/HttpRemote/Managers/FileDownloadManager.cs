@@ -28,7 +28,6 @@ using Furion.Utilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Net;
 using System.Threading.Channels;
 
@@ -294,27 +293,82 @@ internal sealed class FileDownloadManager
         var maxThreads = _httpFileDownloadBuilder.MaxThreads;
         var chunkSize = (contentLength + maxThreads - 1) / maxThreads;
 
-        // 初始化 SemaphoreSlim 实例，确保文件写入顺序是连续的
-        var fileWriteLock = new SemaphoreSlim(1, 1);
-
         // 重置全局已接收字节数
         _totalBytesReceived = 0;
 
-        // 初始化任务列表，每个任务负责一个分块
+        // 创建联动取消令牌，防止某个分块彻底失败导致其他分块继续运行
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        // 初始化任务列表和每个分块创建的临时文件列表
         var tasks = new List<Task>(maxThreads);
+        var chunkTempFiles = new string[maxThreads];
+
+        // 根据配置的最大线程数创建分块下载任务
         for (var i = 0; i < maxThreads; i++)
         {
             // 计算当前分块的起始和结束位置
             var start = i * chunkSize;
             var end = Math.Min(((i + 1) * chunkSize) - 1, contentLength - 1);
 
+            // 为每个分块创建独立的临时文件
+            chunkTempFiles[i] = Path.GetTempFileName();
+
             // 启动分块下载任务
-            tasks.Add(DownloadChunkAsync(start, end, fileStream, fileWriteLock, fileTransferProgress, stopwatch,
-                cancellationToken));
+            tasks.Add(DownloadChunkWithFailFastAsync(start, end, chunkTempFiles[i], linkedCts));
         }
 
-        // 等待所有分块下载任务完成
-        await Task.WhenAll(tasks);
+        try
+        {
+            // 等待所有分块下载任务完成
+            await Task.WhenAll(tasks);
+
+            // 重置文件流指针至起始位置
+            fileStream.Seek(0, SeekOrigin.Begin);
+
+            var mergeBuffer = new byte[_httpFileDownloadBuilder.BufferSize];
+
+            // 将所有分块文件按顺序合并到主文件中
+            foreach (var chunkFile in chunkTempFiles)
+            {
+                // 检查分块文件是否存在
+                if (!File.Exists(chunkFile))
+                {
+                    continue;
+                }
+
+                // 读取分块文件
+                await using var chunkStream = new FileStream(chunkFile, FileMode.Open, FileAccess.Read,
+                    FileShare.Read, _httpFileDownloadBuilder.BufferSize, true);
+
+                // 合并所有分块文件到主文件
+                int bytesRead;
+                while ((bytesRead = await chunkStream.ReadAsync(mergeBuffer, cancellationToken)) > 0)
+                {
+                    await fileStream.WriteAsync(mergeBuffer.AsMemory(0, bytesRead), cancellationToken);
+                }
+            }
+        }
+        finally
+        {
+            // 清理掉所有临时分块文件
+            foreach (var chunkFile in chunkTempFiles)
+            {
+                // 检查分块文件是否存在
+                if (!File.Exists(chunkFile))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    File.Delete(chunkFile);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
 
         // 更新下载完成时的传输进度
         fileTransferProgress.FileSize = _totalBytesReceived;
@@ -322,6 +376,24 @@ internal sealed class FileDownloadManager
 
         // 发送文件传输进度到通道
         await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
+        return;
+
+        // 包装分块下载任务，实现异常时的联动取消
+        async Task DownloadChunkWithFailFastAsync(long start, long end, string chunkTempFilePath,
+            CancellationTokenSource cts)
+        {
+            try
+            {
+                await DownloadChunkAsync(start, end, chunkTempFilePath, fileTransferProgress, stopwatch, cts.Token);
+            }
+            catch
+            {
+                // 只要有一个分块彻底失败，立即取消其他所有分块
+                await cts.CancelAsync();
+
+                throw;
+            }
+        }
     }
 
     /// <summary>
@@ -329,12 +401,7 @@ internal sealed class FileDownloadManager
     /// </summary>
     /// <param name="start">分块起始字节位置</param>
     /// <param name="end">分块结束字节位置</param>
-    /// <param name="fileStream">
-    ///     <see cref="FileStream" />
-    /// </param>
-    /// <param name="fileWriteLock">
-    ///     <see cref="SemaphoreSlim" />
-    /// </param>
+    /// <param name="chunkTempFilePath">分块专属的临时文件路径</param>
     /// <param name="fileTransferProgress">
     ///     <see cref="FileTransferProgress" />
     /// </param>
@@ -345,67 +412,147 @@ internal sealed class FileDownloadManager
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <exception cref="InvalidOperationException"></exception>
-    internal async Task DownloadChunkAsync(long start, long end, FileStream fileStream, SemaphoreSlim fileWriteLock,
+    internal async Task DownloadChunkAsync(long start, long end, string chunkTempFilePath,
         FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
     {
-        // 克隆 HttpRequestBuilder 并设置 Range 头
-        var httpRequestBuilder =
-            RequestBuilder.Clone().WithHeader(HeaderNames.Range, $"bytes={start}-{end}", replace: true);
-
-        // 发送 HTTP 远程请求
-        using var httpResponseMessage = await _httpRemoteService.SendAsync(httpRequestBuilder,
-            HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-        // 空检查
-        if (httpResponseMessage is null)
-        {
-            return;
-        }
-
-        // 检查服务器是否返回了部分内容（HTTP 206）
-        if (httpResponseMessage.StatusCode is not HttpStatusCode.PartialContent)
-        {
-            throw new InvalidOperationException(
-                $"Server did not return partial content for range {start}-{end}. Status code: {httpResponseMessage.StatusCode}.");
-        }
-
         // 初始化读取数据的缓冲区和记录进度所需的变量
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
         var bytesReceived = 0L;
 
-        // 获取 HTTP 响应内容中的内容流
-        await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
+        //  获取分块的重试和超时参数以及当前重试次数
+        var maxRetries = _httpFileDownloadBuilder.ChunkMaxRetries;
+        var chunkTimeout = _httpFileDownloadBuilder.ChunkTimeout;
+        var currentRetry = 0;
 
-        // 循环读取数据直到取消请求或分块完成
-        int numBytesRead;
-        while (!cancellationToken.IsCancellationRequested &&
-               (numBytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+        while (currentRetry <= maxRetries)
         {
-            // 使用异步锁等待
-            await fileWriteLock.WaitAsync(cancellationToken);
+            // 处理用户主动取消
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                // 定位到文件指定位置并写入读取的数据
-                fileStream.Seek(start + bytesReceived, SeekOrigin.Begin);
-                await fileStream.WriteAsync(buffer.AsMemory(0, numBytesRead), cancellationToken);
+                // 根据已成功接收的字节数调整 Range 请求头
+                var currentStart = start + bytesReceived;
 
-                // 更新已接收字节数
-                bytesReceived += numBytesRead;
-                _totalBytesReceived += numBytesRead;
-            }
-            finally
-            {
-                // 确保锁被释放
-                fileWriteLock.Release();
-            }
+                // 检查分块是否已下载完成
+                if (currentStart > end)
+                {
+                    break;
+                }
 
-            // 发送文件传输进度到通道
-            // ReSharper disable once InvertIf
-            if (_throttler.TryEnter())
+                // 克隆 HttpRequestBuilder 并设置 Range 头
+                var clonedBuilder = RequestBuilder
+                    .Clone(nameof(HttpRequestBuilder.Disposables), nameof(HttpRequestBuilder.HttpClientPooling))
+                    .WithoutTimeout().SetRetry(0)
+                    .WithHeader(HeaderNames.Range, $"bytes={currentStart}-{end}", replace: true);
+
+                // 初始化当前重试取消令牌实例
+                using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                // 如果不是永不超时，那么就在规定时间内取消操作
+                if (chunkTimeout != Timeout.InfiniteTimeSpan)
+                {
+                    attemptCts.CancelAfter(chunkTimeout);
+                }
+
+                // 发送 HTTP 远程请求
+                using var httpResponseMessage = await _httpRemoteService.SendAsync(clonedBuilder,
+                    HttpCompletionOption.ResponseHeadersRead, attemptCts.Token);
+
+                // 空检查
+                if (httpResponseMessage is null)
+                {
+                    throw new InvalidOperationException("HTTP response is null.");
+                }
+
+                // 检查服务器是否返回了部分内容（HTTP 206）
+                if (httpResponseMessage.StatusCode is not HttpStatusCode.PartialContent)
+                {
+                    throw new InvalidOperationException(
+                        $"Server did not return partial content for range {currentStart}-{end}. Status code: {httpResponseMessage.StatusCode}.");
+                }
+
+                // 获取 HTTP 响应内容中的内容流
+                await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(attemptCts.Token);
+
+                // 初始化分块文件流
+                await using var chunkFileStream = new FileStream(chunkTempFilePath, FileMode.OpenOrCreate,
+                    FileAccess.Write, FileShare.None, _httpFileDownloadBuilder.BufferSize, true);
+
+                // 定位分块文件流指针至末尾位置
+                chunkFileStream.SetLength(bytesReceived);
+                chunkFileStream.Seek(0, SeekOrigin.End);
+
+                // 循环读取数据直到取消请求或分块完成
+                while (true)
+                {
+                    // 处理用户主动取消
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // 初始化读取分块文件流超时取消令牌
+                    using var readCts = CancellationTokenSource.CreateLinkedTokenSource(attemptCts.Token);
+
+                    // 如果不是永不超时，那么就在规定时间内取消操作
+                    if (chunkTimeout != Timeout.InfiniteTimeSpan)
+                    {
+                        readCts.CancelAfter(chunkTimeout);
+                    }
+
+                    int numBytesRead;
+                    try
+                    {
+                        // 读取分块流
+                        numBytesRead = await stream.ReadAsync(buffer, readCts.Token);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                             readCts.IsCancellationRequested)
+                    {
+                        throw new TimeoutException($"Chunk read idle timeout after {chunkTimeout.TotalSeconds}s.");
+                    }
+
+                    // 检查是否存在读取到的内容
+                    if (numBytesRead == 0)
+                    {
+                        break;
+                    }
+
+                    // 写入当前分块专属的临时文件
+                    await chunkFileStream.WriteAsync(buffer.AsMemory(0, numBytesRead), cancellationToken);
+
+                    // 更新已接收字节数
+                    bytesReceived += numBytesRead;
+
+                    // 同步实际接收到的字节大小
+                    var newTotalBytesReceived = Interlocked.Add(ref _totalBytesReceived, numBytesRead);
+
+                    // 发送文件传输进度到通道
+                    // ReSharper disable once InvertIf
+                    if (_throttler.TryEnter())
+                    {
+                        fileTransferProgress.UpdateProgress(newTotalBytesReceived, stopwatch.Elapsed);
+                        await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
+                    }
+                }
+
+                break;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                fileTransferProgress.UpdateProgress(_totalBytesReceived, stopwatch.Elapsed);
-                await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // 下载失败递增重试次数
+                currentRetry++;
+
+                // 检查最大重试次数
+                if (currentRetry > maxRetries)
+                {
+                    throw new InvalidOperationException($"Chunk download failed after {maxRetries} retries.", ex);
+                }
+
+                // 指数退避重试
+                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, currentRetry)), cancellationToken);
             }
         }
     }
@@ -444,12 +591,12 @@ internal sealed class FileDownloadManager
         await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
 
         // 尝试解压内容流，解决部分内容流被压缩的情况
-        await using var contentStream = WrapDecompressionStream(stream, httpResponseMessage);
+        await using var decompressedStream = Helpers.WrapDecompressionStream(stream, httpResponseMessage);
 
         // 循环读取数据直到取消请求或读取完毕
         int numBytesRead;
         while (!cancellationToken.IsCancellationRequested &&
-               (numBytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
+               (numBytesRead = await decompressedStream.ReadAsync(buffer, cancellationToken)) > 0)
         {
             // 将读取的数据写入文件
             await fileStream.WriteAsync(buffer.AsMemory(0, numBytesRead), cancellationToken);
@@ -777,43 +924,5 @@ internal sealed class FileDownloadManager
         // 如果下载成功，则移动临时文件到文件保存的目标路径（文件存在则替换）
         fileStream.Close();
         File.Move(tempDestinationPath, destinationPath, true);
-    }
-
-    /// <summary>
-    ///     根据 Content-Encoding 自动包装解压流
-    /// </summary>
-    /// <remarks>支持 gzip/deflate/br/zstd 解压。</remarks>
-    /// <param name="rawContentStream">
-    ///     <see cref="Stream" />
-    /// </param>
-    /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
-    /// </param>
-    /// <returns>
-    ///     <see cref="Stream" />
-    /// </returns>
-    internal static Stream WrapDecompressionStream(Stream rawContentStream, HttpResponseMessage httpResponseMessage)
-    {
-        // 检查是否是 WebAssembly 应用
-        if (OperatingSystem.IsBrowser())
-        {
-            return rawContentStream;
-        }
-
-        // 获取响应内容 Content-Encoding 标头
-        var contentEncoding = httpResponseMessage.Content.Headers.ContentEncoding.FirstOrDefault()?.Trim()
-            .ToLowerInvariant();
-
-        // 尝试解压操作
-        return contentEncoding switch
-        {
-            "gzip" => new GZipStream(rawContentStream, CompressionMode.Decompress, true),
-            "deflate" => new DeflateStream(rawContentStream, CompressionMode.Decompress, true),
-            "br" => new BrotliStream(rawContentStream, CompressionMode.Decompress, true),
-#if NET11_0_OR_GREATER
-            "zstd" => new ZstandardStream(rawContentStream, CompressionMode.Decompress, true),
-#endif
-            _ => rawContentStream
-        };
     }
 }

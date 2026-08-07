@@ -67,6 +67,11 @@ internal sealed class RequestEventPipelineHandler(IServiceProvider serviceProvid
             // 调用下一个处理器的委托
             return await next();
         }
+        // 用户主动取消
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception e)
         {
             // 输出请求异常日志

@@ -274,8 +274,7 @@ public sealed class HttpServerSentEventsBuilder : HttpRequestBuilderConfigurator
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteOptions);
 
-        // 初始化 HttpRequestBuilder 实例，并确保请求标头中添加了 Accept: text/event-stream；同时启用 HttpClient 池化管理；
-        // 如果请求失败，则应抛出异常。
+        // 初始化 HttpRequestBuilder 实例，并确保请求标头中添加了 Accept: text/event-stream；同时启用 HttpClient 池化管理；如果请求失败，则应抛出异常
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri)
             .WithHeader(nameof(HttpRequestHeaders.Accept), "text/event-stream", replace: true).DisableCache()
             .UseHttpClientPool().EnsureSuccessStatusCode();

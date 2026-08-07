@@ -67,9 +67,12 @@ internal sealed class FileUploadManager
         _httpFileUploadBuilder = httpFileUploadBuilder;
 
         // 初始化文件传输进度信息的通道
-        _progressChannel = Channel.CreateUnbounded<FileTransferProgress>(new UnboundedChannelOptions
+        _progressChannel = Channel.CreateBounded<FileTransferProgress>(new BoundedChannelOptions(1)
         {
-            SingleWriter = true, SingleReader = true, AllowSynchronousContinuations = true
+            SingleWriter = true,
+            SingleReader = true,
+            AllowSynchronousContinuations = true,
+            FullMode = BoundedChannelFullMode.DropOldest
         });
 
         // 解析 IHttpFileTransferEventHandler 事件处理程序
@@ -205,9 +208,6 @@ internal sealed class FileUploadManager
 
                 // 处理文件传输进度变化
                 await HandleProgressChangedAsync(fileTransferProgress);
-
-                // 根据配置的进度更新（通知）的间隔时间延迟进度报告
-                await Task.Delay(_httpFileUploadBuilder.ProgressInterval, cancellationToken);
             }
         }
         catch (Exception e) when (cancellationToken.IsCancellationRequested || e is OperationCanceledException)

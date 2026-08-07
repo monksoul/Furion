@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Furion.HttpRemote;
@@ -47,17 +48,18 @@ public class WeChatAccessTokenProvider(
     string appSecret)
     : IHttpAccessTokenProvider, IHttpAccessTokenConfigurator
 {
-    // 微信关常量定义
+    // 微信相关常量定义
     internal const string AccessTokenKey = "access_token";
     internal const string ExpiresInKey = "expires_in";
 
     /// <inheritdoc />
-    public void Configure(HttpRequestBuilder httpRequestBuilder, HttpAccessToken httpAccessToken) =>
+    public virtual void Configure(HttpRequestBuilder httpRequestBuilder, HttpAccessToken httpAccessToken) =>
         // 设置凭证查询参数
         httpRequestBuilder.WithQueryParameter("access_token", httpAccessToken.Value, true);
 
     /// <inheritdoc />
-    public async Task<HttpAccessToken?> GetAsync(HttpAccessTokenContext context, CancellationToken cancellationToken)
+    public virtual async Task<HttpAccessToken?> GetAsync(HttpAccessTokenContext context,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -65,27 +67,63 @@ public class WeChatAccessTokenProvider(
             var body = await httpRemoteService.SendAsStringAsync(
                 HttpRequestBuilder.Get("https://api.weixin.qq.com/cgi-bin/token")
                     .WithQueryParameters(new { appid = appId, secret = appSecret, grant_type = "client_credential" })
-                    .WithoutTokenManagement(), // 跳过 Token 管理，避免递归调用
-                cancellationToken);
+                    // 跳过 Token 管理，避免递归调用
+                    .WithoutTokenManagement(), cancellationToken);
 
-            // 检查是否成功获取凭证
-            if (body?.Contains($"\"{AccessTokenKey}\"") != true || !body.Contains($"\"{ExpiresInKey}\""))
+            // 空检查
+            if (string.IsNullOrWhiteSpace(body))
             {
-                // 输出日志
-                logger.LogWarning("WeChat access token response does not contain expected fields. Response: {Body}",
-                    body);
+                logger.LogWarning("WeChat access token response is empty.");
 
                 return null;
             }
 
-            // 解析 access_token 和 expires_in 值
+            // 解析 JSON
             var json = JsonNode.Parse(body);
-            var accessToken = json?[AccessTokenKey]?.GetValue<string>()!;
-            var expiresIn =
-                DateTimeOffset.UtcNow.AddSeconds(Math.Max(0,
-                    (json?[ExpiresInKey]?.GetValue<int>() ?? 0) - 5)); // 可能存在网络延迟，减少 5 秒
 
-            return new HttpAccessToken(accessToken, expiresIn);
+            // 空检查
+            if (json is null)
+            {
+                logger.LogWarning("Failed to parse WeChat access token response. Response: {Body}", body);
+
+                return null;
+            }
+
+            // 尝试解析微信业务错误码
+            var errCode = json["errcode"]?.GetValue<int>();
+
+            // 空检查
+            if (errCode is not null && errCode != 0)
+            {
+                // 获取错误码信息
+                var errMsg = json["errmsg"]?.GetValue<string>();
+
+                logger.LogWarning("Failed to fetch WeChat access token. ErrCode: {ErrCode}, ErrMsg: {ErrMsg}", errCode,
+                    errMsg);
+
+                return null;
+            }
+
+            // 获取 access_token 和 expires_in
+            var accessToken = json[AccessTokenKey]?.GetValue<string>();
+            var expiresIn = json[ExpiresInKey]?.GetValue<int>() ?? 0;
+
+            // 校验凭证有效性
+            if (string.IsNullOrWhiteSpace(accessToken) || expiresIn <= 0)
+            {
+                logger.LogWarning("WeChat access token response is invalid. Response: {Body}", body);
+
+                return null;
+            }
+
+            // 默认提前 5 秒过期，避免因网络延迟导致使用失效 access_token
+            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(Math.Max(0, expiresIn - 5));
+
+            // 记录成功获取及新的过期时间
+            logger.LogInformation("WeChat access token successfully fetched. Expiration time: {ExpiresAt:O}.",
+                expiresAt);
+
+            return new HttpAccessToken(accessToken, expiresAt);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
@@ -96,12 +134,16 @@ public class WeChatAccessTokenProvider(
     }
 
     /// <inheritdoc />
-    public async Task<bool> ShouldRefreshAsync(HttpAccessTokenContext context, HttpResponseMessage httpResponseMessage,
+    public virtual async Task<bool> ShouldRefreshAsync(HttpAccessTokenContext context,
+        HttpResponseMessage httpResponseMessage,
         CancellationToken cancellationToken)
     {
         // 检查响应状态码是否是 401 或 403
         if (httpResponseMessage.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
+            logger.LogWarning("WeChat access token refresh triggered due to HTTP {StatusCode} response.",
+                (int)httpResponseMessage.StatusCode);
+
             return true;
         }
 
@@ -120,7 +162,7 @@ public class WeChatAccessTokenProvider(
             await httpResponseMessage.Content.LoadIntoBufferAsync(cancellationToken);
 #endif
         }
-        catch (InvalidOperationException)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
             return false;
         }
@@ -134,11 +176,27 @@ public class WeChatAccessTokenProvider(
             return false;
         }
 
-        // 尝试解析 errcode 值
-        var json = JsonNode.Parse(body);
-        var errCode = json?["errcode"]?.GetValue<int>();
+        try
+        {
+            // 尝试解析 errcode 值
+            var json = JsonNode.Parse(body);
+            var errCode = json?["errcode"]?.GetValue<int>();
 
-        // 40001: invalid credential, 40014: invalid access_token, 42001: access_token expired 等
-        return errCode is 40001 or 40014 or 42001;
+            // 40001: invalid credential, 40014: invalid access_token, 42001: access_token expired
+            // ReSharper disable once InvertIf
+            if (errCode is 40001 or 40014 or 42001)
+            {
+                logger.LogWarning("WeChat access token refresh triggered due to WeChat error code: {ErrCode}.",
+                    errCode);
+
+                return true;
+            }
+
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }

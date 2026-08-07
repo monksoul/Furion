@@ -76,7 +76,8 @@ public sealed class ForwardAttribute : ActionFilterAttribute
     /// <summary>
     ///     <inheritdoc cref="HttpCompletionOption" />
     /// </summary>
-    public HttpCompletionOption CompletionOption { get; set; } = HttpCompletionOption.ResponseContentRead;
+    /// <remarks>默认值为：<see cref="HttpCompletionOption.ResponseHeadersRead" /></remarks>
+    public HttpCompletionOption CompletionOption { get; set; } = HttpCompletionOption.ResponseHeadersRead;
 
     /// <summary>
     ///     是否转发查询参数（URL 参数）

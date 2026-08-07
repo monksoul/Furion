@@ -375,11 +375,12 @@ public sealed class HttpFileUploadBuilder : HttpRequestBuilderConfigurator<HttpF
         // 检查文件扩展名和大小合法性
         EnsureLegalData(FilePath, AllowedFileExtensions, MaxFileSizeInBytes);
 
-        // 初始化 HttpRequestBuilder 实例
+        // 初始化 HttpRequestBuilder 实例，如果请求失败，则应抛出异常
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).SetMultipartContent(builder =>
         {
-            builder.AddFileWithProgressAsStream(FilePath, progressChannel, Name, FileName, ContentType);
-        });
+            builder.AddFileWithProgressAsStream(FilePath, progressChannel, Name, FileName, ContentType,
+                progressInterval: ProgressInterval);
+        }).EnsureSuccessStatusCode();
 
         // 检查是否设置了事件处理程序且该处理程序实现了 IHttpRequestEventHandler 接口，如果有则设置给 httpRequestBuilder
         if (FileTransferEventHandlerType is not null &&
