@@ -38,7 +38,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
-using StringWithQualityHeaderValue = System.Net.Http.Headers.StringWithQualityHeaderValue;
 
 namespace Furion.HttpRemote.Extensions;
 
@@ -149,30 +148,30 @@ public static partial class HttpRemoteExtensions
     }
 
     /// <summary>
-    ///     为 <see cref="HttpClient" /> 启用性能优化
+    ///     为 <see cref="HttpClient" /> 启用标准请求标头
     /// </summary>
     /// <param name="httpClient">
     ///     <see cref="HttpClient" />
     /// </param>
-    public static void PerformanceOptimization(this HttpClient httpClient)
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void UseStandardRequestHeaders(this HttpClient httpClient)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpClient);
 
-        // 设置 Accept 头，表示可以接受任何类型的内容
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+        // 获取默认请求标头
+        var defaultRequestHeaders = httpClient.DefaultRequestHeaders;
 
-        // 添加 Accept-Encoding 头，支持 gzip、deflate、brotli 以及 zstd 压缩算法
-        // 这样服务器可以根据情况选择最合适的压缩方式发送响应，从而减少传输的数据量
-        httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-        httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-        httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
-#if NET11_0_OR_GREATER
-        httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("zstd"));
-#endif
+        // 设置 Accept 头 (避免被 WAF 拦截)
+        if (defaultRequestHeaders.Accept.Count == 0)
+        {
+            defaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            defaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain", 0.9));
+            defaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.8));
+        }
 
-        // 设置 Connection 头为 keep-alive，允许重用 TCP 连接，避免每次请求都重新建立连接带来的开销
-        httpClient.DefaultRequestHeaders.ConnectionClose = false;
+        // 显式声明 Keep-Alive
+        defaultRequestHeaders.ConnectionClose = false;
     }
 
     /// <summary>
@@ -256,6 +255,13 @@ public static partial class HttpRemoteExtensions
             httpRequestMessage.Options.TryGetValue(new HttpRequestOptionsKey<bool>(Constants.ETAG_CACHED_KEY),
                 out var value) && value;
 
+        // 获取原始 cURL 命令
+        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? curlKeyValues =
+            httpRequestMessage.Options.TryGetValue(new HttpRequestOptionsKey<string>(Constants.CURL_COMMAND_KEY),
+                out var curlCommand)
+                ? [new KeyValuePair<string, IEnumerable<string>>("cURL Command", [$"\e[36m\e[3m{curlCommand}\e[0m"])]
+                : null;
+
         // 格式化常规条目
         var generalEntry = StringUtility.FormatKeyValuesSummary(new[]
             {
@@ -266,13 +272,13 @@ public static partial class HttpRemoteExtensions
                 [
                     httpResponseMessage.GetColoredText(
                         $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}") +
-                    (!fromMemoryCache ? string.Empty : " (from memory cache)")
+                    (!fromMemoryCache ? string.Empty : " \e[90m(from memory cache)\e[0m")
                 ]),
                 new KeyValuePair<string, IEnumerable<string>>("HTTP Version", [httpResponseMessage.Version.ToString()]),
                 new KeyValuePair<string, IEnumerable<string>>("HTTP Content", [$"{httpContent?.GetType().Name}"]),
                 new KeyValuePair<string, IEnumerable<string>>("Content Type", [$"{httpContent?.Headers.ContentType}"])
             }.ConcatIgnoreNull(httpClientKeyValues).ConcatIgnoreNull(declarativeKeyValues)
-            .ConcatIgnoreNull(generalCustomKeyValues), generalSummary, true);
+            .ConcatIgnoreNull(curlKeyValues).ConcatIgnoreNull(generalCustomKeyValues), generalSummary, true);
 
         // 格式化响应条目
         var responseEntry = httpResponseMessage.ProfilerHeaders(responseSummary);
@@ -759,7 +765,7 @@ public static partial class HttpRemoteExtensions
                     $"\e[36m\e[1m... [Binary content, showing first {hexBytesToShow} bytes of {totalRead} total bytes]\e[0m";
             }
 
-            return bodyString;
+            return bodyString.TrimEnd('\r', '\n');
         }
 
         // 注册 CodePagesEncodingProvider，使得程序能够识别并使用 Windows 代码页中的各种编码
@@ -800,6 +806,10 @@ public static partial class HttpRemoteExtensions
         if (isResponse && httpResponseMessage is not null)
         {
             partialContent = httpResponseMessage.GetColoredText(partialContent, false);
+        }
+        else
+        {
+            partialContent = $"\e[36m{partialContent}\e[0m";
         }
 
         // 如果内容超长被截断，追加省略号提示

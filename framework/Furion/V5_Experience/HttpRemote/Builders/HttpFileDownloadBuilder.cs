@@ -478,7 +478,7 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
         ArgumentException.ThrowIfNullOrWhiteSpace(DestinationPath);
 
         // 初始化 HttpRequestBuilder 实例，如果请求失败，则应抛出异常
-        var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).PerformanceOptimization()
+        var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri).UseStandardRequestHeaders()
             .EnsureSuccessStatusCode();
 
         // 检查是否设置了事件处理程序且该处理程序实现了 IHttpRequestEventHandler 接口，如果有则设置给 httpRequestBuilder

@@ -26,6 +26,7 @@
 using Furion.Extensions;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Web;
 
 namespace Furion.HttpRemote;
 
@@ -43,7 +44,7 @@ public class StringContentForFormUrlEncodedContentProcessor : FormUrlEncodedCont
     /// </summary>
     /// <remarks>
     ///     <para>默认值为：<c>true</c>。</para>
-    ///     <para>设置为 <see langword="false" /> 时，表单数据将保持原始格式发送，不进行 URL 编码转义。</para>
+    ///     <para>设置为 <c>false</c> 时，表单数据将保持原始格式发送，不进行 URL 编码转义。</para>
     ///     <para>注意：禁用编码可能导致特殊字符（如 <c>&amp;</c>, <c>=</c>, 空格等）被服务器错误解析。</para>
     /// </remarks>
     public bool UrlEncode { get; set; } = true;
@@ -57,18 +58,26 @@ public class StringContentForFormUrlEncodedContentProcessor : FormUrlEncodedCont
             return httpContent;
         }
 
-        // 如果原始内容是字符串类型且不是有效的 application/x-www-form-urlencoded 格式
-        if (context.RawContent is string rawString && !rawString.IsUrlEncodedFormFormat())
-        {
-            throw new FormatException("The content must contain only form url encoded string.");
-        }
+        string content;
 
-        // 将原始请求内容转换为字符串
-        var content = context.RawContent as string ?? GetContentString(
+        // 检查是否是字符串类型
+        if (context.RawContent is string rawString)
+        {
+            // 解析 URL 编码格式字符串
+            var nameValueCollection = HttpUtility.ParseQueryString(rawString);
+
+            content = GetContentString(
+                nameValueCollection.AllKeys.Where(k => k is not null).SelectMany(k =>
+                    (nameValueCollection.GetValues(k) ?? []).Select(v => new KeyValuePair<string, string?>(k!, v))),
+                UrlEncode);
+        }
+        else
+        {
             // 将原始请求类型转换为字符串字典类型
-            context.RawContent.ObjectToDictionary()!.ToDictionary(u => u.Key.ToInvariantCultureString()!,
-                u => u.Value?.ToInvariantCultureString()), UrlEncode
-        );
+            content = GetContentString(
+                context.RawContent.ObjectToDictionary()!.ToDictionary(u => u.Key.ToInvariantCultureString()!,
+                    u => u.Value?.ToInvariantCultureString()), UrlEncode);
+        }
 
         // 初始化 StringContent 实例
         var stringContent = new StringContent(content, context.Encoding,

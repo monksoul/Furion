@@ -754,6 +754,17 @@ public static class HttpBuilder
         HttpRequestBuilder.Declarative(method, args, interfaceType);
 
     /// <summary>
+    ///     从 cURL 命令字符串中创建 <see cref="HttpRequestBuilder" /> 实例
+    /// </summary>
+    /// <param name="curlCommand">cURL 命令字符串</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public static HttpRequestBuilder FromCurl(string curlCommand, Action<HttpCurlParsingOptions>? configure = null) =>
+        HttpRequestBuilder.FromCurl(curlCommand, configure);
+
+    /// <summary>
     ///     从 JSON 中创建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="json">JSON 字符串</param>

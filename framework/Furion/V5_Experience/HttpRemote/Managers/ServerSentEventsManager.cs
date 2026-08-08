@@ -254,7 +254,7 @@ internal sealed class ServerSentEventsManager
                     // 初始化当前构建器
                     var activeRequestBuilder = RequestBuilder;
 
-                    // 重连时动态添加 Last-Event-ID 请求头，确保服务器能从断点处继续推送
+                    // 重连时动态添加 Last-Event-ID 请求标头，确保服务器能从断点处继续推送
                     if (!string.IsNullOrWhiteSpace(lastEventId))
                     {
                         // 克隆 HttpRequestBuilder 并设置 Last-Event-ID 头

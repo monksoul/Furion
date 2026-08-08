@@ -103,7 +103,7 @@ public sealed class HttpContextForwardOptions
     ///     </list>
     ///     <para>匹配规则：忽略大小写；主机部分必须完全一致；端口部分支持数字或 <c>*</c> 通配符。</para>
     ///     <para><b>特殊通配符</b>：若集合中包含独立的 <c>"*"</c>（不带主机），则允许转发到 <b>任意</b> 主机和协议，完全绕过验证。</para>
-    ///     <para>如果该集合为 <c>null</c> 或空，所有通过 <c>X-Forward-To</c> 请求头指定的目标地址都将被拒绝。</para>
+    ///     <para>如果该集合为 <c>null</c> 或空，所有通过 <c>X-Forward-To</c> 请求标头指定的目标地址都将被拒绝。</para>
     /// </remarks>
     public ICollection<string>? AllowedHosts { get; set; }
 

@@ -38,9 +38,23 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" /> 类型的所有实例属性信息
     /// </summary>
     /// <remarks>避免在每次调用 <see cref="Clone" /> 方法时重复进行反射操作，提升性能。</remarks>
-    internal static readonly Lazy<PropertyInfo[]> _cachedProperties = new(() =>
+    internal static readonly Lazy<PropertyInfo[]> CachedProperties = new(() =>
         typeof(HttpRequestBuilder).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                                  BindingFlags.DeclaredOnly));
+
+    /// <summary>
+    ///     已知标准内容标头集合
+    /// </summary>
+    internal static readonly HashSet<string> KnownContentHeaders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Content-Type",
+        "Content-Encoding",
+        "Content-Language",
+        "Content-Disposition",
+        "Content-MD5",
+        "Content-Range",
+        "Content-Location"
+    };
 
     /// <summary>
     ///     请求地址
@@ -81,6 +95,11 @@ public sealed partial class HttpRequestBuilder
     ///     请求标头集合
     /// </summary>
     public IDictionary<string, List<string?>>? Headers { get; private set; }
+
+    /// <summary>
+    ///     请求内容标头集合
+    /// </summary>
+    public IDictionary<string, List<string?>>? ContentHeaders { get; private set; }
 
     /// <summary>
     ///     需要从请求中移除的标头集合
@@ -319,10 +338,10 @@ public sealed partial class HttpRequestBuilder
     internal Action<HttpRemoteAnalyzer>? ProfilerPredicate { get; private set; }
 
     /// <summary>
-    ///     是否启用性能优化
+    ///     是否启用标准请求标头
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>
-    internal bool PerformanceOptimizationEnabled { get; private set; }
+    internal bool StandardRequestHeadersEnabled { get; private set; }
 
     /// <summary>
     ///     是否自动设置 <c>Host</c> 标头

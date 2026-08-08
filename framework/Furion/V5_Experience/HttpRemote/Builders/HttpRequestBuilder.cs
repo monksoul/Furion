@@ -29,7 +29,6 @@ using Microsoft.Net.Http.Headers;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using CacheControlHeaderValue = System.Net.Http.Headers.CacheControlHeaderValue;
-using StringWithQualityHeaderValue = System.Net.Http.Headers.StringWithQualityHeaderValue;
 
 namespace Furion.HttpRemote;
 
@@ -97,8 +96,8 @@ public sealed partial class HttpRequestBuilder
             httpRequestMessage.Version = Version;
         }
 
-        // 启用性能优化
-        EnablePerformanceOptimization(httpRequestMessage);
+        // 启用标准请求标头
+        EnableStandardRequestHeaders(httpRequestMessage);
 
         // 追加请求标头
         AppendHeaders(httpRequestMessage, httpRemoteOptions.Configuration);
@@ -365,7 +364,7 @@ public sealed partial class HttpRequestBuilder
         var queryString = string.Join("&", sortedPairs.Select(u => $"{u.Key}={u.Value}"));
 
         // 将查询字符串赋值给 UriBuilder 的 Query 属性
-        uriBuilder.Query = string.IsNullOrEmpty(queryString) ? string.Empty : "?" + queryString;
+        uriBuilder.Query = queryString;
     }
 
     /// <summary>
@@ -554,28 +553,28 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     启用性能优化
+    ///     启用标准请求标头
     /// </summary>
     /// <param name="httpRequestMessage">
     ///     <see cref="HttpRequestMessage" />
     /// </param>
-    internal void EnablePerformanceOptimization(HttpRequestMessage httpRequestMessage)
+    internal void EnableStandardRequestHeaders(HttpRequestMessage httpRequestMessage)
     {
-        if (!PerformanceOptimizationEnabled)
+        // 检查是否启用标准请求标头
+        if (!StandardRequestHeadersEnabled)
         {
             return;
         }
 
-        // 设置 Accept 头，表示可以接受任何类型的内容
-        httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+        // 设置 Accept 头 (避免被 WAF 拦截)
+        if (httpRequestMessage.Headers.Accept.Count == 0)
+        {
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain", 0.9));
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.8));
+        }
 
-        // 添加 Accept-Encoding 头，支持 gzip、deflate 以及 Brotli 压缩算法
-        // 这样服务器可以根据情况选择最合适的压缩方式发送响应，从而减少传输的数据量
-        httpRequestMessage.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-        httpRequestMessage.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-        httpRequestMessage.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
-
-        // 设置 Connection 头为 keep-alive，允许重用 TCP 连接，避免每次请求都重新建立连接带来的开销
+        // 显式声明 Keep-Alive
         httpRequestMessage.Headers.ConnectionClose = false;
     }
 
@@ -720,6 +719,24 @@ public sealed partial class HttpRequestBuilder
                 }
         }
 
+        // 追加请求内容标头
+        if (ContentHeaders is { Count: > 0 })
+        {
+            // 遍历请求内容标头集合并追加到 HttpContent.Headers 中
+            foreach (var (key, values) in ContentHeaders)
+            {
+                // 避免重复添加 Content-Type
+                if (key.Equals(HeaderNames.ContentType, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // 替换配置参数并追加
+                httpContent.Headers.TryAddWithoutValidation(key,
+                    values.Select(v => ReplacePlaceholders(v, httpRemoteOptions.Configuration)));
+            }
+        }
+
         // 检查是否移除默认的内容的 Content-Type，解决对接 Java 程序时可能出现失败问题
         if (OmitContentType)
         {
@@ -784,6 +801,17 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         if (!string.IsNullOrWhiteSpace(ContentType))
         {
+            return;
+        }
+
+        // 尝试解析请求内容标头集合中的 "Content-Type"  键
+        var contentType = ContentHeaders?[HeaderNames.ContentType].FirstOrDefault();
+
+        // 空检查
+        if (!string.IsNullOrWhiteSpace(contentType))
+        {
+            ContentType = contentType;
+
             return;
         }
 

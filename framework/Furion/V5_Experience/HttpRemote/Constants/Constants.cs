@@ -142,4 +142,10 @@ internal static class Constants
     ///     <c>Options</c> 属性中读取。
     /// </remarks>
     internal const string ETAG_CACHED_KEY = "__ETAG_CACHED__";
+
+    /// <summary>
+    ///     cURL 命令字符串键
+    /// </summary>
+    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    internal const string CURL_COMMAND_KEY = "CURL_COMMAND";
 }

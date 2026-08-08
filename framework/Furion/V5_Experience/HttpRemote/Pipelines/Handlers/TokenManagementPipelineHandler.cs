@@ -168,7 +168,7 @@ internal sealed class TokenManagementPipelineHandler(
         }
         else
         {
-            // 无自定义配置时，默认将 Access Token 值作为 Authorization 请求头发送
+            // 无自定义配置时，默认将 Access Token 值作为 Authorization 请求标头发送
             httpRequestBuilder.WithHeader(HeaderNames.Authorization, httpAccessToken.Value, replace: true);
         }
     }

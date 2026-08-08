@@ -899,6 +899,83 @@ public sealed partial class HttpRequestBuilder
         new(method, args, interfaceType);
 
     /// <summary>
+    ///     从 cURL 命令字符串中创建 <see cref="HttpRequestBuilder" /> 实例
+    /// </summary>
+    /// <param name="curlCommand">cURL 命令字符串</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static HttpRequestBuilder FromCurl(string curlCommand, Action<HttpCurlParsingOptions>? configure = null)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(curlCommand);
+
+        // 初始化 HttpCurlParsingOptions 实例
+        var options = new HttpCurlParsingOptions();
+
+        // 调用自定义配置委托
+        configure?.Invoke(options);
+
+        // 将 cURL 命令字符串拆分为 Token 集合
+        var tokens = HttpCurlTokenizer.Tokenize(curlCommand);
+
+        // 检查是否以 "curl" 开头
+        if (tokens.Count == 0 || !string.Equals(tokens[0], "curl", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("The cURL command must start with 'curl'.");
+        }
+
+        // 移除开头的 "curl" 关键字
+        tokens.RemoveAt(0);
+
+        // 检查是否只有 "curl" 关键字
+        if (tokens.Count == 0)
+        {
+            throw new InvalidOperationException("The cURL command is empty or contains no valid tokens.");
+        }
+
+        // 初始化 HttpRequestBuilder 实例
+        var httpRequestBuilder = new HttpRequestBuilder();
+
+        // 初始化 HttpCurlTokenExtractorContext 实例
+        var tokenContext = new HttpCurlTokenExtractorContext(tokens);
+
+        // 先将提取器进行排序
+        var sortedExtractors = options.Extractors.OrderBy(e => (e as IOrderedHttpCurlExtractor)?.Order ?? 0).ToList();
+
+        // 遍历所有的 Token
+        while (!tokenContext.IsEndOfTokens)
+        {
+            // 尝试匹配
+            if (!sortedExtractors.Any(extractor => extractor.TryExtract(httpRequestBuilder, tokenContext)))
+            {
+                // 推进游标
+                tokenContext.Advance();
+            }
+        }
+
+        // 检查是否未显式指定 HTTP 方法
+        // ReSharper disable once InvertIf
+        if (httpRequestBuilder.HttpMethod is null)
+        {
+            // 判断是否包含请求内容
+            var hasBody = httpRequestBuilder.RawContent is not null ||
+                          httpRequestBuilder.MultipartFormDataBuilder is not null;
+
+            // 设置请求方式
+            httpRequestBuilder.SetHttpMethod(hasBody ? HttpMethod.Post : HttpMethod.Get);
+        }
+
+        // 将原始 cURL 命令存入请求消息属性中，供请求分析工具输出
+        httpRequestBuilder.WithProperty(Constants.CURL_COMMAND_KEY, curlCommand);
+
+        return httpRequestBuilder;
+    }
+
+    /// <summary>
     ///     从 JSON 中创建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="json">JSON 字符串</param>

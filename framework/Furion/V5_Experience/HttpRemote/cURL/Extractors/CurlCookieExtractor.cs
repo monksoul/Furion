@@ -26,13 +26,21 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式提取器排序（冻结）
+///     cURL Cookies 提取器
 /// </summary>
-public interface IFrozenHttpDeclarativeExtractor : IHttpDeclarativeExtractor
+internal sealed class CurlCookieExtractor : HttpCurlExtractorBase
 {
-    /// <summary>
-    ///     获取提取器的顺序值
-    /// </summary>
-    /// <remarks>值越小，提取器越晚被调用。</remarks>
-    int Order { get; }
+    /// <inheritdoc />
+    protected override string[] Flags => ["-b", "--cookie"];
+
+    /// <inheritdoc />
+    protected override void Extract(HttpRequestBuilder httpRequestBuilder, string flag, string? argument)
+    {
+        // 空检查
+        if (!string.IsNullOrWhiteSpace(argument))
+        {
+            // 设置 Cookies
+            httpRequestBuilder.WithCookies(argument);
+        }
+    }
 }

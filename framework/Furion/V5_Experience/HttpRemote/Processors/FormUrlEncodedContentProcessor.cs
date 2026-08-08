@@ -48,6 +48,17 @@ public class FormUrlEncodedContentProcessor : HttpContentProcessorBase
             return httpContent;
         }
 
+        // 处理字符串类型
+        if (context.RawContent is string rawString)
+        {
+            // 初始化 StringContent 实例（该方式不会自动编码，如空格）
+            // 如需设置编码可注册 StringContentForFormUrlEncodedContentProcessor 处理器
+            var stringContent = new StringContent(rawString, context.Encoding,
+                new MediaTypeHeaderValue(context.ContentType) { CharSet = context.Encoding?.WebName });
+
+            return stringContent;
+        }
+
         // 将原始请求类型转换为字符串字典类型
         var nameValueCollection = context.RawContent.ObjectToDictionary()!.ToDictionary(
             u => u.Key.ToInvariantCultureString()!,

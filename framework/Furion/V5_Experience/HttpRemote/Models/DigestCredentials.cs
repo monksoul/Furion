@@ -93,6 +93,8 @@ public sealed class DigestCredentials
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     public static string GetDigestCredentials(string? requestUri, string username, string password,
         HttpMethod httpMethod)
@@ -109,8 +111,8 @@ public sealed class DigestCredentials
         // 设置默认 User-Agent
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
 
-        // 启用性能优化
-        httpClient.PerformanceOptimization();
+        // 为 HttpClient 启用标准请求标头
+        httpClient.UseStandardRequestHeaders();
 
         try
         {

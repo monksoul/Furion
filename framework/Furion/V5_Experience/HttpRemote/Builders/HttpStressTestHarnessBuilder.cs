@@ -158,7 +158,7 @@ public sealed class HttpStressTestHarnessBuilder : HttpRequestBuilderConfigurato
         // 同时禁用请求分析工具和启用 HttpClient 池化管理
         var httpRequestBuilder = HttpRequestBuilder.Create(HttpMethod, RequestUri)
             .WithHeader(Constants.X_STRESS_TEST_HEADER, Constants.X_STRESS_TEST_VALUE, replace: true).DisableProfiler()
-            .PerformanceOptimization().UseHttpClientPool();
+            .UseStandardRequestHeaders().UseHttpClientPool();
 
         // 调用自定义配置委托
         Configure?.Invoke(httpRequestBuilder);

@@ -26,18 +26,27 @@
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 声明式提取器
+///     HTTP 声明式启用标准请求标头特性
 /// </summary>
-public interface IHttpDeclarativeExtractor
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface)]
+public sealed class StandardRequestHeadersAttribute : Attribute
 {
     /// <summary>
-    ///     提取方法信息构建 <see cref="HttpRequestBuilder" /> 实例
+    ///     <inheritdoc cref="StandardRequestHeadersAttribute" />
     /// </summary>
-    /// <param name="httpRequestBuilder">
-    ///     <see cref="HttpRequestBuilder" />
-    /// </param>
-    /// <param name="context">
-    ///     <see cref="HttpDeclarativeExtractorContext" />
-    /// </param>
-    void Extract(HttpRequestBuilder httpRequestBuilder, HttpDeclarativeExtractorContext context);
+    public StandardRequestHeadersAttribute()
+        : this(true)
+    {
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="StandardRequestHeadersAttribute" />
+    /// </summary>
+    /// <param name="enabled">是否启用</param>
+    public StandardRequestHeadersAttribute(bool enabled) => Enabled = enabled;
+
+    /// <summary>
+    ///     是否启用
+    /// </summary>
+    public bool Enabled { get; set; }
 }

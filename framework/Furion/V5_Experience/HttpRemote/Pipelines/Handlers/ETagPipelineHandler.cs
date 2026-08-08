@@ -69,7 +69,7 @@ internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache, IHttpRemoteL
         // 生成缓存键
         var cacheKey = GenerateCacheKey(httpRequestMessage);
 
-        // 如果缓存中存在 ETag，则添加到请求头中
+        // 如果缓存中存在 ETag，则添加到请求标头中
         if (eTagCache.TryGet(cacheKey, out var eTagCacheItem) && eTagCacheItem?.ETag is not null)
         {
             httpRequestMessage.Headers.IfNoneMatch.Clear();

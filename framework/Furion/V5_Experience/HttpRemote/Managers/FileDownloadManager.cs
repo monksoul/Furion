@@ -44,9 +44,6 @@ internal sealed class FileDownloadManager
     /// <inheritdoc cref="IHttpRemoteService" />
     internal readonly IHttpRemoteService _httpRemoteService;
 
-    /// <inheritdoc cref="IHttpRemoteLogger" />
-    internal readonly IHttpRemoteLogger _logger;
-
     /// <summary>
     ///     文件传输进度信息的通道
     /// </summary>
@@ -67,23 +64,17 @@ internal sealed class FileDownloadManager
     /// <param name="httpRemoteService">
     ///     <see cref="IHttpRemoteService" />
     /// </param>
-    /// <param name="logger">
-    ///     <see cref="IHttpRemoteLogger" />
-    /// </param>
     /// <param name="httpFileDownloadBuilder">
     ///     <see cref="HttpFileDownloadBuilder" />
     /// </param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal FileDownloadManager(IHttpRemoteService httpRemoteService, IHttpRemoteLogger logger,
-        HttpFileDownloadBuilder httpFileDownloadBuilder)
+    internal FileDownloadManager(IHttpRemoteService httpRemoteService, HttpFileDownloadBuilder httpFileDownloadBuilder)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(httpRemoteService);
-        ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(httpFileDownloadBuilder);
 
         _httpRemoteService = httpRemoteService;
-        _logger = logger;
         _httpFileDownloadBuilder = httpFileDownloadBuilder;
 
         // 初始化文件传输进度信息的通道
@@ -184,10 +175,6 @@ internal sealed class FileDownloadManager
             // 根据文件是否存在及配置的行为来决定是否应继续进行文件下载
             if (!ShouldContinueWithDownload(httpResponseMessage, out var destinationPath))
             {
-                // 记录因文件存在而跳过下载
-                _logger.LogInformation("File already exists at '{DestinationPath}'. Skipping download as configured.",
-                    destinationPath);
-
                 // 处理文件存在且配置为跳过时的操作
                 HandleFileExistAndSkip();
 
@@ -205,14 +192,6 @@ internal sealed class FileDownloadManager
 
             // 判断是否启用了多线程下载，且服务器支持 Range 请求、文件大小有效
             var isMultiThreaded = _httpFileDownloadBuilder.MaxThreads > 1 && supportsRange && contentLength > 0;
-
-            // 记录下载任务启动信息及所选模式
-            _logger.LogInformation(
-                "Starting file download. URL: '{RequestUri}'. Destination: '{DestinationPath}'. Size: {Size} bytes. Mode: {Mode}.",
-                fileTransferResult.RequestUri, destinationPath, contentLength,
-                isMultiThreaded
-                    ? $"Multi-threaded ({_httpFileDownloadBuilder.MaxThreads} threads)"
-                    : "Single-threaded");
 
             // 初始化 FileTransferProgress 实例
             var fileTransferProgress = new FileTransferProgress(destinationPath, contentLength);
@@ -247,11 +226,6 @@ internal sealed class FileDownloadManager
             // 计算文件传输总花费时间
             var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
-            // 记录下载成功完成
-            _logger.LogInformation(
-                "File download completed successfully. Path: '{FilePath}'. Size: {FileSize} bytes. Elapsed: {ElapsedMilliseconds}ms.",
-                destinationPath, actualBytesReceived, elapsedMilliseconds);
-
             // 处理文件传输完成
             HandleTransferCompleted(elapsedMilliseconds);
 
@@ -264,9 +238,6 @@ internal sealed class FileDownloadManager
         }
         catch (Exception e)
         {
-            // 记录下载失败异常
-            _logger.LogError(e, "File download failed. URL: '{RequestUri}'.", fileTransferResult.RequestUri);
-
             // 清理临时文件
             fileStream?.Close();
             if (File.Exists(tempDestinationPath))
@@ -353,11 +324,6 @@ internal sealed class FileDownloadManager
         {
             // 等待所有分块下载任务完成
             await Task.WhenAll(tasks);
-
-            // 提示进入合并阶段
-            _logger.LogInformation(
-                "All chunks downloaded successfully. Merging {ChunkCount} temporary files into the final destination...",
-                maxThreads);
 
             // 重置文件流指针至起始位置
             fileStream.Seek(0, SeekOrigin.Begin);
@@ -468,7 +434,7 @@ internal sealed class FileDownloadManager
 
             try
             {
-                // 根据已成功接收的字节数调整 Range 请求头
+                // 根据已成功接收的字节数调整 Range 请求标头
                 var currentStart = start + bytesReceived;
 
                 // 检查分块是否已下载完成
@@ -581,11 +547,6 @@ internal sealed class FileDownloadManager
             {
                 // 下载失败递增重试次数
                 currentRetry++;
-
-                // 记录分块下载失败、已下载字节数及重试状态
-                _logger.LogWarning(ex,
-                    "Chunk download failed. Target range: bytes={Start}-{End}. Downloaded before failure: {Downloaded} bytes. Retrying ({CurrentRetry}/{MaxRetries})...",
-                    start, end, bytesReceived, currentRetry, maxRetries);
 
                 // 检查最大重试次数
                 if (currentRetry > maxRetries)

@@ -346,6 +346,46 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     追加请求内容
+    /// </summary>
+    /// <remarks>
+    ///     <para>仅当 <see cref="RawContent" /> 不为空时有效。</para>
+    ///     <para>该方法仅负责合并内容，不会改变已有的 <see cref="ContentType" /> 和 <see cref="ContentEncoding" />。</para>
+    ///     <para>支持多次调用，根据 <see cref="RawContent" /> 与传入内容的类型进行智能合并：</para>
+    ///     <list type="bullet">
+    ///         <item>
+    ///             <description>字符串 + 字符串：使用 <c>&amp;</c> 拼接</description>
+    ///         </item>
+    ///         <item>
+    ///             <description>字典 + 字典：合并键值对（已存在的键更新值）</description>
+    ///         </item>
+    ///         <item>
+    ///             <description>列表 + 集合：追加元素</description>
+    ///         </item>
+    ///         <item>
+    ///             <description>其他情况：覆盖原有内容</description>
+    ///         </item>
+    ///     </list>
+    /// </remarks>
+    /// <param name="rawContent">原始请求内容</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder AppendContent(object? rawContent)
+    {
+        // 空检查
+        if (rawContent is null)
+        {
+            return this;
+        }
+
+        // 空检查
+        return RawContent is null
+            ? this
+            : SetContent(MergeContent(RawContent, rawContent));
+    }
+
+    /// <summary>
     ///     设置多部分表单内容，请求类型为 <c>multipart/form-data</c>
     /// </summary>
     /// <remarks>
@@ -440,6 +480,27 @@ public sealed partial class HttpRequestBuilder
     ///     设置请求标头
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
+    /// <param name="headerValue">请求标头值格式化字符串</param>
+    /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder WithHeader(string headerValue, bool escape = false, bool replace = false)
+    {
+        // 尝试将字符串按第一个冒号拆分为键值对
+        if (Helpers.TrySplitHeader(headerValue, out var key, out var value))
+        {
+            WithHeader(key, value, escape, replace);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置请求标头
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
@@ -482,7 +543,28 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(headers);
 
-        Headers = MergeHeaders(Headers, headers, escape, replace);
+        // 初始化请求标头和请求内容标头字典
+        var requestHeaders = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        var contentHeaders = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+
+        // 对不同的标头类型进行归类
+        foreach (var (key, value) in headers)
+        {
+            if (KnownContentHeaders.Contains(key))
+            {
+                contentHeaders[key] = value;
+            }
+            else
+            {
+                requestHeaders[key] = value;
+            }
+        }
+
+        // 合并请求标头
+        Headers = MergeHeaders(Headers, requestHeaders, escape, replace);
+
+        // 合并请求内容标头
+        ContentHeaders = MergeHeaders(ContentHeaders, contentHeaders, escape, replace);
 
         return this;
     }
@@ -533,9 +615,19 @@ public sealed partial class HttpRequestBuilder
         // 逐条添加到集合中
         foreach (var headerName in headerNames)
         {
-            if (!string.IsNullOrWhiteSpace(headerName))
+            // 空检查
+            if (string.IsNullOrWhiteSpace(headerName))
             {
-                HeadersToRemove.Add(headerName);
+                continue;
+            }
+
+            // 移除请求标头
+            HeadersToRemove.Add(headerName);
+
+            // 移除请求内容标头
+            if (KnownContentHeaders.Contains(headerName))
+            {
+                ContentHeaders?.Remove(headerName);
             }
         }
 
@@ -896,7 +988,7 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(cookieHeaderValue);
 
-        return WithCookies(cookieHeaderValue.ParseFormatKeyValueString([';']));
+        return WithCookies(cookieHeaderValue);
     }
 
     /// <summary>
@@ -1217,11 +1309,10 @@ public sealed partial class HttpRequestBuilder
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpRequestBuilder AddBasicAuthentication(string username, string password)
+    public HttpRequestBuilder AddBasicAuthentication(string username, string? password)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
         // 将用户名和密码转换为 Base64 字符串
         var base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
@@ -1717,25 +1808,23 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置是否启用性能优化
+    ///     设置启用标准请求标头
     /// </summary>
-    /// <remarks>当需要返回 <see cref="Stream" /> 内容或进行 <c>HttpContext</c> 网页转发时，请勿启用此配置，因为流会因压缩而变得不可读，同时该配置也不适用于网页转发的场景。</remarks>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    public HttpRequestBuilder PerformanceOptimization() => PerformanceOptimization(true);
+    public HttpRequestBuilder UseStandardRequestHeaders() => UseStandardRequestHeaders(true);
 
     /// <summary>
-    ///     设置是否启用性能优化
+    ///     设置是否启用标准请求标头
     /// </summary>
-    /// <remarks>当需要返回 <see cref="Stream" /> 内容或进行 <c>HttpContext</c> 网页转发时，请勿启用此配置，因为流会因压缩而变得不可读，同时该配置也不适用于网页转发的场景。</remarks>
     /// <param name="enabled">是否启用</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
-    public HttpRequestBuilder PerformanceOptimization(bool enabled)
+    public HttpRequestBuilder UseStandardRequestHeaders(bool enabled)
     {
-        PerformanceOptimizationEnabled = enabled;
+        StandardRequestHeadersEnabled = enabled;
 
         return this;
     }
@@ -1952,7 +2041,7 @@ public sealed partial class HttpRequestBuilder
         var excludeSet = excludePropertyNames?.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // 遍历所有属性并设置给 target 实例
-        foreach (var property in _cachedProperties.Value)
+        foreach (var property in CachedProperties.Value)
         {
             // 跳过需要排除的属性
             if (excludeSet is not null && excludeSet.Contains(property.Name))
@@ -2292,6 +2381,42 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     合并请求内容
+    /// </summary>
+    /// <param name="existing">当前请求内容</param>
+    /// <param name="incoming">传入请求内容</param>
+    /// <returns>
+    ///     <see cref="object" />
+    /// </returns>
+    internal static object? MergeContent(object? existing, object? incoming)
+    {
+        switch (existing)
+        {
+            // 字符串 + 字符串：使用 & 拼接
+            case string existingString when incoming is string incomingString:
+                return $"{existingString}&{incomingString}";
+            // 字典 + 字典：合并键值对
+            case IDictionary<string, object?> existingDictionary when
+                incoming is IDictionary<string, object?> incomingDictionary:
+                existingDictionary.AddOrUpdate(incomingDictionary);
+                return existingDictionary;
+            // 列表 + 集合：追加元素
+            case IList existingList when incoming is IEnumerable incomingEnumerable and not string:
+                {
+                    foreach (var item in incomingEnumerable)
+                    {
+                        existingList.Add(item);
+                    }
+
+                    return existingList;
+                }
+            default:
+                // 其他情况：覆盖
+                return incoming;
+        }
+    }
+
+    /// <summary>
     ///     释放可释放的对象集合
     /// </summary>
     internal void ReleaseDisposables()
@@ -2384,6 +2509,20 @@ public sealed partial class HttpRequestBuilder
         ArgumentNullException.ThrowIfNull(httpMethod);
 
         HttpMethod = httpMethod;
+
+        return this;
+    }
+
+    /// <summary>
+    ///     设置请求地址
+    /// </summary>
+    /// <param name="requestUri">请求地址</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    internal HttpRequestBuilder SetRequestUri(Uri? requestUri)
+    {
+        RequestUri = requestUri;
 
         return this;
     }

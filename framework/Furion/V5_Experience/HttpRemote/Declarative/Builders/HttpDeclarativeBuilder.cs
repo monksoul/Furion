@@ -44,7 +44,7 @@ public sealed class HttpDeclarativeBuilder
         new(typeof(BaseAddressDeclarativeExtractor), new BaseAddressDeclarativeExtractor()),
         new(typeof(ValidationDeclarativeExtractor), new ValidationDeclarativeExtractor()),
         new(typeof(AutoSetHostHeaderDeclarativeExtractor), new AutoSetHostHeaderDeclarativeExtractor()),
-        new(typeof(PerformanceOptimizationDeclarativeExtractor), new PerformanceOptimizationDeclarativeExtractor()),
+        new(typeof(StandardRequestHeadersDeclarativeExtractor), new StandardRequestHeadersDeclarativeExtractor()),
         new(typeof(HttpClientNameDeclarativeExtractor), new HttpClientNameDeclarativeExtractor()),
         new(typeof(TraceIdentifierDeclarativeExtractor), new TraceIdentifierDeclarativeExtractor()),
         new(typeof(ProfilerDeclarativeExtractor), new ProfilerDeclarativeExtractor()),
