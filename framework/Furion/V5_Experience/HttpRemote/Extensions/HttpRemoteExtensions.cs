@@ -336,6 +336,9 @@ public static partial class HttpRemoteExtensions
         // 主要用于解决 MultipartContent.LoadIntoBufferAsync 会递归消费所有 Part 的底层流，导致流指针移到末尾（损坏）
         var isMultipartRequest = !isResponse && httpContent is MultipartContent;
 
+        // 初始化 只进流无法回退且缓冲会破坏请求 的原因常量
+        const string skipReasonForwardOnly = "Forward-only stream, reading would break request";
+
         if (!isMultipartRequest)
         {
             // 检查内容大小是否最大限制
@@ -382,9 +385,9 @@ public static partial class HttpRemoteExtensions
                         [
                             new KeyValuePair<string, IEnumerable<string>>(string.Empty,
                             [
-                                $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), underlying stream is not seekable and buffering is disabled to protect it]\e[0m"
+                                $"\e[36m\e[1m[Skipped: {skipReasonForwardOnly}]\e[0m"
                             ])
-                        ], $"{summary} ({httpContent.GetType().Name}, Skipped: stream not seekable)");
+                        ], $"{summary} ({httpContent.GetType().Name}, Skipped: forward-only stream)");
                 }
             }
 
@@ -398,9 +401,9 @@ public static partial class HttpRemoteExtensions
                     [
                         new KeyValuePair<string, IEnumerable<string>>(string.Empty,
                         [
-                            $"\e[36m\e[1m[Skipped: streaming content ({contentType ?? "unknown"}), because HttpCompletionOption is {completionOption}]\e[0m"
+                            "\e[36m\e[1m[Skipped: ResponseHeadersRead mode, content not buffered]\e[0m"
                         ])
-                    ], $"{summary} ({httpContent.GetType().Name}, Skipped: {completionOption})");
+                    ], $"{summary} ({httpContent.GetType().Name}, Skipped: ResponseHeadersRead)");
             }
 
             try
@@ -501,8 +504,7 @@ public static partial class HttpRemoteExtensions
                     // 检查流是否可读
                     else if (!innerStream.CanSeek)
                     {
-                        skipReason =
-                            "Forward-only stream (e.g., network stream), reading it would consume the stream and break the actual request";
+                        skipReason = skipReasonForwardOnly;
                     }
                 }
 

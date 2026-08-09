@@ -62,7 +62,7 @@ public static class StringUtility
         EncodingUtility.Initialize();
 
         // 获取最长键名长度用于对齐键名字符串
-        var totalByteCount = keyValuePairs.Max(h => h.Key.Length) + 5;
+        var totalByteCount = keyValuePairs.Max(h => Encoding.Default.GetByteCount((h.Key ?? string.Empty) + ":")) + 5;
 
         // 初始化 StringBuilder 实例
         var stringBuilder = new StringBuilder();
@@ -76,8 +76,40 @@ public static class StringUtility
         // 逐条构建摘要信息
         foreach (var (key, value) in keyValuePairs)
         {
-            // 获取格式化后的值
-            var formatValue = AddTabToEachLine(string.Join(", ", value), true);
+            // 获取前缀
+            var linePrefix = hasSummary ? "  " : string.Empty;
+
+            string? formatValue;
+            string lineContent;
+
+            // 处理值列表为空问题
+            var joinedValue = value is null ? string.Empty : string.Join(", ", value);
+
+            // 处理键名不为空
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                // 获取格式化后的键名
+                var keyPart = (key + ':').PadStringToByteLength(totalByteCount);
+
+                // 获取键名在控制台中的实际显示宽度
+                var keyPartWidth = GetDisplayWidth(keyPart);
+
+                // 生成缩进
+                var indent = new string(' ', linePrefix.Length + keyPartWidth + 1);
+                formatValue = AddTabToEachLine(joinedValue, true, indent);
+
+                lineContent = $"{linePrefix}{keyPart} {formatValue}";
+            }
+            // 处理键名为空
+            else
+            {
+                // 生成缩进
+                var indent = new string(' ', linePrefix.Length);
+                formatValue = AddTabToEachLine(joinedValue, true, indent);
+
+                // 存在换行的值拼接前缀
+                lineContent = $"{linePrefix}{formatValue}";
+            }
 
             // 检查是否跳过值为空的项
             if (skipEmptyValues && string.IsNullOrWhiteSpace(formatValue))
@@ -88,26 +120,11 @@ public static class StringUtility
             // 非首条输出前添加换行
             if (hasOutput)
             {
-                stringBuilder.Append("\r\n");
+                stringBuilder.Append(Environment.NewLine);
             }
 
             hasOutput = true;
-
-            // 检查是否包含摘要，如果有则添加制表符（两个空白）
-            if (hasSummary)
-            {
-                stringBuilder.Append("  ");
-            }
-
-            // 处理空 Key 问题
-            if (!string.IsNullOrWhiteSpace(key))
-            {
-                stringBuilder.Append($"{(key + ':').PadStringToByteLength(totalByteCount)} {formatValue}");
-            }
-            else
-            {
-                stringBuilder.Append($"{string.Join(", ", formatValue)}");
-            }
+            stringBuilder.Append(lineContent);
         }
 
         // 如果没有任何输出项，直接返回 null
@@ -119,18 +136,19 @@ public static class StringUtility
         // 获取字符串
         var formatString = stringBuilder.ToString();
 
-        return hasSummary ? $"\e[36m\e[1m{summary}:\e[0m \r\n{formatString}" : formatString;
+        return hasSummary ? $"\e[36m\e[1m{summary}:\e[0m {Environment.NewLine}{formatString}" : formatString;
     }
 
     /// <summary>
-    ///     在字符串每一行添加制表符（两个空白）
+    ///     在字符串每一行添加制表符（两个空白）或自定义缩进
     /// </summary>
     /// <param name="input">文本</param>
     /// <param name="skipFirstLine">是否跳过第一行</param>
+    /// <param name="indent">自定义缩进字符串，为空则默认两个空格</param>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    internal static string? AddTabToEachLine(string? input, bool skipFirstLine = false)
+    internal static string? AddTabToEachLine(string? input, bool skipFirstLine = false, string? indent = null)
     {
         // 空检查
         if (input is null)
@@ -138,8 +156,46 @@ public static class StringUtility
             return input;
         }
 
+        // 默认缩进为两个空格
+        indent ??= "  ";
+
         // 使用 Environment.NewLine 以确保跨平台兼容性
         return string.Join(Environment.NewLine, input.Split([Environment.NewLine, "\n"], StringSplitOptions.None)
-            .Select((line, i) => (skipFirstLine && i == 0 ? string.Empty : "  ") + line));
+            .Select((line, i) => (skipFirstLine && i == 0 ? string.Empty : indent) + line));
+    }
+
+    /// <summary>
+    ///     获取字符串在控制台中的实际显示宽度
+    /// </summary>
+    /// <remarks>中文/全角字符占2个宽度，英文/半角占1个宽度。</remarks>
+    /// <param name="text">要测量的文本</param>
+    /// <returns>
+    ///     <see cref="int" />
+    /// </returns>
+    internal static int GetDisplayWidth(string? text)
+    {
+        // 空检查
+        if (string.IsNullOrEmpty(text))
+        {
+            return 0;
+        }
+
+        var width = 0;
+        foreach (var c in text)
+        {
+            // CJK 统一汉字、全角标点、全角字母/数字/符号
+            if ((c >= 0x4E00 && c <= 0x9FA5) || // CJK 统一汉字
+                (c >= 0x3000 && c <= 0x303F) || // CJK 标点符号
+                (c >= 0xFF00 && c <= 0xFFEF)) // 全角 ASCII 变体
+            {
+                width += 2;
+            }
+            else
+            {
+                width += 1;
+            }
+        }
+
+        return width;
     }
 }
