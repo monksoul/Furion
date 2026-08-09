@@ -46,6 +46,48 @@ internal sealed class CurlDataExtractor : HttpCurlExtractorBase
             return;
         }
 
+        object content;
+
+        // 标记是否为 --data-urlencode 的文件读取
+        var isUrlEncodeFileRead = false;
+
+        // 判断是否是文件读取语法（--data-raw 不支持 @file）
+        var isFileRead = !string.Equals(flag, "--data-raw", StringComparison.OrdinalIgnoreCase) &&
+                         argument.StartsWith('@') && argument.Length > 1;
+        if (isFileRead)
+        {
+            // 解析文件路径
+            var filePath = argument[1..];
+
+            // 如果是 --data-binary，读取为字节数组
+            if (string.Equals(flag, "--data-binary", StringComparison.OrdinalIgnoreCase))
+            {
+                content = File.ReadAllBytes(filePath);
+            }
+            else
+            {
+                // 读取文件文本内容
+                var fileText = File.ReadAllText(filePath);
+
+                // 如果是 --data-urlencode，对文件内容整体进行 URL 编码
+                if (string.Equals(flag, "--data-urlencode", StringComparison.OrdinalIgnoreCase))
+                {
+                    content = Uri.EscapeDataString(fileText).Replace("%20", "+");
+
+                    // 标记已手动编码
+                    isUrlEncodeFileRead = true;
+                }
+                else
+                {
+                    content = fileText;
+                }
+            }
+        }
+        else
+        {
+            content = argument;
+        }
+
         // 检查是否已设置了内容类型
         var hasExplicitContentType = !string.IsNullOrWhiteSpace(httpRequestBuilder.ContentType);
 
@@ -63,20 +105,24 @@ internal sealed class CurlDataExtractor : HttpCurlExtractorBase
         if (httpRequestBuilder.RawContent is null)
         {
             // 检查是否是 application/x-www-form-urlencoded 请求内容
-            if ((effectiveContentType ?? httpRequestBuilder.ContentType).IsIn([
+            var isFormUrlEncoded =
+                (effectiveContentType ?? httpRequestBuilder.ContentType).IsIn([
                     MediaTypeNames.Application.FormUrlEncoded
-                ]))
+                ]);
+
+            // 添加 URL 编码处理器，只有非文件读取且非 --data-urlencode 文件读取时才添加
+            if (isFormUrlEncoded && !isFileRead && !isUrlEncodeFileRead)
             {
                 httpRequestBuilder.AddStringContentForFormUrlEncodedContentProcessor(flag == "--data-urlencode");
             }
 
             // 设置请求内容
-            httpRequestBuilder.SetContent(argument, effectiveContentType);
+            httpRequestBuilder.SetContent(content, effectiveContentType);
         }
         else
         {
             // 追加请求内容
-            httpRequestBuilder.AppendContent(argument);
+            httpRequestBuilder.AppendContent(content);
         }
     }
 }

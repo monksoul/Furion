@@ -411,7 +411,8 @@ public sealed class HttpMultipartFormDataBuilder
         // 尝试从互联网 URL 地址中加载流
         var fileStream = Helpers.GetStreamFromRemote(url, configure, httpMethod: httpMethod);
 
-        return AddStream(fileStream, name, newFileName, contentType, contentEncoding, true);
+        return AddStream(fileStream, name, newFileName, contentType ?? FileTypeMapper.GetContentType(newFileName!),
+            contentEncoding, true);
     }
 
     /// <summary>
@@ -484,8 +485,8 @@ public sealed class HttpMultipartFormDataBuilder
         // 读取文件流（没有 using）
         var fileStream = File.OpenRead(filePath);
 
-        return AddStream(fileStream, name, newFileName, contentType, contentEncoding,
-            true);
+        return AddStream(fileStream, name, newFileName, contentType ?? FileTypeMapper.GetContentType(newFileName),
+            contentEncoding, true);
     }
 
     /// <summary>
@@ -534,7 +535,8 @@ public sealed class HttpMultipartFormDataBuilder
         var progressFileStream =
             new ProgressFileStream(fileStream, filePath, progressChannel, actualProgressInterval, newFileName);
 
-        return AddStream(progressFileStream, name, newFileName, contentType, contentEncoding, true);
+        return AddStream(progressFileStream, name, newFileName,
+            contentType ?? FileTypeMapper.GetContentType(newFileName), contentEncoding, true);
     }
 
     /// <summary>
@@ -569,7 +571,8 @@ public sealed class HttpMultipartFormDataBuilder
         // 读取文件字节数组
         var bytes = File.ReadAllBytes(filePath);
 
-        return AddByteArray(bytes, name, newFileName, contentType, contentEncoding);
+        return AddByteArray(bytes, name, newFileName, contentType ?? FileTypeMapper.GetContentType(newFileName),
+            contentEncoding);
     }
 
     /// <summary>
@@ -594,8 +597,7 @@ public sealed class HttpMultipartFormDataBuilder
 
         _partContents.Add(new MultipartFormDataItem(name ?? "file")
         {
-            ContentType =
-                contentType ?? Helpers.GetContentTypeOrDefault(fileInfo, MediaTypeNames.Application.Octet),
+            ContentType = contentType ?? FileTypeMapper.GetContentType(fileInfo.Name),
             RawContent = fileInfo,
             FileName = fileName ?? fileInfo.Name,
             ContentEncoding = contentEncoding

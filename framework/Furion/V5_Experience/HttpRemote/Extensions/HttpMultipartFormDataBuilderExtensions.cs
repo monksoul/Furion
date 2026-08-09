@@ -60,8 +60,9 @@ public static class HttpMultipartFormDataBuilderExtensions
 
         // 添加文件流
         return httpMultipartFormDataBuilder.AddStream(formFile.OpenReadStream(), name ?? formFile.Name,
-            fileName ?? formFile.FileName, contentType ?? formFile.ContentType, contentEncoding,
-            true);
+            fileName ?? formFile.FileName,
+            contentType ?? (string?)formFile.ContentType ?? FileTypeMapper.GetContentType(formFile.Name),
+            contentEncoding, true);
     }
 
     /// <summary>
@@ -123,8 +124,9 @@ public static class HttpMultipartFormDataBuilderExtensions
 
         // 添加文件流
         return httpMultipartFormDataBuilder.AddStream(browserFile.OpenReadStream(maxAllowedSize, cancellationToken),
-            name ?? "file", fileName ?? browserFile.Name, contentType ?? browserFile.ContentType, contentEncoding,
-            true);
+            name ?? "file", fileName ?? browserFile.Name,
+            contentType ?? (string?)browserFile.ContentType ?? FileTypeMapper.GetContentType(browserFile.Name),
+            contentEncoding, true);
     }
 
     /// <summary>

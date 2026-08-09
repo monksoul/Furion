@@ -30,6 +30,7 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Furion.HttpRemote;
@@ -254,6 +255,84 @@ public sealed partial class HttpRequestBuilder
         }
 
         return this;
+    }
+
+    /// <summary>
+    ///     从本地路径或互联网地址中设置文件内容
+    /// </summary>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="contentEncoding">内容编码</param>
+    /// <param name="configure">自定义配置委托</param>
+    /// <param name="httpMethod"><see cref="HttpMethod" />，默认值为：<see cref="HttpMethod.Get" /></param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRequestBuilder SetFileContent(string filePath, string? fileName = null, string? contentType = null,
+        Encoding? contentEncoding = null, Action<HttpClient, HttpRequestMessage>? configure = null,
+        HttpMethod? httpMethod = null)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        Stream stream;
+        string? effectiveFileName;
+
+        // 检查是否是网络地址
+        if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri) &&
+            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            // 尝试从 Uri 地址中解析文件的名称
+            effectiveFileName = fileName ?? Helpers.GetFileNameFromUri(uri);
+
+            // 尝试从互联网 URL 地址中加载流
+            stream = Helpers.GetStreamFromRemote(filePath, configure, httpMethod: httpMethod);
+        }
+        else
+        {
+            // 获取文件的名称
+            effectiveFileName = fileName ?? Path.GetFileName(filePath);
+
+            // 读取文件流（没有 using）
+            stream = File.OpenRead(filePath);
+        }
+
+        return SetStreamContent(stream, effectiveFileName, contentType, contentEncoding);
+    }
+
+    /// <summary>
+    ///     设置二进制流内容
+    /// </summary>
+    /// <param name="stream">
+    ///     <see cref="Stream" />
+    /// </param>
+    /// <param name="fileName">文件的名称</param>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="contentEncoding">内容编码</param>
+    /// <param name="disposeResourcesOnRequestCompletion">是否在请求结束后自动释放资源。默认值为：<c>true</c></param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpRequestBuilder SetStreamContent(Stream stream, string? fileName = null, string? contentType = null,
+        Encoding? contentEncoding = null, bool disposeResourcesOnRequestCompletion = true)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(stream);
+
+        // 空检查
+        if (!string.IsNullOrWhiteSpace(fileName) &&
+            (ContentHeaders is null || !ContentHeaders.ContainsKey(HeaderNames.ContentDisposition)))
+        {
+            // 添加 Content-Disposition 请求内容标头
+            WithHeader(HeaderNames.ContentDisposition,
+                new ContentDispositionHeaderValue("attachment") { FileName = fileName.AddQuotes() });
+        }
+
+        return SetContent(stream, contentType ?? FileTypeMapper.GetContentType(fileName!), contentEncoding,
+            disposeResourcesOnRequestCompletion);
     }
 
     /// <summary>
