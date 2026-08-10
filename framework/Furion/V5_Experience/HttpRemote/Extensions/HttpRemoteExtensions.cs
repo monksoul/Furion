@@ -262,23 +262,35 @@ public static partial class HttpRemoteExtensions
                 ? [new KeyValuePair<string, IEnumerable<string>>("cURL Command", [$"\e[36m\e[3m{curlCommand}\e[0m"])]
                 : null;
 
+        // 获取原始 JSON 命令
+        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? jsonKeyValues =
+            httpRequestMessage.Options.TryGetValue(new HttpRequestOptionsKey<string>(Constants.JSON_COMMAND_KEY),
+                out var jsonCommand)
+                ? [new KeyValuePair<string, IEnumerable<string>>("JSON Command", [$"\e[36m\e[3m{jsonCommand}\e[0m"])]
+                : null;
+
         // 格式化常规条目
         var generalEntry = StringUtility.FormatKeyValuesSummary(new[]
-            {
-                new KeyValuePair<string, IEnumerable<string>>("Request URL",
-                    [httpRequestMessage.RequestUri?.OriginalString!]),
-                new KeyValuePair<string, IEnumerable<string>>("Request Method", [httpRequestMessage.Method.ToString()]),
-                new KeyValuePair<string, IEnumerable<string>>("Status Code",
-                [
-                    httpResponseMessage.GetColoredText(
-                        $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}") +
-                    (!fromMemoryCache ? string.Empty : " \e[90m(from memory cache)\e[0m")
-                ]),
-                new KeyValuePair<string, IEnumerable<string>>("HTTP Version", [httpResponseMessage.Version.ToString()]),
-                new KeyValuePair<string, IEnumerable<string>>("HTTP Content", [$"{httpContent?.GetType().Name}"]),
-                new KeyValuePair<string, IEnumerable<string>>("Content Type", [$"{httpContent?.Headers.ContentType}"])
-            }.ConcatIgnoreNull(httpClientKeyValues).ConcatIgnoreNull(declarativeKeyValues)
-            .ConcatIgnoreNull(curlKeyValues).ConcatIgnoreNull(generalCustomKeyValues), generalSummary, true);
+                {
+                    new KeyValuePair<string, IEnumerable<string>>("Request URL",
+                        [httpRequestMessage.RequestUri?.OriginalString!]),
+                    new KeyValuePair<string, IEnumerable<string>>("Request Method",
+                        [httpRequestMessage.Method.ToString()]),
+                    new KeyValuePair<string, IEnumerable<string>>("Status Code",
+                    [
+                        httpResponseMessage.GetColoredText(
+                            $"{(int)httpResponseMessage.StatusCode} {httpResponseMessage.StatusCode}") +
+                        (!fromMemoryCache ? string.Empty : " \e[90m(from memory cache)\e[0m")
+                    ]),
+                    new KeyValuePair<string, IEnumerable<string>>("HTTP Version",
+                        [httpResponseMessage.Version.ToString()]),
+                    new KeyValuePair<string, IEnumerable<string>>("HTTP Content", [$"{httpContent?.GetType().Name}"]),
+                    new KeyValuePair<string, IEnumerable<string>>("Content Type",
+                        [$"{httpContent?.Headers.ContentType}"])
+                }.ConcatIgnoreNull(httpClientKeyValues).ConcatIgnoreNull(declarativeKeyValues)
+                .ConcatIgnoreNull(curlKeyValues).ConcatIgnoreNull(jsonKeyValues)
+                .ConcatIgnoreNull(generalCustomKeyValues),
+            generalSummary, true);
 
         // 格式化响应条目
         var responseEntry = httpResponseMessage.ProfilerHeaders(responseSummary);

@@ -940,20 +940,20 @@ public sealed partial class HttpRequestBuilder
         // 初始化 HttpRequestBuilder 实例
         var httpRequestBuilder = new HttpRequestBuilder();
 
-        // 初始化 HttpCurlTokenExtractorContext 实例
-        var tokenContext = new HttpCurlTokenExtractorContext(tokens);
+        // 初始化 HttpCurlParsingContext 实例
+        var parsingContext = new HttpCurlParsingContext(tokens);
 
         // 先将提取器进行排序
         var sortedExtractors = options.Extractors.OrderBy(e => (e as IOrderedHttpCurlExtractor)?.Order ?? 0).ToList();
 
         // 遍历所有的 Token
-        while (!tokenContext.IsEndOfTokens)
+        while (!parsingContext.IsEndOfTokens)
         {
             // 尝试匹配
-            if (!sortedExtractors.Any(extractor => extractor.TryExtract(httpRequestBuilder, tokenContext)))
+            if (!sortedExtractors.Any(extractor => extractor.TryExtract(httpRequestBuilder, parsingContext)))
             {
                 // 推进游标
-                tokenContext.Advance();
+                parsingContext.Advance();
             }
         }
 
@@ -979,111 +979,63 @@ public sealed partial class HttpRequestBuilder
     ///     从 JSON 中创建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="json">JSON 字符串</param>
-    /// <param name="jsonProcess">自定义 JSON 解析委托</param>
+    /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static HttpRequestBuilder FromJson(string json, Action<JsonObject, HttpRequestBuilder>? jsonProcess = null)
+    public static HttpRequestBuilder FromJson(string json, Action<HttpJsonParsingOptions>? configure = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
-        /*
-         * 手动解析 JSON 字符串
-         *
-         * 不采用 JSON 反序列化的原因如下：
-         *  1. HttpRequestBuilder 的属性设计为只读，无法直接通过反序列化赋值。
-         *  2. 避免引入 [JsonInclude] 特性对 System.Text.Json 的强耦合，保持依赖解耦。
-         *  3. 简化 JSON 字符串的结构定义，无需严格遵循 HttpRequestBuilder 的属性定义，从而省略 [JsonPropertyName] 等自定义映射。
-         *  4. 精确控制需要解析的键，减少不必要的自定义 JsonConverter 操作，提升性能与可维护性。
-         */
-        var jsonObject = JsonNode.Parse(json, new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-            new JsonDocumentOptions { AllowTrailingCommas = true })?.AsObject();
+        // 手动解析 JSON 字符串
+        var jsonNode = JsonNode.Parse(json, new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+            new JsonDocumentOptions { AllowTrailingCommas = true });
+
+        // 检查解析结果是否为 JSON 对象
+        if (jsonNode is not JsonObject jsonObject)
+        {
+            throw new ArgumentException("The provided JSON must be a valid JSON object.", nameof(json));
+        }
 
         // 空检查
         ArgumentNullException.ThrowIfNull(jsonObject);
 
-        // 验证必填字段
-        if (!jsonObject.TryGetPropertyValue("method", out var methodNode) || methodNode is not JsonValue methodValue)
-        {
-            throw new ArgumentException("Missing required `method` in JSON.");
-        }
+        // 初始化 HttpJsonParsingOptions 实例
+        var options = new HttpJsonParsingOptions();
 
-        // 允许 "url" 为 null，但必须定义
-        if (!jsonObject.ContainsKey("url"))
-        {
-            throw new ArgumentException("Missing required `url` in JSON.");
-        }
+        // 调用自定义配置委托
+        configure?.Invoke(options);
 
         // 初始化 HttpRequestBuilder 实例
-        var httpRequestBuilder = Create(methodValue.ToString(), jsonObject["url"]?.GetValue<string?>());
+        var httpRequestBuilder = new HttpRequestBuilder();
 
-        // 处理可选字段
-        TryProcessJsonProperty(jsonObject, "baseAddress",
-            node => httpRequestBuilder.SetBaseAddress(node.GetValue<string>()));
-        TryProcessJsonProperty(jsonObject, "headers", node => httpRequestBuilder.WithHeaders(node));
-        TryProcessJsonProperty(jsonObject, "queries", node => httpRequestBuilder.WithQueryParameters(node));
-        TryProcessJsonProperty(jsonObject, "cookies", node => httpRequestBuilder.WithCookies(node));
-        TryProcessJsonProperty(jsonObject, "timeout", node => httpRequestBuilder.SetTimeout(node.GetValue<double>()));
-        TryProcessJsonProperty(jsonObject, "client",
-            node => httpRequestBuilder.SetHttpClientName(node.GetValue<string?>()));
-        TryProcessJsonProperty(jsonObject, "profiler", node => httpRequestBuilder.Profiler(node.GetValue<bool>()));
+        // 初始化 HttpJsonParsingContext 实例
+        var parsingContext = new HttpJsonParsingContext(jsonObject);
 
-        // 处理请求内容
-        if (jsonObject.TryGetPropertyValue("data", out var dataNode))
+        // 遍历所有的提取器
+        foreach (var extractor in options.Extractors)
         {
-            // "data" 和 "contentType" 必须同时存在或同时不存在
-            if (!jsonObject.TryGetPropertyValue("contentType", out var contentTypeNode) ||
-                contentTypeNode is not JsonValue contentTypeValue)
-            {
-                throw new InvalidOperationException("The `contentType` key is required when `data` is present.");
-            }
-
-            // 设置请求内容
-            httpRequestBuilder.SetContent(HttpRemoteExtensions.ToJsonString(dataNode), contentTypeValue.ToString())
-                .AddStringContentForFormUrlEncodedContentProcessor();
-
-            // 设置内容编码
-            TryProcessJsonProperty(jsonObject, "encoding",
-                node => httpRequestBuilder.SetContentEncoding(node.GetValue<string>()));
+            extractor.Extract(httpRequestBuilder, parsingContext);
         }
 
-        // 处理多部分表单
-        if (jsonObject.TryGetPropertyValue("multipart", out var multipartNode))
+        // 检查是否未显式指定 HTTP 方法
+        // ReSharper disable once InvertIf
+        if (httpRequestBuilder.HttpMethod is null)
         {
-            // 设置多部分表单内容
-            httpRequestBuilder.SetMultipartContent(multipart =>
-                multipart.AddJson(HttpRemoteExtensions.ToJsonString(multipartNode?.AsObject())));
+            // 判断是否包含请求内容
+            var hasBody = httpRequestBuilder.RawContent is not null ||
+                          httpRequestBuilder.MultipartFormDataBuilder is not null;
+
+            // 设置请求方式
+            httpRequestBuilder.SetHttpMethod(hasBody ? HttpMethod.Post : HttpMethod.Get);
         }
 
-        // 调用自定义 JSON 解析委托
-        jsonProcess?.Invoke(jsonObject, httpRequestBuilder);
+        // 将原始 JSON 字符串存入请求消息属性中，供请求分析工具输出
+        httpRequestBuilder.WithProperty(Constants.JSON_COMMAND_KEY, json);
 
         return httpRequestBuilder;
-    }
-
-    /// <summary>
-    ///     尝试从 <see cref="JsonObject" /> 中获取指定名称的属性节点
-    /// </summary>
-    /// <param name="jsonObject">
-    ///     <see cref="JsonObject" />
-    /// </param>
-    /// <param name="propertyName">属性名</param>
-    /// <param name="action">自定义操作</param>
-    /// <exception cref="ArgumentNullException"></exception>
-    internal static void TryProcessJsonProperty(JsonObject jsonObject, string propertyName, Action<JsonNode> action)
-    {
-        // 空检查
-        ArgumentNullException.ThrowIfNull(jsonObject);
-        ArgumentNullException.ThrowIfNull(propertyName);
-        ArgumentNullException.ThrowIfNull(action);
-
-        if (jsonObject.TryGetPropertyValue(propertyName, out var node) && node is not null)
-        {
-            action(node);
-        }
     }
 }

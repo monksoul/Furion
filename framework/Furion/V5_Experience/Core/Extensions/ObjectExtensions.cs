@@ -28,6 +28,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Furion.Extensions;
 
@@ -77,6 +78,11 @@ internal static class ObjectExtensions
             TimeOnly ot => ot.ToString("HH':'mm':'ss", culture),
             Enum e when enumAsString => e.ToString(),
             Enum e => Convert.ChangeType(e, Enum.GetUnderlyingType(e.GetType())).ToString(),
+            JsonDocument document => document.ToString(),
+            JsonElement { ValueKind: JsonValueKind.String } element => element.GetString(),
+            JsonElement element => element.ToString(),
+            JsonNode node when node.GetValueKind() == JsonValueKind.String => node.GetValue<string>(),
+            JsonNode node => node.ToJsonString(),
             IEnumerable e and not string when typeof(IEnumerable<>).IsDefinitionEquals(e.GetType()) => string.Join(
                 separator, e.Cast<object>()),
             _ => obj.ToString()
@@ -235,6 +241,8 @@ internal static class ObjectExtensions
                 return jsonElement.EnumerateObject().ToDictionary<JsonProperty, object, object?>(
                     jsonProperty => jsonProperty.Name,
                     jsonProperty => jsonProperty.Value);
+            case JsonNode jsonNode when jsonNode.GetValueKind() == JsonValueKind.Object:
+                return jsonNode.AsObject().ToDictionary(object (u) => u.Key, object? (u) => u.Value);
         }
 
         // 检查类型是否是键值对集合类型

@@ -148,4 +148,10 @@ internal static class Constants
     /// </summary>
     /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string CURL_COMMAND_KEY = "CURL_COMMAND";
+
+    /// <summary>
+    ///     JSON 命令字符串键
+    /// </summary>
+    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    internal const string JSON_COMMAND_KEY = "JSON_COMMAND";
 }
