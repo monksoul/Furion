@@ -29,7 +29,7 @@ using System.Text.RegularExpressions;
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     HTTP 远程请求断言构建器
+///     HTTP 远程请求响应断言构建器
 /// </summary>
 public sealed partial class HttpAssertionBuilder
 {
@@ -40,7 +40,7 @@ public sealed partial class HttpAssertionBuilder
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
-    public HttpAssertionBuilder StatusCode(HttpStatusCode expected) => StatusCode((int)expected);
+    public HttpAssertionBuilder ResponseStatusCode(HttpStatusCode expected) => ResponseStatusCode((int)expected);
 
     /// <summary>
     ///     断言响应状态码等于指定的整数值
@@ -50,17 +50,22 @@ public sealed partial class HttpAssertionBuilder
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder StatusCode(int expected) =>
-        AddAssertion(async context =>
+    public HttpAssertionBuilder ResponseStatusCode(int expected)
+    {
+        _responseAssertions.Add(async context =>
         {
             // 获取 HTTP 状态码
             var actual = (int)context.StatusCode;
 
             if (actual != expected)
             {
-                await HttpAssertionException.ThrowAsync($"Expected status code to be {expected}, but found {actual}.");
+                await HttpAssertionException.ThrowAsync(
+                    $"Expected response status code to be {expected}, but found {actual}.");
             }
         });
+
+        return this;
+    }
 
     /// <summary>
     ///     断言响应状态码在指定的允许状态码列表中
@@ -72,7 +77,7 @@ public sealed partial class HttpAssertionBuilder
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder StatusCodeIn(params int[] allowedStatusCodes)
+    public HttpAssertionBuilder ResponseStatusCodeIn(params int[] allowedStatusCodes)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(allowedStatusCodes);
@@ -84,7 +89,7 @@ public sealed partial class HttpAssertionBuilder
                 nameof(allowedStatusCodes));
         }
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 获取 HTTP 状态码
             var actual = (int)context.StatusCode;
@@ -92,9 +97,11 @@ public sealed partial class HttpAssertionBuilder
             if (!allowedStatusCodes.Contains(actual))
             {
                 await HttpAssertionException.ThrowAsync(
-                    $"Expected status code to be one of [{string.Join(", ", allowedStatusCodes)}], but found {actual}.");
+                    $"Expected response status code to be one of [{string.Join(", ", allowedStatusCodes)}], but found {actual}.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -104,15 +111,19 @@ public sealed partial class HttpAssertionBuilder
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder IsSuccessStatusCode() =>
-        AddAssertion(async context =>
+    public HttpAssertionBuilder ResponseIsSuccessStatusCode()
+    {
+        _responseAssertions.Add(async context =>
         {
             if (!context.IsSuccessStatusCode)
             {
                 await HttpAssertionException.ThrowAsync(
-                    $"Expected request to be successful (2xx status code), but found status code {(int)context.StatusCode}.");
+                    $"Expected response to be successful (2xx status code), but found status code {(int)context.StatusCode}.");
             }
         });
+
+        return this;
+    }
 
     /// <summary>
     ///     断言响应内容包含指定的子字符串（不区分大小写）
@@ -126,15 +137,16 @@ public sealed partial class HttpAssertionBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder ContentContains(string expectedSubstring, CancellationToken cancellationToken = default)
+    public HttpAssertionBuilder ResponseContentContains(string expectedSubstring,
+        CancellationToken cancellationToken = default)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrEmpty(expectedSubstring);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 读取响应内容字符串
-            var content = await context.ReadAsStringAsync(cancellationToken);
+            var content = await context.ReadResponseAsStringAsync(cancellationToken);
 
             if (string.IsNullOrEmpty(content) ||
                 !content.Contains(expectedSubstring, StringComparison.OrdinalIgnoreCase))
@@ -143,6 +155,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response content to contain '{expectedSubstring}', but it was not found.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -156,15 +170,15 @@ public sealed partial class HttpAssertionBuilder
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpAssertionBuilder ContentEquals(string expected, CancellationToken cancellationToken = default)
+    public HttpAssertionBuilder ResponseContentEquals(string expected, CancellationToken cancellationToken = default)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrEmpty(expected);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 读取响应内容字符串
-            var content = await context.ReadAsStringAsync(cancellationToken);
+            var content = await context.ReadResponseAsStringAsync(cancellationToken);
 
             if (!string.Equals(content, expected, StringComparison.Ordinal))
             {
@@ -172,6 +186,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response content to be '{expected}', but found '{content}'.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -185,15 +201,15 @@ public sealed partial class HttpAssertionBuilder
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpAssertionBuilder ContentMatches(string pattern, CancellationToken cancellationToken = default)
+    public HttpAssertionBuilder ResponseContentMatches(string pattern, CancellationToken cancellationToken = default)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 读取响应内容字符串
-            var content = await context.ReadAsStringAsync(cancellationToken);
+            var content = await context.ReadResponseAsStringAsync(cancellationToken);
 
             if (content is null || !Regex.IsMatch(content, pattern))
             {
@@ -201,25 +217,34 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response content to match regex '{pattern}', but it did not.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
     ///     断言响应内容不为空
     /// </summary>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
     /// <returns>
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
-    public HttpAssertionBuilder ContentNotEmpty() =>
-        AddAssertion(async context =>
+    public HttpAssertionBuilder ResponseContentNotEmpty(CancellationToken cancellationToken = default)
+    {
+        _responseAssertions.Add(async context =>
         {
             // 读取响应内容字符串
-            var content = await context.ReadAsStringAsync();
+            var content = await context.ReadResponseAsStringAsync(cancellationToken);
 
             if (string.IsNullOrEmpty(content))
             {
                 await HttpAssertionException.ThrowAsync("Expected response content not to be empty.");
             }
         });
+
+        return this;
+    }
 
     /// <summary>
     ///     断言指定的响应标头存在（可在响应标头或内容标头中）
@@ -230,16 +255,16 @@ public sealed partial class HttpAssertionBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder HeaderExists(string name)
+    public HttpAssertionBuilder ResponseHeaderExists(string name)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 尝试从响应标头或内容标头中检查
-            var exists = context.ResponseMessage.Headers.Contains(name) ||
-                         context.ResponseMessage.Content.Headers.Contains(name);
+            var exists = context.ResponseMessage?.Headers.TryGetValues(name, out _) == true ||
+                         context.ResponseMessage?.Content?.Headers.TryGetValues(name, out _) == true;
 
             if (!exists)
             {
@@ -247,6 +272,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response header '{name}' to exist, but it was not found.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -260,23 +287,23 @@ public sealed partial class HttpAssertionBuilder
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder HeaderEquals(string name, string expectedValue)
+    public HttpAssertionBuilder ResponseHeaderEquals(string name, string expectedValue)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(expectedValue);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             string? actualValue = null;
 
             // 尝试从响应标头中获取值
-            if (context.ResponseMessage.Headers.TryGetValues(name, out var headerValues))
+            if (context.ResponseMessage?.Headers.TryGetValues(name, out var headerValues) == true)
             {
                 actualValue = headerValues.FirstOrDefault();
             }
             // 尝试从响应内容标头中获取值
-            else if (context.ResponseMessage.Content.Headers.TryGetValues(name, out var contentHeaderValues))
+            else if (context.ResponseMessage?.Content?.Headers.TryGetValues(name, out var contentHeaderValues) == true)
             {
                 actualValue = contentHeaderValues.FirstOrDefault();
             }
@@ -288,6 +315,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response header '{name}' to be '{expectedValue}', but found '{actualValue}'.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -300,23 +329,23 @@ public sealed partial class HttpAssertionBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder HeaderContains(string name, string expectedValue)
+    public HttpAssertionBuilder ResponseHeaderContains(string name, string expectedValue)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedValue);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             string[]? values = null;
 
             // 尝试从响应标头中获取值
-            if (context.ResponseMessage.Headers.TryGetValues(name, out var headerValues))
+            if (context.ResponseMessage?.Headers.TryGetValues(name, out var headerValues) == true)
             {
                 values = headerValues.ToArray();
             }
             // 尝试从响应内容标头中获取值
-            else if (context.ResponseMessage.Content.Headers.TryGetValues(name, out var contentHeaderValues))
+            else if (context.ResponseMessage?.Content?.Headers.TryGetValues(name, out var contentHeaderValues) == true)
             {
                 values = contentHeaderValues.ToArray();
             }
@@ -335,6 +364,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response header '{name}' to contain '{expectedValue}', but actual values were: [{string.Join(", ", values)}].");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -346,16 +377,16 @@ public sealed partial class HttpAssertionBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder HeaderNotExists(string name)
+    public HttpAssertionBuilder ResponseHeaderNotExists(string name)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 尝试从响应标头或内容标头中检查
-            var exists = context.ResponseMessage.Headers.Contains(name) ||
-                         context.ResponseMessage.Content.Headers.Contains(name);
+            var exists = context.ResponseMessage?.Headers.TryGetValues(name, out _) == true ||
+                         context.ResponseMessage?.Content?.Headers.TryGetValues(name, out _) == true;
 
             if (exists)
             {
@@ -363,6 +394,8 @@ public sealed partial class HttpAssertionBuilder
                     $"Expected response header '{name}' not to exist, but it was found.");
             }
         });
+
+        return this;
     }
 
     /// <summary>
@@ -373,11 +406,11 @@ public sealed partial class HttpAssertionBuilder
     ///     <see cref="HttpAssertionBuilder" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
-    public HttpAssertionBuilder DurationUnder(double maxMilliseconds) =>
+    public HttpAssertionBuilder ResponseDurationUnder(double maxMilliseconds) =>
         // 小于或等于 0 检查
         maxMilliseconds <= 0
             ? throw new ArgumentException("Max milliseconds must be greater than 0.", nameof(maxMilliseconds))
-            : DurationUnder(TimeSpan.FromMilliseconds(maxMilliseconds));
+            : ResponseDurationUnder(TimeSpan.FromMilliseconds(maxMilliseconds));
 
     /// <summary>
     ///     断言请求耗时低于指定的时间跨度
@@ -388,7 +421,7 @@ public sealed partial class HttpAssertionBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpAssertionException"></exception>
-    public HttpAssertionBuilder DurationUnder(TimeSpan maxDuration)
+    public HttpAssertionBuilder ResponseDurationUnder(TimeSpan maxDuration)
     {
         // 小于或等于 0 检查
         if (maxDuration <= TimeSpan.Zero)
@@ -396,7 +429,7 @@ public sealed partial class HttpAssertionBuilder
             throw new ArgumentException("Max duration must be greater than 0.", nameof(maxDuration));
         }
 
-        return AddAssertion(async context =>
+        _responseAssertions.Add(async context =>
         {
             // 获取实际耗时
             var actualDuration = TimeSpan.FromMilliseconds(context.RequestDuration);
@@ -404,8 +437,60 @@ public sealed partial class HttpAssertionBuilder
             if (actualDuration > maxDuration)
             {
                 await HttpAssertionException.ThrowAsync(
-                    $"Expected request duration to be under {maxDuration.TotalMilliseconds:F2}ms, but it took {actualDuration.TotalMilliseconds:F2}ms.");
+                    $"Expected response duration to be under {maxDuration.TotalMilliseconds:F2}ms, but it took {actualDuration.TotalMilliseconds:F2}ms.");
             }
         });
+
+        return this;
+    }
+
+    /// <summary>
+    ///     自定义响应消息断言（同步检查）
+    /// </summary>
+    /// <param name="assertion">断言委托，参数为 <see cref="HttpResponseMessage" /></param>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpAssertionBuilder ResponseSatisfies(Action<HttpResponseMessage> assertion)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(assertion);
+
+        _responseAssertions.Add(context =>
+        {
+            if (context.ResponseMessage is not null)
+            {
+                assertion(context.ResponseMessage);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        return this;
+    }
+
+    /// <summary>
+    ///     自定义响应消息断言（异步检查）
+    /// </summary>
+    /// <param name="assertion">异步断言委托</param>
+    /// <returns>
+    ///     <see cref="HttpAssertionBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpAssertionBuilder ResponseSatisfies(Func<HttpResponseMessage, Task> assertion)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(assertion);
+
+        _responseAssertions.Add(async context =>
+        {
+            if (context.ResponseMessage is not null)
+            {
+                await assertion(context.ResponseMessage);
+            }
+        });
+
+        return this;
     }
 }

@@ -88,6 +88,12 @@ public class BodyAttribute : Attribute
     public bool RawString { get; set; }
 
     /// <summary>
+    ///     表示将字符串作为文件路径（支持互联网地址）
+    /// </summary>
+    /// <remarks>当参数类型为 <see cref="string" /> 时有效。默认值为：<c>false</c>。</remarks>
+    public bool AsFile { get; set; }
+
+    /// <summary>
     ///     是否在请求结束后自动释放资源
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>

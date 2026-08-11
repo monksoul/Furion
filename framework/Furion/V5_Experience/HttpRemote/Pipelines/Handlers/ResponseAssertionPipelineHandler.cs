@@ -49,14 +49,15 @@ internal sealed class ResponseAssertionPipelineHandler(IServiceProvider serviceP
         // 获取当前 HttpRequestBuilder 实例
         var httpRequestBuilder = context.Builder;
 
-        // 执行断言委托操作
-        await ExecuteAssertionsAsync(httpRequestBuilder, httpResponseMessage, context.RequestDuration, serviceProvider);
+        // 执行响应断言委托操作
+        await ExecuteAssertionsAsync(httpRequestBuilder, httpResponseMessage, context.RequestMessage,
+            context.RequestDuration, serviceProvider);
 
         return httpResponseMessage;
     }
 
     /// <summary>
-    ///     执行断言委托操作
+    ///     执行响应断言委托操作
     /// </summary>
     /// <param name="httpRequestBuilder">
     ///     <see cref="HttpRequestBuilder" />
@@ -64,21 +65,26 @@ internal sealed class ResponseAssertionPipelineHandler(IServiceProvider serviceP
     /// <param name="httpResponseMessage">
     ///     <see cref="HttpResponseMessage" />
     /// </param>
+    /// <param name="requestMessage">
+    ///     <see cref="HttpRequestMessage" />
+    /// </param>
     /// <param name="requestDuration">请求耗时（毫秒）</param>
     /// <param name="serviceProvider">
     ///     <see cref="IServiceProvider" />
     /// </param>
     internal static async Task ExecuteAssertionsAsync(HttpRequestBuilder httpRequestBuilder,
-        HttpResponseMessage httpResponseMessage, long requestDuration, IServiceProvider serviceProvider)
+        HttpResponseMessage httpResponseMessage, HttpRequestMessage? requestMessage, long requestDuration,
+        IServiceProvider serviceProvider)
     {
-        // 检查断言是否启用且已配置委托集合
-        if (httpRequestBuilder is { AssertionsEnabled: true, Assertions.Count: > 0 })
+        // 检查是否配置了响应断言委托集合
+        if (httpRequestBuilder.ResponseAssertions is { Count: > 0 })
         {
             // 初始化 HttpAssertionContext 实例
-            var httpAssertionContext = new HttpAssertionContext(httpResponseMessage, requestDuration, serviceProvider);
+            var httpAssertionContext =
+                new HttpAssertionContext(httpResponseMessage, requestMessage, requestDuration, serviceProvider);
 
-            // 逐个调用断言委托
-            foreach (var httpAssertion in httpRequestBuilder.Assertions)
+            // 逐个调用响应断言委托
+            foreach (var httpAssertion in httpRequestBuilder.ResponseAssertions)
             {
                 await httpAssertion(httpAssertionContext);
             }

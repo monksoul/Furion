@@ -344,12 +344,12 @@ public static partial class HttpRemoteExtensions
         // 获取内容类型
         var contentType = httpContent.Headers.ContentType?.ToString();
 
+        // 初始化 只进流无法回退且缓冲会破坏请求 的原因常量
+        const string skipReasonForwardOnly = "Forward-only stream, reading would break request";
+
         // 判断内容是否来自请求中的 MultipartContent
         // 主要用于解决 MultipartContent.LoadIntoBufferAsync 会递归消费所有 Part 的底层流，导致流指针移到末尾（损坏）
         var isMultipartRequest = !isResponse && httpContent is MultipartContent;
-
-        // 初始化 只进流无法回退且缓冲会破坏请求 的原因常量
-        const string skipReasonForwardOnly = "Forward-only stream, reading would break request";
 
         if (!isMultipartRequest)
         {

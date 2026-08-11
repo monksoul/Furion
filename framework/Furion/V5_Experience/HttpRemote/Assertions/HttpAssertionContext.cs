@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using System.Net;
+using System.Text;
 
 namespace Furion.HttpRemote;
 
@@ -33,38 +34,49 @@ namespace Furion.HttpRemote;
 public sealed class HttpAssertionContext
 {
     /// <summary>
+    ///     请求内容字符串缓存
+    /// </summary>
+    internal string? _cachedRequestContent;
+
+    /// <summary>
     ///     响应内容字符串缓存
     /// </summary>
-    internal string? _cachedContent;
+    internal string? _cachedResponseContent;
 
     /// <summary>
     ///     <inheritdoc cref="HttpAssertionContext" />
     /// </summary>
     /// <param name="httpResponseMessage">
-    ///     <see cref="HttpResponseMessage" />
+    ///     <see cref="HttpResponseMessage" />，可为 <c>null</c>（用于请求断言阶段）
+    /// </param>
+    /// <param name="httpRequestMessage">
+    ///     <see cref="HttpRequestMessage" />，可选，用于断言请求内容
     /// </param>
     /// <param name="requestDuration">请求耗时（毫秒）</param>
     /// <param name="serviceProvider">
     ///     <see cref="IServiceProvider" />
     /// </param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal HttpAssertionContext(HttpResponseMessage httpResponseMessage, long requestDuration,
-        IServiceProvider serviceProvider)
+    internal HttpAssertionContext(HttpResponseMessage? httpResponseMessage,
+        HttpRequestMessage? httpRequestMessage, long requestDuration, IServiceProvider serviceProvider)
     {
         // 空检查
-        ArgumentNullException.ThrowIfNull(httpResponseMessage);
         ArgumentNullException.ThrowIfNull(serviceProvider);
 
         ResponseMessage = httpResponseMessage;
+        RequestMessage = httpRequestMessage;
         RequestDuration = requestDuration;
         ServiceProvider = serviceProvider;
 
-        StatusCode = httpResponseMessage.StatusCode;
-        IsSuccessStatusCode = httpResponseMessage.IsSuccessStatusCode;
+        StatusCode = httpResponseMessage?.StatusCode ?? default;
+        IsSuccessStatusCode = httpResponseMessage?.IsSuccessStatusCode ?? false;
     }
 
     /// <inheritdoc cref="HttpResponseMessage" />
-    public HttpResponseMessage ResponseMessage { get; }
+    public HttpResponseMessage? ResponseMessage { get; }
+
+    /// <inheritdoc cref="HttpRequestMessage" />
+    public HttpRequestMessage? RequestMessage { get; }
 
     /// <summary>
     ///     请求耗时（毫秒）
@@ -96,12 +108,20 @@ public sealed class HttpAssertionContext
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    public async Task<string?> ReadAsStringAsync(CancellationToken cancellationToken = default)
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<string?> ReadResponseAsStringAsync(CancellationToken cancellationToken = default)
     {
         // 空检查
-        if (_cachedContent is not null)
+        if (ResponseMessage is null)
         {
-            return _cachedContent;
+            throw new InvalidOperationException(
+                $"{nameof(ResponseMessage)} is null, cannot read response content.");
+        }
+
+        // 空检查
+        if (_cachedResponseContent is not null)
+        {
+            return _cachedResponseContent;
         }
 
         // 启用缓冲，可重复读取
@@ -111,8 +131,65 @@ public sealed class HttpAssertionContext
         await ResponseMessage.Content.LoadIntoBufferAsync(cancellationToken);
 #endif
 
-        _cachedContent = await ResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+        _cachedResponseContent = await ResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
-        return _cachedContent;
+        return _cachedResponseContent;
+    }
+
+    /// <summary>
+    ///     读取请求内容字符串
+    /// </summary>
+    /// <remarks>支持多次读取。</remarks>
+    /// <param name="cancellationToken">
+    ///     <see cref="CancellationToken" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    public async Task<string?> ReadRequestAsStringAsync(CancellationToken cancellationToken = default)
+    {
+        // 空检查
+        if (RequestMessage?.Content is null)
+        {
+            return null;
+        }
+
+        // 空检查
+        if (_cachedRequestContent is not null)
+        {
+            return _cachedRequestContent;
+        }
+
+        // 启用缓冲，可重复读取
+        try
+        {
+#if NET8_0
+            await RequestMessage.Content.LoadIntoBufferAsync();
+#else
+            await RequestMessage.Content.LoadIntoBufferAsync(cancellationToken);
+#endif
+        }
+        catch
+        {
+            // ignored
+        }
+
+        // 读取流内容
+        var stream = await RequestMessage.Content.ReadAsStreamAsync(cancellationToken);
+
+        // 检查流是否可读
+        if (stream.CanSeek)
+        {
+            // 重置流指针至起始位置
+            stream.Position = 0;
+        }
+
+        // 初始化 StreamReader 实例
+        using var streamReader = new StreamReader(stream, Encoding.UTF8, true, 1024, true);
+
+        // 读取完整内容
+        _cachedRequestContent = await streamReader.ReadToEndAsync(cancellationToken);
+
+        return _cachedRequestContent;
     }
 }

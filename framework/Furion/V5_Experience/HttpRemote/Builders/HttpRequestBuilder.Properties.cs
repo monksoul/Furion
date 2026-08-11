@@ -382,9 +382,16 @@ public sealed partial class HttpRequestBuilder
     internal bool AssertionsEnabled { get; private set; }
 
     /// <summary>
-    ///     断言委托集合
+    ///     请求断言委托集合
     /// </summary>
-    internal List<HttpAssertion>? Assertions { get; private set; }
+    /// <remarks>在发送请求前执行。</remarks>
+    internal List<HttpAssertion>? RequestAssertions { get; private set; }
+
+    /// <summary>
+    ///     响应断言委托集合
+    /// </summary>
+    /// <remarks>在收到响应后执行。</remarks>
+    internal List<HttpAssertion>? ResponseAssertions { get; private set; }
 
     /// <summary>
     ///     用于处理在构建最终请求 URL 的操作

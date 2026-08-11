@@ -31,18 +31,30 @@ namespace Furion.HttpRemote;
 public sealed partial class HttpAssertionBuilder
 {
     /// <summary>
-    ///     断言委托集合
+    ///     请求断言委托集合
     /// </summary>
-    internal readonly List<HttpAssertion> _assertions;
+    /// <remarks>在发送请求前执行。</remarks>
+    internal readonly List<HttpAssertion> _requestAssertions;
+
+    /// <summary>
+    ///     响应断言委托集合
+    /// </summary>
+    /// <remarks>在收到响应后执行。</remarks>
+    internal readonly List<HttpAssertion> _responseAssertions;
 
     /// <summary>
     ///     <inheritdoc cref="HttpAssertionBuilder" />
     /// </summary>
-    internal HttpAssertionBuilder() => _assertions = [];
+    internal HttpAssertionBuilder()
+    {
+        _requestAssertions = [];
+        _responseAssertions = [];
+    }
 
     /// <summary>
     ///     添加自定义断言委托
     /// </summary>
+    /// <remarks>默认视为响应断言。</remarks>
     /// <param name="assertion">
     ///     <see cref="HttpAssertion" />
     /// </param>
@@ -55,16 +67,24 @@ public sealed partial class HttpAssertionBuilder
         // 空检查
         ArgumentNullException.ThrowIfNull(assertion);
 
-        _assertions.Add(assertion);
+        _responseAssertions.Add(assertion);
 
         return this;
     }
 
     /// <summary>
-    ///     获取断言委托集合
+    ///     获取请求断言委托集合
     /// </summary>
     /// <returns>
     ///     <see cref="IReadOnlyList{T}" />
     /// </returns>
-    internal IReadOnlyList<HttpAssertion> GetAssertions() => _assertions;
+    internal IReadOnlyList<HttpAssertion> GetRequestAssertions() => _requestAssertions;
+
+    /// <summary>
+    ///     获取响应断言委托集合
+    /// </summary>
+    /// <returns>
+    ///     <see cref="IReadOnlyList{T}" />
+    /// </returns>
+    internal IReadOnlyList<HttpAssertion> GetResponseAssertions() => _responseAssertions;
 }

@@ -25,6 +25,7 @@
 
 using Furion.Extensions;
 using Microsoft.Net.Http.Headers;
+using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Net.Mime;
@@ -490,6 +491,12 @@ public sealed partial class HttpRequestBuilder
     ///     <list type="bullet">
     ///         <item>
     ///             <description>字符串 + 字符串：使用 <c>&amp;</c> 拼接</description>
+    ///         </item>
+    ///         <item>
+    ///             <description><see cref="StringBuilder" /> + 字符串：追加字符串</description>
+    ///         </item>
+    ///         <item>
+    ///             <description><see cref="NameValueCollection" /> + <see cref="NameValueCollection" /> 或字典：合并键值对（同名键保留多个值）</description>
     ///         </item>
     ///         <item>
     ///             <description>字典 + 字典：合并键值对（已存在的键更新值）</description>
@@ -1028,6 +1035,7 @@ public sealed partial class HttpRequestBuilder
         // 逐条添加到集合中
         foreach (var parameterName in parameterNames)
         {
+            // 空检查
             if (!string.IsNullOrWhiteSpace(parameterName))
             {
                 QueryParametersToRemove.Add(parameterName);
@@ -1236,6 +1244,7 @@ public sealed partial class HttpRequestBuilder
         // 逐条添加到集合中
         foreach (var cookieName in cookieNames)
         {
+            // 空检查
             if (!string.IsNullOrWhiteSpace(cookieName))
             {
                 CookiesToRemove.Add(cookieName);
@@ -2239,9 +2248,24 @@ public sealed partial class HttpRequestBuilder
         // 调用自定义配置委托
         configure(httpAssertionBuilder);
 
-        // 添加断言委托集合
-        Assertions ??= [];
-        Assertions.AddRange(httpAssertionBuilder.GetAssertions());
+        // 获取请求断言和响应断言集合
+        var requestAssertions = httpAssertionBuilder.GetRequestAssertions();
+        var responseAssertions = httpAssertionBuilder.GetResponseAssertions();
+
+        // 添加请求断言委托集合
+        if (requestAssertions.Count > 0)
+        {
+            RequestAssertions ??= [];
+            RequestAssertions.AddRange(requestAssertions);
+        }
+
+        // 添加响应断言委托集合
+        // ReSharper disable once InvertIf
+        if (responseAssertions.Count > 0)
+        {
+            ResponseAssertions ??= [];
+            ResponseAssertions.AddRange(responseAssertions);
+        }
 
         return this;
     }
@@ -2530,6 +2554,34 @@ public sealed partial class HttpRequestBuilder
             // 字符串 + 字符串：使用 & 拼接
             case string existingString when incoming is string incomingString:
                 return $"{existingString}&{incomingString}";
+            // StringBuilder + 字符串：追加字符串
+            case StringBuilder existingSb when incoming is string s:
+                return existingSb.Append(s);
+            // NameValueCollection + NameValueCollection：追加元素
+            case NameValueCollection existingNvc when incoming is NameValueCollection incomingNvc:
+                foreach (string? key in incomingNvc)
+                {
+                    // 空检查
+                    if (key is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var value in incomingNvc.GetValues(key)!)
+                    {
+                        existingNvc.Add(key, value);
+                    }
+                }
+
+                return existingNvc;
+            // NameValueCollection + IDictionary<string, object?>：追加元素
+            case NameValueCollection existingNvc when incoming is IDictionary<string, object?> dict:
+                foreach (var kvp in dict)
+                {
+                    existingNvc.Add(kvp.Key, kvp.Value?.ToString());
+                }
+
+                return existingNvc;
             // 字典 + 字典：合并键值对
             case IDictionary<string, object?> existingDictionary when
                 incoming is IDictionary<string, object?> incomingDictionary:

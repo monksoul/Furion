@@ -64,6 +64,9 @@ internal sealed class RequestBuilderPipelineHandler(
         // 更新上下文
         context.RequestMessage = httpRequestMessage;
 
+        // 执行请求断言委托操作
+        await ExecuteAssertionsAsync(httpRequestBuilder, httpRequestMessage, serviceProvider);
+
         // 获取当前 HttpClient 实例的配置名称的配置选项
         var httpClientOptions =
             HttpRemoteUtility.ResolveHttpClientOptions(serviceProvider, httpRequestBuilder.HttpClientName);
@@ -113,5 +116,34 @@ internal sealed class RequestBuilderPipelineHandler(
         }
 
         httpRequestBuilder.OnPreSendRequest.TryInvoke(httpRequestMessage);
+    }
+
+    /// <summary>
+    ///     执行请求断言委托操作
+    /// </summary>
+    /// <param name="httpRequestBuilder">
+    ///     <see cref="HttpRequestBuilder" />
+    /// </param>
+    /// <param name="httpRequestMessage">
+    ///     <see cref="HttpRequestMessage" />
+    /// </param>
+    /// <param name="serviceProvider">
+    ///     <see cref="IServiceProvider" />
+    /// </param>
+    internal static async Task ExecuteAssertionsAsync(HttpRequestBuilder httpRequestBuilder,
+        HttpRequestMessage httpRequestMessage, IServiceProvider serviceProvider)
+    {
+        // 检查是否配置了请求断言委托集合
+        if (httpRequestBuilder.RequestAssertions is { Count: > 0 })
+        {
+            // 初始化 HttpAssertionContext 实例
+            var requestAssertionContext = new HttpAssertionContext(null, httpRequestMessage, 0, serviceProvider);
+
+            // 逐个调用请求断言委托
+            foreach (var httpAssertion in httpRequestBuilder.RequestAssertions)
+            {
+                await httpAssertion(requestAssertionContext);
+            }
+        }
     }
 }

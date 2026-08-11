@@ -56,17 +56,23 @@ internal sealed class BodyDeclarativeExtractor : IHttpDeclarativeExtractor
         // 空检查
         ArgumentNullException.ThrowIfNull(bodyAttribute);
 
-        // 检查是否为原始字符串内容
-        if (value is string stringValue && bodyAttribute.RawString)
+        switch (value)
         {
-            // 设置原始字符串内容
-            httpRequestBuilder.SetRawStringContent(stringValue, bodyAttribute.ContentType);
-        }
-        else
-        {
-            // 设置请求内容
-            httpRequestBuilder.SetContent(value, bodyAttribute.ContentType,
-                disposeResourcesOnRequestCompletion: bodyAttribute.DisposeResourcesOnRequestCompletion);
+            // 检查是否作为文件路径处理
+            case string filePath when bodyAttribute.AsFile:
+                // 从本地路径或互联网地址中设置文件内容
+                httpRequestBuilder.SetFileContent(filePath, contentType: bodyAttribute.ContentType);
+                break;
+            // 检查是否为原始字符串内容
+            case string stringValue when bodyAttribute.RawString:
+                // 设置原始字符串内容
+                httpRequestBuilder.SetRawStringContent(stringValue, bodyAttribute.ContentType);
+                break;
+            default:
+                // 设置请求内容
+                httpRequestBuilder.SetContent(value, bodyAttribute.ContentType,
+                    disposeResourcesOnRequestCompletion: bodyAttribute.DisposeResourcesOnRequestCompletion);
+                break;
         }
 
         // 检查是否是 application/x-www-form-urlencoded 请求内容
