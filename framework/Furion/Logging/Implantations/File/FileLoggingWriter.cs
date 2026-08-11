@@ -317,7 +317,12 @@ internal class FileLoggingWriter
         // 获取日志基础文件名
         var baseFileName = EnsureAbsolutePath(GetBaseFileName(), GetSafeDefaultLogDirectory());
 
-        // 获取日志基础文件名和当前日志文件名
+        // 如果基础文件不存在，或者没有配置大小限制，或者基础文件还没达到大小限制，直接返回新的基础文件名
+        if (!File.Exists(baseFileName) || _options.FileSizeLimitBytes <= 0 || new FileInfo(baseFileName).Length < _options.FileSizeLimitBytes)
+        {
+            return baseFileName;
+        }
+
         var currentFileIndex = 0;
         var baseFileNameOnly = Path.GetFileNameWithoutExtension(baseFileName);
         var currentFileNameOnly = Path.GetFileNameWithoutExtension(_fileName);
@@ -328,6 +333,11 @@ internal class FileLoggingWriter
             currentFileNameOnly.StartsWith(baseFileNameOnly, StringComparison.OrdinalIgnoreCase))
         {
             suffix = currentFileNameOnly[baseFileNameOnly.Length..];
+        }
+
+        if (suffix.StartsWith('_'))
+        {
+            suffix = suffix[1..];
         }
 
         if (suffix.Length > 0 && int.TryParse(suffix, out var parsedIndex))
@@ -345,7 +355,7 @@ internal class FileLoggingWriter
         }
 
         // 返回下一个匹配的日志文件名（完整路径）
-        var nextFileName = baseFileNameOnly + (nextFileIndex > 0 ? nextFileIndex.ToString() : "") + Path.GetExtension(baseFileName);
+        var nextFileName = baseFileNameOnly + (nextFileIndex > 0 ? "_" + nextFileIndex.ToString() : "") + Path.GetExtension(baseFileName);
         var directory = Path.GetDirectoryName(baseFileName);
         return Path.Combine(directory, nextFileName);
     }
@@ -547,10 +557,10 @@ internal class FileLoggingWriter
         var fName = fileInfo.FullName.Replace('\\', '/');
 
         // 将当前文件名存储到集合中
-        var succeed = _fileLoggerProvider._rollingFileNames.TryAdd(fName, fileInfo);
+        _fileLoggerProvider._rollingFileNames.AddOrUpdate(fName, fileInfo, (key, oldValue) => fileInfo);
 
         // 判断超出限制的文件自动删除
-        if (succeed && _fileLoggerProvider._rollingFileNames.Count > _options.MaxRollingFiles)
+        if (_fileLoggerProvider._rollingFileNames.Count > _options.MaxRollingFiles)
         {
             // 收集需要删除的文件
             var filesToDelete = new List<string>(_fileLoggerProvider._rollingFileNames.Count - _options.MaxRollingFiles);
