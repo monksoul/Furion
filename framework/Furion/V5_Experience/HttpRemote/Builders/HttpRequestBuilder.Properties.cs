@@ -35,6 +35,11 @@ namespace Furion.HttpRemote;
 public sealed partial class HttpRequestBuilder
 {
     /// <summary>
+    ///     内部请求 ID 计数器
+    /// </summary>
+    internal static int _globalRequestId = 0;
+
+    /// <summary>
     ///     <see cref="HttpRequestBuilder" /> 类型的所有实例属性信息
     /// </summary>
     /// <remarks>避免在每次调用 <see cref="Clone" /> 方法时重复进行反射操作，提升性能。</remarks>

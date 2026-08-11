@@ -336,6 +336,62 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
+    ///     设置 MCP (Model Context Protocol) 2.0 消息内容
+    /// </summary>
+    /// <param name="clientName">客户端名称</param>
+    /// <param name="method">方法名称</param>
+    /// <param name="params">方法参数</param>
+    /// <param name="protocolVersion"> MCP (Model Context Protocol) 协议版本，默认为 "2026-07-28"</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    public HttpRequestBuilder SetMcpContent(string clientName, string method, object? @params,
+        string protocolVersion = "2026-07-28") =>
+        SetMcpContent(clientName, new McpMessageData(method, @params), protocolVersion);
+
+    /// <summary>
+    ///     设置 MCP (Model Context Protocol) 2.0 消息内容
+    /// </summary>
+    /// <param name="clientName">客户端名称</param>
+    /// <param name="data">
+    ///     <see cref="McpMessageData" />
+    /// </param>
+    /// <param name="protocolVersion"> MCP (Model Context Protocol) 协议版本，默认为 "2026-07-28"</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRequestBuilder SetMcpContent(string clientName, McpMessageData data,
+        string protocolVersion = "2026-07-28")
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientName);
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+        ArgumentException.ThrowIfNullOrWhiteSpace(data?.Method);
+
+        // 设置请求头
+        WithHeaders(
+            new Dictionary<string, object?>
+            {
+                ["Mcp-Name"] = clientName,
+                ["MCP-Protocol-Version"] = protocolVersion,
+                ["Mcp-Method"] = data.Method,
+                ["Accept"] = "application/json, text/event-stream"
+            }, replace: true);
+
+        // 设置 JSON 内容
+        SetJsonContent(new
+        {
+            jsonrpc = data.JsonRpc ?? "2.0",
+            id = data.Id ?? Interlocked.Increment(ref _globalRequestId),
+            method = data.Method,
+            @params = data.Params
+        });
+
+        return this;
+    }
+
+    /// <summary>
     ///     设置请求内容
     /// </summary>
     /// <param name="rawContent">原始请求内容</param>

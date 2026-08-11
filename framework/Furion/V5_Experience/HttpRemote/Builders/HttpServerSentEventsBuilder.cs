@@ -260,6 +260,35 @@ public sealed class HttpServerSentEventsBuilder : HttpRequestBuilderConfigurator
     }
 
     /// <summary>
+    ///     设置 MCP (Model Context Protocol) 2.0 消息内容
+    /// </summary>
+    /// <param name="clientName">客户端名称</param>
+    /// <param name="method">方法名称</param>
+    /// <param name="params">方法参数</param>
+    /// <param name="protocolVersion"> MCP (Model Context Protocol) 协议版本，默认为 "2026-07-28"</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public HttpServerSentEventsBuilder SetMcpContent(string clientName, string method, object? @params,
+        string protocolVersion = "2026-07-28") =>
+        With(builder => builder.SetMcpContent(clientName, method, @params, protocolVersion));
+
+    /// <summary>
+    ///     设置 MCP (Model Context Protocol) 2.0 消息内容
+    /// </summary>
+    /// <param name="clientName">客户端名称</param>
+    /// <param name="data">
+    ///     <see cref="McpMessageData" />
+    /// </param>
+    /// <param name="protocolVersion"> MCP (Model Context Protocol) 协议版本，默认为 "2026-07-28"</param>
+    /// <returns>
+    ///     <see cref="HttpServerSentEventsBuilder" />
+    /// </returns>
+    public HttpServerSentEventsBuilder SetMcpContent(string clientName, McpMessageData data,
+        string protocolVersion = "2026-07-28") =>
+        With(builder => builder.SetMcpContent(clientName, data, protocolVersion));
+
+    /// <summary>
     ///     构建 <see cref="HttpRequestBuilder" /> 实例
     /// </summary>
     /// <param name="httpRemoteOptions">
