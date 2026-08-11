@@ -173,4 +173,19 @@ public sealed class LoggingMonitorSettings
     /// </summary>
     /// <remarks></remarks>
     public IFormatProvider? FormatProvider { get; set; } = CultureInfo.InvariantCulture;
+
+    /// <summary>
+    /// 包含方法的集合
+    /// </summary>
+    internal HashSet<string> IncludeOfMethodsSet { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 排除方法的集合
+    /// </summary>
+    internal HashSet<string> ExcludeOfMethodsSet { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 方法配置字典
+    /// </summary>
+    internal Dictionary<string, LoggingMonitorMethod> MethodsSettingsDict { get; set; } = new Dictionary<string, LoggingMonitorMethod>(StringComparer.OrdinalIgnoreCase);
 }

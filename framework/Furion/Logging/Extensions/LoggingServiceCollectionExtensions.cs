@@ -66,6 +66,13 @@ public static class LoggingServiceCollectionExtensions
         // 添加外部配置
         configure?.Invoke(settings);
 
+        settings.IncludeOfMethodsSet = new HashSet<string>(settings.IncludeOfMethods, StringComparer.OrdinalIgnoreCase);
+        settings.ExcludeOfMethodsSet = new HashSet<string>(settings.ExcludeOfMethods, StringComparer.OrdinalIgnoreCase);
+        settings.MethodsSettingsDict = settings.MethodsSettings
+            .Where(m => !string.IsNullOrEmpty(m.FullName))
+            .GroupBy(m => m.FullName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
         // 配置日志过滤器
         LoggingMonitorSettings.InternalWriteFilter = settings.WriteFilter;
         LoggingMonitorSettings.InternalItemFilter = settings.ItemFilter;

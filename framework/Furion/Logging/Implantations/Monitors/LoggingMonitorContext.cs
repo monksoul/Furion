@@ -46,12 +46,7 @@ public static class LoggingMonitorContext
             return;
         }
 
-        if (httpContextItems.ContainsKey(KEY))
-        {
-            httpContextItems.Remove(KEY);
-        }
-
-        httpContextItems.Add(KEY, items);
+        httpContextItems[KEY] = items;
     }
 
     /// <summary>
