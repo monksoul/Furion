@@ -40,7 +40,7 @@ public static class HostBuilderExtensions
     /// </summary>
     /// <param name="hostBuilder">Web主机构建器</param>
     /// <param name="configure"></param>
-    /// <returns>IWebHostBuilder</returns>
+    /// <returns></returns>
     public static IWebHostBuilder Inject(this IWebHostBuilder hostBuilder, Action<IWebHostBuilder, InjectOptions> configure = default)
     {
         // 载入服务配置选项
@@ -66,7 +66,7 @@ public static class HostBuilderExtensions
     /// </summary>
     /// <param name="hostBuilder">Web主机构建器</param>
     /// <param name="autoRegisterBackgroundService"></param>
-    /// <returns>IWebHostBuilder</returns>
+    /// <returns></returns>
     public static IWebHostBuilder Inject(this IWebHostBuilder hostBuilder, bool autoRegisterBackgroundService)
     {
         return hostBuilder.Inject((_, options) =>
@@ -76,11 +76,23 @@ public static class HostBuilderExtensions
     }
 
     /// <summary>
+    /// 注册 IWebHostBuilder 依赖组件
+    /// </summary>
+    /// <param name="hostBuilder"><see cref="IWebHostBuilder"/></param>
+    /// <param name="componentType">组件类型</param>
+    /// <param name="options">组件参数</param>
+    /// <returns></returns>
+    public static IWebHostBuilder AddWebComponent(this IWebHostBuilder hostBuilder, Type componentType, object options = default)
+    {
+        return hostBuilder;
+    }
+
+    /// <summary>
     /// 泛型主机注入
     /// </summary>
     /// <param name="hostBuilder">泛型主机注入构建器</param>
     /// <param name="configure"></param>
-    /// <returns>IHostBuilder</returns>
+    /// <returns></returns>
     public static IHostBuilder Inject(this IHostBuilder hostBuilder, Action<IHostBuilder, InjectOptions> configure = default)
     {
         // 载入服务配置选项
@@ -97,55 +109,12 @@ public static class HostBuilderExtensions
     /// </summary>
     /// <param name="hostBuilder">泛型主机注入构建器</param>
     /// <param name="autoRegisterBackgroundService"></param>
-    /// <returns>IHostBuilder</returns>
+    /// <returns></returns>
     public static IHostBuilder Inject(this IHostBuilder hostBuilder, bool autoRegisterBackgroundService)
     {
         return hostBuilder.Inject((_, options) =>
         {
             options.AutoRegisterBackgroundService = autoRegisterBackgroundService;
         });
-    }
-
-    /// <summary>
-    /// 注册 IWebHostBuilder 依赖组件
-    /// </summary>
-    /// <typeparam name="TComponent">派生自 <see cref="IWebComponent"/></typeparam>
-    /// <param name="hostBuilder">Web应用构建器</param>
-    /// <param name="options">组件参数</param>
-    /// <returns><see cref="IWebHostBuilder"/></returns>
-    public static IWebHostBuilder AddWebComponent<TComponent>(this IWebHostBuilder hostBuilder, object options = default)
-        where TComponent : class, IWebComponent, new()
-    {
-        hostBuilder.AddWebComponent<TComponent>(options);
-
-        return hostBuilder;
-    }
-
-    /// <summary>
-    /// 注册 IWebHostBuilder 依赖组件
-    /// </summary>
-    /// <typeparam name="TComponent">派生自 <see cref="IWebComponent"/></typeparam>
-    /// <typeparam name="TComponentOptions">组件参数</typeparam>
-    /// <param name="hostBuilder">Web应用构建器</param>
-    /// <param name="options">组件参数</param>
-    /// <returns><see cref="IWebHostBuilder"/></returns>
-    public static IWebHostBuilder AddWebComponent<TComponent, TComponentOptions>(this IWebHostBuilder hostBuilder, TComponentOptions options = default)
-        where TComponent : class, IWebComponent, new()
-    {
-        hostBuilder.AddWebComponent<TComponent, TComponentOptions>(options);
-
-        return hostBuilder;
-    }
-
-    /// <summary>
-    /// 注册 IWebHostBuilder 依赖组件
-    /// </summary>
-    /// <param name="hostBuilder"><see cref="IWebHostBuilder"/></param>
-    /// <param name="componentType">组件类型</param>
-    /// <param name="options">组件参数</param>
-    /// <returns><see cref="IWebHostBuilder"/></returns>
-    public static IWebHostBuilder AddWebComponent(this IWebHostBuilder hostBuilder, Type componentType, object options = default)
-    {
-        return hostBuilder;
     }
 }

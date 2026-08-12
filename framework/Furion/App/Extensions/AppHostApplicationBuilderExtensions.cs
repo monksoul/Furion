@@ -38,11 +38,28 @@ public static class AppHostApplicationBuilderExtensions
     /// </summary>
     /// <param name="hostApplicationBuilder">Host 应用构建器</param>
     /// <param name="autoRegisterBackgroundService"></param>
-    /// <returns>HostApplicationBuilder</returns>
-    public static HostApplicationBuilder Inject(this HostApplicationBuilder hostApplicationBuilder, bool autoRegisterBackgroundService = true)
+    /// <returns></returns>
+    public static IHostApplicationBuilder Inject(this IHostApplicationBuilder hostApplicationBuilder, bool autoRegisterBackgroundService = true)
     {
         // 初始化配置
         InternalApp.ConfigureApplication(hostApplicationBuilder, autoRegisterBackgroundService);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// Host 应用注入
+    /// </summary>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static IHostApplicationBuilder Inject(this IHostApplicationBuilder hostApplicationBuilder, Action<IHostApplicationBuilder, InjectOptions> configure = default)
+    {
+        // 载入服务配置选项
+        var configureOptions = new InjectOptions();
+        configure?.Invoke(hostApplicationBuilder, configureOptions);
+
+        InternalApp.ConfigureApplication(hostApplicationBuilder, configureOptions.AutoRegisterBackgroundService);
 
         return hostApplicationBuilder;
     }
@@ -54,7 +71,7 @@ public static class AppHostApplicationBuilderExtensions
     /// <param name="hostApplicationBuilder">Host 应用构建器</param>
     /// <param name="options">组件参数</param>
     /// <returns></returns>
-    public static HostApplicationBuilder AddComponent<TComponent>(this HostApplicationBuilder hostApplicationBuilder, object options = default)
+    public static IHostApplicationBuilder AddComponent<TComponent>(this IHostApplicationBuilder hostApplicationBuilder, object options = default)
         where TComponent : class, IServiceComponent, new()
     {
         hostApplicationBuilder.Services.AddComponent<TComponent>(options);
@@ -69,8 +86,8 @@ public static class AppHostApplicationBuilderExtensions
     /// <typeparam name="TComponentOptions">组件参数</typeparam>
     /// <param name="hostApplicationBuilder">Host 应用构建器</param>
     /// <param name="options">组件参数</param>
-    /// <returns><see cref="HostApplicationBuilder"/></returns>
-    public static HostApplicationBuilder AddComponent<TComponent, TComponentOptions>(this HostApplicationBuilder hostApplicationBuilder, TComponentOptions options = default)
+    /// <returns></returns>
+    public static IHostApplicationBuilder AddComponent<TComponent, TComponentOptions>(this IHostApplicationBuilder hostApplicationBuilder, TComponentOptions options = default)
         where TComponent : class, IServiceComponent, new()
     {
         hostApplicationBuilder.Services.AddComponent<TComponent, TComponentOptions>(options);
@@ -84,8 +101,8 @@ public static class AppHostApplicationBuilderExtensions
     /// <param name="hostApplicationBuilder">Host 应用构建器</param>
     /// <param name="componentType">组件类型</param>
     /// <param name="options">组件参数</param>
-    /// <returns><see cref="HostApplicationBuilder"/></returns>
-    public static HostApplicationBuilder AddComponent(this HostApplicationBuilder hostApplicationBuilder, Type componentType, object options = default)
+    /// <returns></returns>
+    public static IHostApplicationBuilder AddComponent(this IHostApplicationBuilder hostApplicationBuilder, Type componentType, object options = default)
     {
         hostApplicationBuilder.Services.AddComponent(componentType, options);
 
