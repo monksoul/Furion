@@ -27,7 +27,6 @@ using Furion;
 using Furion.DataValidation;
 using Furion.Extensions;
 using Furion.FriendlyException;
-using Furion.JsonSerialization;
 using Furion.Logging;
 using Furion.Templates;
 using Furion.UnifyResult;
@@ -42,7 +41,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.ComponentModel;
@@ -52,8 +50,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace System;
 
@@ -156,9 +154,9 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
     private static readonly ConcurrentDictionary<Type, string> _typeNameCache = new();
 
     /// <summary>
-    /// JsonSerializer 缓存
+    /// JsonSerializerOptions 缓存
     /// </summary>
-    private static readonly ConcurrentDictionary<string, JsonSerializer> _jsonSerializerCache = new();
+    private static readonly ConcurrentDictionary<string, JsonSerializerOptions> _jsonSerializerOptionsCache = new();
 
     /// <summary>
     /// 监视 Action 执行
@@ -670,13 +668,11 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
 
         try
         {
-            var serializer = GetCachedJsonSerializer(monitorMethod);
-            using var stringWriter = new StringWriter();
-            using var jsonWriter = new JsonTextWriter(stringWriter);
-            serializer.Serialize(jsonWriter, obj);
+            var options = GetCachedJsonSerializerOptions(monitorMethod);
+            var json = JsonSerializer.Serialize(obj, obj?.GetType() ?? typeof(object), options);
 
             succeed = true;
-            return stringWriter.ToString();
+            return json;
         }
         catch (Exception ex)
         {
@@ -686,10 +682,10 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
     }
 
     /// <summary>
-    /// 获取 JsonSerializer 实例
+    /// 获取 JsonSerializerOptions 实例
     /// </summary>
     /// <param name="monitorMethod"></param>
-    private JsonSerializer GetCachedJsonSerializer(LoggingMonitorMethod monitorMethod)
+    private JsonSerializerOptions GetCachedJsonSerializerOptions(LoggingMonitorMethod monitorMethod)
     {
         var contractResolver = GetContractResolver(ContractResolver, monitorMethod);
         var longTypeConverter = CheckIsSetLongTypeConverter(monitorMethod);
@@ -698,47 +694,40 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
 
         var key = $"{(int)contractResolver}_{longTypeConverter}_{string.Join(",", ignoreNames)}_{string.Join(",", ignoreTypes.Select(t => t.FullName))}";
 
-        return _jsonSerializerCache.GetOrAdd(key, _ =>
+        return _jsonSerializerOptionsCache.GetOrAdd(key, _ =>
         {
-            // 序列化默认配置
-            var settings = new JsonSerializerSettings
+            var options = new JsonSerializerOptions
             {
-                // 解决属性忽略问题
-                ContractResolver = contractResolver == ContractResolverTypes.CamelCase
-                    ? new CamelCasePropertyNamesContractResolverWithIgnoreProperties(ignoreNames, ignoreTypes)
-                    : new DefaultContractResolverWithIgnoreProperties(ignoreNames, ignoreTypes),
-
                 // 解决循环引用问题
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles,
 
-                // 解决 DateTimeOffset 序列化/反序列化问题
-                MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
-                DateParseHandling = DateParseHandling.None,
+                // 解决中文/特殊字符转义问题
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+
+                // 解决属性命名规则
+                PropertyNamingPolicy = contractResolver == ContractResolverTypes.CamelCase ? JsonNamingPolicy.CamelCase : null,
             };
+
+            // 解决属性忽略问题
+            options.TypeInfoResolver = new LoggingMonitorJsonTypeInfoResolver(ignoreNames, ignoreTypes);
 
             if (longTypeConverter)
             {
                 // 解决 long 精度问题
-                settings.Converters.AddLongTypeConverters();
+                options.Converters.AddLongTypeConverters();
             }
 
-            // 解决 JsonElement 序列化问题
-            settings.Converters.Add(new JsonElementConverter());
+            // 解决粘土对象序列化问题
+            options.Converters.AddClayConverters();
 
-            // 解决粘土对象 序列化问题
-            settings.Converters.AddClayConverters();
+            // 解决 DateTime/DateTimeOffset 格式化问题
+            options.Converters.AddDateTimeTypeConverters();
 
-            // 解决 JsonObject 和 JsonArray 序列化问题
-            settings.Converters.Add(new NewtonsoftJsonJsonObjectJsonConverter());
-            settings.Converters.Add(new NewtonsoftJsonJsonArrayJsonConverter());
+            // 解决 DataTable 和 DataSet 的问题
+            options.Converters.AddDataTableConverters();
+            options.Converters.AddDataSetConverters();
 
-            // 解决 DateTimeOffset 序列化/反序列化问题
-            settings.Converters.Add(new Newtonsoft.Json.Converters.IsoDateTimeConverter
-            {
-                DateTimeStyles = System.Globalization.DateTimeStyles.AssumeUniversal
-            });
-
-            return JsonSerializer.Create(settings);
+            return options;
         });
     }
 

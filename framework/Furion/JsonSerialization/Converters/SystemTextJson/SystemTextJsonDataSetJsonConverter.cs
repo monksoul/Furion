@@ -23,37 +23,46 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Furion.Extensions;
+using System.Data;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace Furion.JsonSerialization;
+namespace Furion.Logging;
 
 /// <summary>
-/// 常量、公共方法配置类
+/// DataSet 转换器
 /// </summary>
-internal static class Penetrates
+public sealed class SystemTextJsonDataSetJsonConverter : JsonConverter<DataSet>
 {
     /// <summary>
-    /// 转换
+    /// 反序列化
     /// </summary>
     /// <param name="reader"></param>
+    /// <param name="typeToConvert"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    internal static DateTime ConvertToDateTime(ref Utf8JsonReader reader)
+    /// <exception cref="NotSupportedException"></exception>
+    public override DataSet Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        // 处理时间戳自动转换
-        if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var longValue))
+        throw new NotSupportedException($"Deserialization of '{typeToConvert.Name}' is not supported.");
+    }
+
+    /// <summary>
+    /// 序列化
+    /// </summary>
+    /// <param name="writer"></param>
+    /// <param name="value"></param>
+    /// <param name="options"></param>
+    public override void Write(Utf8JsonWriter writer, DataSet value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+
+        foreach (DataTable table in value.Tables)
         {
-            return longValue.ConvertToDateTime();
+            writer.WritePropertyName(string.IsNullOrEmpty(table.TableName) ? "Table" : table.TableName);
+            JsonSerializer.Serialize(writer, table, options);
         }
 
-        var stringValue = reader.GetString();
-
-        // 处理时间戳自动转换
-        if (long.TryParse(stringValue, out var longValue2))
-        {
-            return longValue2.ConvertToDateTime();
-        }
-
-        return Convert.ToDateTime(stringValue);
+        writer.WriteEndObject();
     }
 }

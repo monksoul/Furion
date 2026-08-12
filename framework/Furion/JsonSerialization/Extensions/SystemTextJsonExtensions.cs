@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.JsonSerialization;
+using Furion.Logging;
 using Furion.Shapeless;
 using System.Text.Json.Serialization;
 
@@ -106,6 +107,30 @@ public static class SystemTextJsonExtensions
     {
         converters.Add(new SystemTextJsonTimeOnlyJsonConverter(outputFormat));
         converters.Add(new SystemTextJsonNullableTimeOnlyJsonConverter(outputFormat));
+
+        return converters;
+    }
+
+    /// <summary>
+    /// 添加 DataTable 类型序列化处理
+    /// </summary>
+    /// <param name="converters"></param>
+    /// <returns></returns>
+    public static IList<JsonConverter> AddDataTableConverters(this IList<JsonConverter> converters)
+    {
+        converters.Add(new SystemTextJsonDataTableJsonConverter());
+
+        return converters;
+    }
+
+    /// <summary>
+    /// 添加 DataSet 类型序列化处理
+    /// </summary>
+    /// <param name="converters"></param>
+    /// <returns></returns>
+    public static IList<JsonConverter> AddDataSetConverters(this IList<JsonConverter> converters)
+    {
+        converters.Add(new SystemTextJsonDataSetJsonConverter());
 
         return converters;
     }

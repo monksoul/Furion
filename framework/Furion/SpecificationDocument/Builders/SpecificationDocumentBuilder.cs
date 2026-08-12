@@ -35,11 +35,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -329,6 +331,26 @@ public static class SpecificationDocumentBuilder
 
         // 添加 Action 操作过滤器
         swaggerGenOptions.OperationFilter<ApiActionFilter>();
+
+        // 解决 DataTable 生成文档报错
+        swaggerGenOptions.MapType<DataTable>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.Array,
+            Items = new OpenApiSchema { Type = JsonSchemaType.Object }
+        });
+
+        // 解决 DataSet 生成文档报错
+        swaggerGenOptions.MapType<DataSet>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.Object,
+            AdditionalPropertiesAllowed = true
+        });
+
+        // 解决 Type 生成文档报错
+        swaggerGenOptions.MapType<Type>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.String
+        });
 
         // 自定义配置
         configure?.Invoke(swaggerGenOptions);

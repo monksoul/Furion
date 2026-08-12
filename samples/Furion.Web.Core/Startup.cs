@@ -54,6 +54,9 @@ public sealed class Startup : AppStartup
 
                     options.JsonSerializerOptions.Converters.AddDateOnlyConverters("yyyy-MM-dd");
                     options.JsonSerializerOptions.Converters.AddTimeOnlyConverters("HH:mm:ss");
+
+                    options.JsonSerializerOptions.Converters.AddDataTableConverters();
+                    options.JsonSerializerOptions.Converters.AddDataSetConverters();
                 })
                 .AddClayOptions(options =>
                 {
