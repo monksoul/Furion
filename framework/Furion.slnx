@@ -8,7 +8,6 @@
     <Project Path="../tests/Furion.UnitTests/Furion.UnitTests.csproj" />
   </Folder>
   <Project Path="Furion.Extras.Authentication.JwtBearer/Furion.Extras.Authentication.JwtBearer.csproj" />
-  <Project Path="Furion.Extras.DependencyModel.CodeAnalysis/Furion.Extras.DependencyModel.CodeAnalysis.csproj" />
   <Project Path="Furion.Extras.ObjectMapper.Mapster/Furion.Extras.ObjectMapper.Mapster.csproj" />
   <Project Path="Furion.Xunit/Furion.Xunit.csproj" />
   <Project Path="Furion/Furion.csproj" />

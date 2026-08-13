@@ -39,7 +39,7 @@ public static class AppHostApplicationBuilderExtensions
     /// <param name="hostApplicationBuilder">Host 应用构建器</param>
     /// <param name="autoRegisterBackgroundService"></param>
     /// <returns></returns>
-    public static IHostApplicationBuilder Inject(this IHostApplicationBuilder hostApplicationBuilder, bool autoRegisterBackgroundService = true)
+    public static IHostApplicationBuilder Inject(this IHostApplicationBuilder hostApplicationBuilder, bool autoRegisterBackgroundService)
     {
         // 初始化配置
         InternalApp.ConfigureApplication(hostApplicationBuilder, autoRegisterBackgroundService);
@@ -103,6 +103,82 @@ public static class AppHostApplicationBuilderExtensions
     /// <param name="options">组件参数</param>
     /// <returns></returns>
     public static IHostApplicationBuilder AddComponent(this IHostApplicationBuilder hostApplicationBuilder, Type componentType, object options = default)
+    {
+        hostApplicationBuilder.Services.AddComponent(componentType, options);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// Host 应用注入
+    /// </summary>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="autoRegisterBackgroundService"></param>
+    /// <returns></returns>
+    public static HostApplicationBuilder Inject(this HostApplicationBuilder hostApplicationBuilder, bool autoRegisterBackgroundService)
+    {
+        // 初始化配置
+        InternalApp.ConfigureApplication(hostApplicationBuilder, autoRegisterBackgroundService);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// Host 应用注入
+    /// </summary>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static HostApplicationBuilder Inject(this HostApplicationBuilder hostApplicationBuilder, Action<HostApplicationBuilder, InjectOptions> configure = default)
+    {
+        // 载入服务配置选项
+        var configureOptions = new InjectOptions();
+        configure?.Invoke(hostApplicationBuilder, configureOptions);
+
+        InternalApp.ConfigureApplication(hostApplicationBuilder, configureOptions.AutoRegisterBackgroundService);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// 注册依赖组件
+    /// </summary>
+    /// <typeparam name="TComponent">派生自 <see cref="IServiceComponent"/></typeparam>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="options">组件参数</param>
+    /// <returns></returns>
+    public static HostApplicationBuilder AddComponent<TComponent>(this HostApplicationBuilder hostApplicationBuilder, object options = default)
+        where TComponent : class, IServiceComponent, new()
+    {
+        hostApplicationBuilder.Services.AddComponent<TComponent>(options);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// 注册依赖组件
+    /// </summary>
+    /// <typeparam name="TComponent">派生自 <see cref="IServiceComponent"/></typeparam>
+    /// <typeparam name="TComponentOptions">组件参数</typeparam>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="options">组件参数</param>
+    /// <returns></returns>
+    public static HostApplicationBuilder AddComponent<TComponent, TComponentOptions>(this HostApplicationBuilder hostApplicationBuilder, TComponentOptions options = default)
+        where TComponent : class, IServiceComponent, new()
+    {
+        hostApplicationBuilder.Services.AddComponent<TComponent, TComponentOptions>(options);
+
+        return hostApplicationBuilder;
+    }
+
+    /// <summary>
+    /// 注册依赖组件
+    /// </summary>
+    /// <param name="hostApplicationBuilder">Host 应用构建器</param>
+    /// <param name="componentType">组件类型</param>
+    /// <param name="options">组件参数</param>
+    /// <returns></returns>
+    public static HostApplicationBuilder AddComponent(this HostApplicationBuilder hostApplicationBuilder, Type componentType, object options = default)
     {
         hostApplicationBuilder.Services.AddComponent(componentType, options);
 

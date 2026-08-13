@@ -5,8 +5,6 @@ VisualStudioVersion = 18.8.11925.187
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furion", "Furion\Furion.csproj", "{C20A1124-D08A-47D6-9287-772BFD1FB235}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furion.Extras.DependencyModel.CodeAnalysis", "Furion.Extras.DependencyModel.CodeAnalysis\Furion.Extras.DependencyModel.CodeAnalysis.csproj", "{4ACD5D28-2A20-495A-85AE-858CCE540A5B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furion.Extras.Authentication.JwtBearer", "Furion.Extras.Authentication.JwtBearer\Furion.Extras.Authentication.JwtBearer.csproj", "{031FDDEA-26FD-4947-8F36-FF1966EE553D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furion.Extras.ObjectMapper.Mapster", "Furion.Extras.ObjectMapper.Mapster\Furion.Extras.ObjectMapper.Mapster.csproj", "{30CADCB5-099F-40A1-A5BF-4A609534D602}"
@@ -36,10 +34,6 @@ Global
 		{C20A1124-D08A-47D6-9287-772BFD1FB235}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C20A1124-D08A-47D6-9287-772BFD1FB235}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C20A1124-D08A-47D6-9287-772BFD1FB235}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4ACD5D28-2A20-495A-85AE-858CCE540A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4ACD5D28-2A20-495A-85AE-858CCE540A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4ACD5D28-2A20-495A-85AE-858CCE540A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4ACD5D28-2A20-495A-85AE-858CCE540A5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{031FDDEA-26FD-4947-8F36-FF1966EE553D}.Release|Any CPU.ActiveCfg = Release|Any CPU
