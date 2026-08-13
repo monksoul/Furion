@@ -121,7 +121,7 @@ public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManage
     /// <inheritdoc />
     public virtual Task<HttpAccessToken?>
         GetAsync(HttpAccessTokenContext context, CancellationToken cancellationToken) =>
-        Task.FromResult<HttpAccessToken?>(null);
+        Task.FromResult(HttpAccessToken.None);
 
     /// <inheritdoc />
     public virtual Task<HttpAccessToken?> RefreshAsync(HttpAccessTokenContext context, HttpAccessToken? currentToken,
@@ -132,7 +132,7 @@ public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManage
         {
             logger.LogWarning("Cannot refresh Furion access token because the current token is null.");
 
-            return Task.FromResult<HttpAccessToken?>(null);
+            return Task.FromResult(HttpAccessToken.None);
         }
 
         // 初始化新的 HttpAccessToken 实例

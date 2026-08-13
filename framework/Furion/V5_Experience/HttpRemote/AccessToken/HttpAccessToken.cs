@@ -84,6 +84,12 @@ public sealed class HttpAccessToken
     }
 
     /// <summary>
+    ///     表示没有可用的 Access Token
+    /// </summary>
+    /// <remarks>获取失败或结果为空。</remarks>
+    public static HttpAccessToken? None => null;
+
+    /// <summary>
     ///     Access Token 值
     /// </summary>
     public string Value { get; set; } = null!;

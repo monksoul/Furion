@@ -436,4 +436,16 @@ public sealed partial class HttpRequestBuilder
     ///     是否启用 ETag 缓存处理
     /// </summary>
     internal bool ETagEnabled { get; private set; }
+
+    /// <summary>
+    ///     模拟的 <see cref="HttpResponseMessage" />
+    /// </summary>
+    /// <remarks>用于测试，不实际发送请求。</remarks>
+    internal HttpResponseMessage? MockedResponse { get; private set; }
+
+    /// <summary>
+    ///     模拟的异常
+    /// </summary>
+    /// <remarks>用于测试错误场景。</remarks>
+    internal Exception? MockedException { get; private set; }
 }

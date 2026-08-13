@@ -23,36 +23,37 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
 namespace Furion.HttpRemote;
 
-/// <inheritdoc />
-/// <param name="logger">
-///     <see cref="Logger{T}" />
-/// </param>
-/// <param name="httpRemoteOptions">
-///     <see cref="IOptions{TOptions}" />
-/// </param>
-/// <param name="isLoggingRegistered">是否配置（注册）了日志程序</param>
-internal sealed class HttpRemoteLogger(
-    ILogger<Logging> logger,
-    IOptionsMonitor<HttpRemoteOptions> httpRemoteOptions,
-    bool isLoggingRegistered) : HttpRemoteLoggerBase
+/// <summary>
+///     Mock 模拟管道处理器
+/// </summary>
+internal sealed class MockPipelineHandler : IHttpRequestPipelineHandler
 {
     /// <inheritdoc />
-    public override void Log(LogLevel logLevel, Exception? exception, string? message, params object?[] args)
+    public async Task<HttpResponseMessage?> HandleAsync(HttpRequestPipelineContext context,
+        Func<Task<HttpResponseMessage?>> next)
     {
-        // 检查是否注册了日志输出程序
-        if (isLoggingRegistered)
+        // 获取当前 HttpRequestBuilder 实例
+        var httpRequestBuilder = context.Builder;
+
+        // 检查是否存在模拟异常（优先级高于模拟响应）
+        if (httpRequestBuilder.MockedException is not null)
         {
-            logger.Log(logLevel, exception, message, args);
+            throw httpRequestBuilder.MockedException;
         }
-        else
+
+        // 检查是否存在模拟 HttpResponseMessage
+        // ReSharper disable once InvertIf
+        if (httpRequestBuilder.MockedResponse is not null)
         {
-            // 调用备用日志输出委托
-            httpRemoteOptions.CurrentValue.FallbackLogger?.Invoke(LogMessageFormatter.Value(message, args));
+            // 更新上下文
+            context.ResponseMessage = httpRequestBuilder.MockedResponse;
+
+            return httpRequestBuilder.MockedResponse;
         }
+
+        // 调用下一个处理器的委托
+        return await next();
     }
 }

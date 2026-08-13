@@ -43,7 +43,7 @@ internal sealed class HttpAccessTokenManager : IHttpAccessTokenManager
         // 检查 HttpClient 实例的配置名称是否存在 Access Token 缓存项
         if (!_httpClientNameCaches.TryGetValue(httpClientName ?? string.Empty, out var accessTokenCache))
         {
-            return Task.FromResult<HttpAccessToken?>(null);
+            return Task.FromResult(HttpAccessToken.None);
         }
 
         // 获取当前缓存的 Access Token
@@ -55,7 +55,7 @@ internal sealed class HttpAccessTokenManager : IHttpAccessTokenManager
             return Task.FromResult<HttpAccessToken?>(current);
         }
 
-        return Task.FromResult<HttpAccessToken?>(null);
+        return Task.FromResult(HttpAccessToken.None);
     }
 
     /// <inheritdoc />

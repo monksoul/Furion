@@ -69,6 +69,11 @@ public sealed class HttpRemoteBuilder
     internal HashSet<Type>? _httpQuotaStrategyTypes;
 
     /// <summary>
+    ///     <see cref="IHttpRemoteLogger" /> 类型
+    /// </summary>
+    internal Type? _httpRemoteLoggerType;
+
+    /// <summary>
     ///     <see cref="IHttpRequestPipelineHandler" /> 类型集合
     /// </summary>
     internal IList<Type> _httpRequestPipelineHandlerTypes =
@@ -87,6 +92,7 @@ public sealed class HttpRemoteBuilder
         typeof(RequestBuilderPipelineHandler),
         typeof(ETagPipelineHandler),
         typeof(RequestProfilerPipelineHandler),
+        typeof(MockPipelineHandler),
         typeof(SendCorePipelineHandler)
     ];
 
@@ -447,6 +453,47 @@ public sealed class HttpRemoteBuilder
     }
 
     /// <summary>
+    ///     使用自定义的 <see cref="IHttpRemoteLogger" /> 实现
+    /// </summary>
+    /// <remarks>可继承 <see cref="HttpRemoteLoggerBase" /> 以实现自定义 <see cref="IHttpRemoteLogger" /> 服务。</remarks>
+    /// <typeparam name="TLogger">
+    ///     <see cref="IHttpRemoteLogger" />
+    /// </typeparam>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    public HttpRemoteBuilder UseLogger<TLogger>() where TLogger : IHttpRemoteLogger => UseLogger(typeof(TLogger));
+
+    /// <summary>
+    ///     使用自定义的 <see cref="IHttpRemoteLogger" /> 实现
+    /// </summary>
+    /// <remarks>可继承 <see cref="HttpRemoteLoggerBase" /> 以实现自定义 <see cref="IHttpRemoteLogger" /> 服务。</remarks>
+    /// <param name="loggerType">
+    ///     <see cref="IHttpRemoteLogger" />
+    /// </param>
+    /// <returns>
+    ///     <see cref="HttpRemoteBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRemoteBuilder UseLogger(Type loggerType)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(loggerType);
+
+        // 检查类型是否实现了 IHttpRemoteLogger 接口
+        if (!typeof(IHttpRemoteLogger).IsAssignableFrom(loggerType))
+        {
+            throw new ArgumentException($"`{loggerType}` type is not assignable from `{typeof(IHttpRemoteLogger)}`.",
+                nameof(loggerType));
+        }
+
+        _httpRemoteLoggerType = loggerType;
+
+        return this;
+    }
+
+    /// <summary>
     ///     构建模块服务
     /// </summary>
     /// <param name="services">
@@ -480,9 +527,19 @@ public sealed class HttpRemoteBuilder
         // 检查是否配置（注册）了日志程序
         var isLoggingRegistered = services.Any(u => u.ServiceType == typeof(ILoggerProvider));
 
-        // 注册 HTTP 远程请求日志服务
-        services.TryAddSingleton<IHttpRemoteLogger>(provider =>
-            ActivatorUtilities.CreateInstance<HttpRemoteLogger>(provider, isLoggingRegistered));
+        // 检查是否配置了自定义日志实现
+        if (_httpRemoteLoggerType is not null)
+        {
+            // 移除所有已存在的 IHttpRemoteLogger 注册
+            services.RemoveAll<IHttpRemoteLogger>();
+            services.AddSingleton(typeof(IHttpRemoteLogger), _httpRemoteLoggerType);
+        }
+        else
+        {
+            // 注册默认的 HTTP 远程请求日志服务
+            services.TryAddSingleton<IHttpRemoteLogger>(provider =>
+                ActivatorUtilities.CreateInstance<HttpRemoteLogger>(provider, isLoggingRegistered));
+        }
 
         // 对 IHttpRequestPipelineHandler 类型集合进行去重
         // 并确保 SuppressExceptionPipelineHandler 管道处理器类型始终位于首位
@@ -504,18 +561,20 @@ public sealed class HttpRemoteBuilder
         // 注册 HttpContent 内容转换器工厂
         services.TryAddSingleton<IHttpContentConverterFactory, HttpContentConverterFactory>();
 
-        // 注册对象内容转换器工厂
-        services.TryAddSingleton<IObjectContentConverterFactory, ObjectContentConverterFactory>();
-
         // 注册 HTTP 远程请求服务
         services.TryAddSingleton<IHttpRemoteService, HttpRemoteService>();
 
-        // 检查是否自定义了对象内容转换器工厂，如果存在则替换
-        if (_objectContentConverterFactoryType is not null &&
-            _objectContentConverterFactoryType != typeof(ObjectContentConverterFactory))
+        // 检查是否配置对象内容转换器工厂实现
+        if (_objectContentConverterFactoryType is not null)
         {
-            services.Replace(ServiceDescriptor.Singleton(typeof(IObjectContentConverterFactory),
-                _objectContentConverterFactoryType));
+            // 移除所有已存在的 IObjectContentConverterFactory 注册
+            services.RemoveAll<IObjectContentConverterFactory>();
+            services.AddSingleton(typeof(IObjectContentConverterFactory), _objectContentConverterFactoryType);
+        }
+        else
+        {
+            // 注册默认的对象内容转换器工厂
+            services.TryAddSingleton<IObjectContentConverterFactory, ObjectContentConverterFactory>();
         }
 
         // 注册请求管道处理器
