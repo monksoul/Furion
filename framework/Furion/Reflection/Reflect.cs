@@ -35,6 +35,11 @@ namespace Furion.Reflection;
 internal static class Reflect
 {
     /// <summary>
+    /// 异步状态机解包缓存
+    /// </summary>
+    private static readonly ConditionalWeakTable<Type, MethodBase> _unwrapStateMachineCache = new();
+
+    /// <summary>
     /// 获取入口程序集
     /// </summary>
     /// <returns></returns>
@@ -170,6 +175,12 @@ internal static class Reflect
         // 判断是否为异步状态机
         if (declaringType != null && typeof(IAsyncStateMachine).IsAssignableFrom(declaringType))
         {
+            // 尝试从缓存获取
+            if (_unwrapStateMachineCache.TryGetValue(declaringType, out var cached))
+            {
+                return cached;
+            }
+
             var outerType = declaringType.DeclaringType;
 
             if (outerType != null)
@@ -180,7 +191,7 @@ internal static class Reflect
 
                 if (originalMethod != null)
                 {
-                    return originalMethod;
+                    return _unwrapStateMachineCache.GetValue(declaringType, _ => originalMethod);
                 }
             }
         }

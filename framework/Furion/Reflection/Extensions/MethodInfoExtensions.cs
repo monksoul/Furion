@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Furion.Reflection.Extensions;
 
@@ -32,6 +33,11 @@ namespace Furion.Reflection.Extensions;
 /// </summary>
 public static class MethodInfoExtensions
 {
+    /// <summary>
+    /// 实际方法解析缓存
+    /// </summary>
+    private static readonly ConditionalWeakTable<Type, Dictionary<string, MethodInfo>> _actualMethodsCache = new();
+
     /// <summary>
     /// 获取真实方法的特性集合
     /// </summary>
@@ -166,13 +172,23 @@ public static class MethodInfoExtensions
         if (target == null) return default;
 
         var targetType = target.GetType();
-
         var methodString = method.ToString();
-        var actualMethod = targetType.GetMethods()
-                                             .FirstOrDefault(u => u.ToString() == methodString);
 
-        if (actualMethod == null) return default;
+        // 从缓存获取或构建方法字典
+        var methods = _actualMethodsCache.GetValue(targetType, t =>
+        {
+            var dict = new Dictionary<string, MethodInfo>(StringComparer.Ordinal);
+            foreach (var m in t.GetMethods())
+            {
+                var key = m.ToString();
+                if (!dict.ContainsKey(key))
+                {
+                    dict[key] = m;
+                }
+            }
+            return dict;
+        });
 
-        return actualMethod;
+        return methods.TryGetValue(methodString, out var actualMethod) ? actualMethod : default;
     }
 }

@@ -14,6 +14,12 @@ public class TestException : IDynamicApiController
     {
         throw Oops.Oh(ErrorCodes.z1000);
     }
+
+    [IfException(1000, ErrorMessage = "我出异常了: {0} 不存在")]
+    public async Task<string> 测试IfException异常()
+    {
+        throw Oops.Oh(1000, "代码");
+    }
 }
 
 [ErrorCodeType]

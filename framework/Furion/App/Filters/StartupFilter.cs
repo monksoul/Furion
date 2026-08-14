@@ -132,7 +132,7 @@ public class StartupFilter : IStartupFilter
             var configureMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
                 .Where(u => u.ReturnType == typeof(void)
                     && u.GetParameters().Length > 0
-                    && u.GetParameters().First().ParameterType == typeof(IApplicationBuilder))
+                    && u.GetParameters()[0].ParameterType == typeof(IApplicationBuilder))
                 .ToList();
 
             if (configureMethods.Count == 0) continue;
@@ -161,11 +161,13 @@ public class StartupFilter : IStartupFilter
         var parameterInstances = new object[parameters.Length];
         parameterInstances[0] = app;
 
+        var serviceProvider = app.ApplicationServices;
+
         // 解析服务
         for (var i = 1; i < parameters.Length; i++)
         {
             var parameter = parameters[i];
-            parameterInstances[i] = app.ApplicationServices.GetRequiredService(parameter.ParameterType);
+            parameterInstances[i] = serviceProvider.GetRequiredService(parameter.ParameterType);
         }
 
         return parameterInstances;

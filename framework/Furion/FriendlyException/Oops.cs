@@ -238,12 +238,15 @@ public static class Oops
         // 获取出错的方法
         var methodIfException = GetEndPointExceptionMethod();
 
+        // 获取错误码字符串
+        var errorCodeString = errorCode.ToString();
+
         // 获取当前状态码匹配异常特性
-        var ifExceptionAttribute = methodIfException?.IfExceptionAttributes?.FirstOrDefault(u => u.ErrorCode != null && HandleEnumErrorCode(u.ErrorCode).ToString().Equals(errorCode.ToString()));
+        var ifExceptionAttribute = methodIfException?.IfExceptionAttributes?.FirstOrDefault(u => u.ErrorCode != null && HandleEnumErrorCode(u.ErrorCode).ToString().Equals(errorCodeString));
 
         // 获取错误码消息
         var errorCodeMessage = ifExceptionAttribute == null || string.IsNullOrWhiteSpace(ifExceptionAttribute.ErrorMessage)
-            ? (_errorCodeMessages.GetValueOrDefault(errorCode.ToString()) ?? _friendlyExceptionSettings.DefaultErrorMessage)
+            ? (_errorCodeMessages.GetValueOrDefault(errorCodeString) ?? _friendlyExceptionSettings.DefaultErrorMessage)
             : ifExceptionAttribute.ErrorMessage;
 
         // 如果所有错误码都获取不到，则找全局 [IfException] 错误
@@ -253,7 +256,7 @@ public static class Oops
         }
 
         // 字符串格式化
-        return (errorCode, MontageErrorMessage(errorCodeMessage, errorCode.ToString(), hideErrorCode, fieldName, fullName,
+        return (errorCode, MontageErrorMessage(errorCodeMessage, errorCodeString, hideErrorCode, fieldName, fullName,
             args != null && args.Length > 0 ? args : ifExceptionAttribute?.Args));
     }
 
@@ -414,7 +417,8 @@ public static class Oops
             var ifExceptionAttributes = frames
                 .Select(u => Reflect.UnwrapStateMachine(u.GetMethod()))
                 .Where(m => m != null && m.IsDefined(typeof(IfExceptionAttribute), true))
-                .SelectMany(m => m.GetCustomAttributes<IfExceptionAttribute>(true));
+                .SelectMany(m => m.GetCustomAttributes<IfExceptionAttribute>(true))
+                .ToArray();
 
             // 组装方法异常对象
             methodIfException = new MethodIfException

@@ -123,18 +123,44 @@ public class BadPageResult : StatusCodeResult
     };
 
     /// <summary>
+    /// 嵌入式错误页模板缓存
+    /// </summary>
+    private static readonly Lazy<string> _errorTemplate = new(LoadErrorTemplate);
+
+    /// <summary>
+    /// 加载嵌入式错误页模板
+    /// </summary>
+    /// <returns></returns>
+    private static string LoadErrorTemplate()
+    {
+        var thisType = typeof(BadPageResult);
+        var thisAssembly = thisType.Assembly;
+
+        // 读取嵌入式页面路径
+        var errorhtml = $"{Reflect.GetAssemblyName(thisAssembly)}{thisType.Namespace.Replace(nameof(Furion), string.Empty)}.Assets.error.html";
+
+        // 解析嵌入式文件流
+        using var readStream = thisAssembly.GetManifestResourceStream(errorhtml);
+        var buffer = new byte[readStream.Length];
+        _ = readStream.Read(buffer, 0, buffer.Length);
+
+        return Encoding.UTF8.GetString(buffer);
+    }
+
+    /// <summary>
     /// 重写返回结果
     /// </summary>
     /// <param name="context"></param>
-    public override void ExecuteResult(ActionContext context)
+    /// <returns></returns>
+    public async override Task ExecuteResultAsync(ActionContext context)
     {
         var httpContext = context.HttpContext;
 
         // 如果 Response 已经完成输出或 WebSocket 请求，则禁止写入
         if (httpContext.IsWebSocketRequest() || httpContext.Response.HasStarted) return;
 
-        base.ExecuteResult(context);
-        httpContext.Response.Body.WriteAsync(ToByteArray());
+        await base.ExecuteResultAsync(context);
+        await httpContext.Response.Body.WriteAsync(ToByteArray());
     }
 
     /// <summary>
@@ -143,23 +169,8 @@ public class BadPageResult : StatusCodeResult
     /// <returns><see cref="string"/></returns>
     public override string ToString()
     {
-        // 获取当前类型信息
-        var thisType = typeof(BadPageResult);
-        var thisAssembly = thisType.Assembly;
-
-        // 读取嵌入式页面路径
-        var errorhtml = $"{Reflect.GetAssemblyName(thisAssembly)}{thisType.Namespace.Replace(nameof(Furion), string.Empty)}.Assets.error.html";
-
-        // 解析嵌入式文件流
-        byte[] buffer;
-        using (var readStream = thisAssembly.GetManifestResourceStream(errorhtml))
-        {
-            buffer = new byte[readStream.Length];
-            _ = readStream.Read(buffer, 0, buffer.Length);
-        }
-
-        // 读取内容并替换
-        var content = Encoding.UTF8.GetString(buffer);
+        // 从缓存读取模板内容并替换
+        var content = _errorTemplate.Value;
         content = content.Replace($"@{{{nameof(Title)}}}", Title)
                          .Replace($"@{{{nameof(Description)}}}", Description)
                          .Replace($"@{{{nameof(StatusCode)}}}", StatusCode.ToString())

@@ -40,6 +40,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class AppServiceCollectionExtensions
 {
     /// <summary>
+    /// AddHostedService 泛型方法缓存
+    /// </summary>
+    private static readonly MethodInfo AddHostedServiceMethodInfo = typeof(ServiceCollectionHostedServiceExtensions)
+        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+        .FirstOrDefault(u => u.Name.Equals("AddHostedService") && u.IsGenericMethod && u.GetParameters().Length == 1);
+
+    /// <summary>
     /// Mvc 注入基础配置（带Swagger）
     /// </summary>
     /// <param name="mvcBuilder">Mvc构建器</param>
@@ -188,18 +195,21 @@ public static class AppServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddAppHostedService(this IServiceCollection services)
     {
-        // 获取所有 BackgroundService 类型，排除泛型主机
+        // 获取已注册的 IHostedService 实现类型
+        var existingHostedServiceTypes = services
+            .Where(c => c.ServiceType == typeof(IHostedService))
+            .Select(c => c.ImplementationType)
+            .Where(t => t != null)
+            .ToHashSet();
+
+        // 获取所有 BackgroundService 类型，排除泛型主机，并过滤已注册的类型
         var backgroundServiceTypes = App.EffectiveTypes.Where(u => !u.IsAbstract && !u.IsInterface && !u.IsGenericType
                     && typeof(IHostedService).IsAssignableFrom(u) && u.Name != "GenericWebHostService"
-                    && !services.Any(c => c.ServiceType == typeof(IHostedService) && c.ImplementationType == u));
-
-        var addHostServiceMethod = typeof(ServiceCollectionHostedServiceExtensions).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                            .Where(u => u.Name.Equals("AddHostedService") && u.IsGenericMethod && u.GetParameters().Length == 1)
-                            .FirstOrDefault();
+                    && !existingHostedServiceTypes.Contains(u));
 
         foreach (var type in backgroundServiceTypes)
         {
-            addHostServiceMethod.MakeGenericMethod(type).Invoke(null, [services]);
+            AddHostedServiceMethodInfo.MakeGenericMethod(type).Invoke(null, [services]);
         }
 
         return services;
@@ -265,19 +275,21 @@ public static class AppServiceCollectionExtensions
             var serviceMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
                 .Where(u => u.ReturnType == typeof(void)
                             && u.GetParameters().Length > 0
-                            && u.GetParameters().First().ParameterType == typeof(IServiceCollection))
+                            && u.GetParameters()[0].ParameterType == typeof(IServiceCollection))
                 .ToList();
 
             if (serviceMethods.Count == 0) continue;
 
+            var isAppStartup = typeof(AppStartup).IsAssignableFrom(type);
+
             // 确定是否需要创建实例
             object instance = null;
-            if (typeof(AppStartup).IsAssignableFrom(type))
+            if (isAppStartup)
             {
                 instance = Activator.CreateInstance(type);
                 App.AppStartups.Add((AppStartup)instance);
             }
-            else if (serviceMethods.Any(m => !m.IsStatic))
+            else if (serviceMethods.Exists(m => !m.IsStatic))
             {
                 instance = Activator.CreateInstance(type);
             }
