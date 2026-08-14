@@ -166,8 +166,10 @@ public static class MethodInfoExtensions
         if (target == null) return default;
 
         var targetType = target.GetType();
+
+        var methodString = method.ToString();
         var actualMethod = targetType.GetMethods()
-                                             .FirstOrDefault(u => u.ToString().Equals(method.ToString()));
+                                             .FirstOrDefault(u => u.ToString() == methodString);
 
         if (actualMethod == null) return default;
 

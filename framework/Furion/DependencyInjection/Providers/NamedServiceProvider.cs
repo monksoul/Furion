@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -60,7 +61,7 @@ internal class NamedServiceProvider<TService> : INamedServiceProvider<TService>
 
         if (services
             .OfType<DispatchProxyAsync>()
-            .FirstOrDefault(u => ResolveServiceName(((dynamic)u).Target.GetType()) == serviceName) is not TService service)
+            .FirstOrDefault(u => u is IDispatchProxy proxy && proxy.Target != null && ResolveServiceName(proxy.Target.GetType()) == serviceName) is not TService service)
         {
             service = services.FirstOrDefault(u => ResolveServiceName(u.GetType()) == serviceName);
         }
@@ -93,7 +94,7 @@ internal class NamedServiceProvider<TService> : INamedServiceProvider<TService>
 
         if (services
             .OfType<DispatchProxyAsync>()
-            .FirstOrDefault(u => ResolveServiceName(((dynamic)u).Target.GetType()) == serviceName) is not TService service)
+            .FirstOrDefault(u => u is IDispatchProxy proxy && proxy.Target != null && ResolveServiceName(proxy.Target.GetType()) == serviceName) is not TService service)
         {
             service = services.FirstOrDefault(u => ResolveServiceName(u.GetType()) == serviceName);
         }
