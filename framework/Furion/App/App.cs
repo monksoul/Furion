@@ -34,7 +34,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -43,6 +42,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Furion;
 
@@ -684,16 +684,148 @@ public static class App
         // 非独立发布/非单文件发布
         if (!string.IsNullOrWhiteSpace(entryAssembly.Location))
         {
-            var dependencyContext = DependencyContext.Default;
+            // 查找 .deps.json 文件
+            var depsJsonPath = Path.Combine(AppContext.BaseDirectory, $"{entryAssembly.GetName().Name}.deps.json");
 
-            // 读取项目程序集或 Furion 官方发布的包，或手动添加引用的dll，或配置特定的包前缀
-            scanAssemblies = dependencyContext.RuntimeLibraries
-               .Where(u =>
-                      (u.Type == "project" && !excludeAssemblyNames.Any(j => u.Name.EndsWith(j))) ||
-                      (u.Type == "package" && (u.Name.StartsWith(nameof(Furion), StringComparison.OrdinalIgnoreCase) || supportPackageNamePrefixs.Any(p => IsMatchPattern(u.Name, p) && u.RuntimeAssemblyGroups.Count > 0))) ||
-                      (Settings.EnabledReferenceAssemblyScan == true && u.Type == "reference"))    // 判断是否启用引用程序集扫描
-               .Select(u => LoadOnce(u.Name))
-               .Where(a => a != null);
+            // 处理 IIS 等宿主进程导致入口程序集名称不匹配的情况
+            if (!File.Exists(depsJsonPath))
+            {
+                var hostProcesses = new[] { "iisexpress", "w3wp", "testhost", "dotnet", "resharptestrunner", "microsoft.aspnetcore.testhost" };
+                try
+                {
+                    var depsFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.deps.json", SearchOption.TopDirectoryOnly);
+                    depsJsonPath = depsFiles.FirstOrDefault(f => !hostProcesses.Any(h => Path.GetFileNameWithoutExtension(f).Equals(h, StringComparison.OrdinalIgnoreCase)));
+                }
+                catch { }
+            }
+
+            // 存储程序集名称和对应的类型、运行时库名称列表和运行时库是否包含运行时资产
+            var libraryTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var runtimeLibraryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var runtimeAssemblyFlags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+            if (!string.IsNullOrEmpty(depsJsonPath) && File.Exists(depsJsonPath))
+            {
+                try
+                {
+                    using var stream = File.OpenRead(depsJsonPath);
+                    using var doc = JsonDocument.Parse(stream);
+
+                    // 解析 libraries 节点，获取所有库的类型
+                    if (doc.RootElement.TryGetProperty("libraries", out var librariesElement))
+                    {
+                        foreach (var lib in librariesElement.EnumerateObject())
+                        {
+                            var parts = lib.Name.Split('/');
+                            if (parts.Length > 0)
+                            {
+                                var name = parts[0];
+                                var type = lib.Value.TryGetProperty("type", out var typeProp) ? typeProp.GetString() : null;
+                                libraryTypes[name] = type;
+                            }
+                        }
+                    }
+
+                    // 获取当前运行时目标名称
+                    string runtimeTargetName = null;
+                    if (doc.RootElement.TryGetProperty("runtimeTarget", out var targetElement))
+                    {
+                        if (targetElement.ValueKind == JsonValueKind.Object && targetElement.TryGetProperty("name", out var nameProp))
+                        {
+                            runtimeTargetName = nameProp.GetString();
+                        }
+                        else if (targetElement.ValueKind == JsonValueKind.String)
+                        {
+                            runtimeTargetName = targetElement.GetString();
+                        }
+                    }
+
+                    // 解析 targets 节点中对应 runtimeTarget 的库
+                    if (!string.IsNullOrEmpty(runtimeTargetName) &&
+                        doc.RootElement.TryGetProperty("targets", out var targetsElement) &&
+                        targetsElement.TryGetProperty(runtimeTargetName, out var targetLibrariesElement))
+                    {
+                        foreach (var lib in targetLibrariesElement.EnumerateObject())
+                        {
+                            var parts = lib.Name.Split('/');
+                            if (parts.Length > 0)
+                            {
+                                var name = parts[0];
+                                runtimeLibraryNames.Add(name);
+
+                                // 检查是否有运行时资产
+                                var hasRuntime = false;
+                                if (lib.Value.TryGetProperty("runtime", out var runtimeProp) && runtimeProp.ValueKind == JsonValueKind.Object)
+                                {
+                                    hasRuntime = runtimeProp.EnumerateObject().Any();
+                                }
+                                if (!hasRuntime && lib.Value.TryGetProperty("runtimeTargets", out var runtimeTargetsProp) && runtimeTargetsProp.ValueKind == JsonValueKind.Object)
+                                {
+                                    hasRuntime = runtimeTargetsProp.EnumerateObject().Any();
+                                }
+                                runtimeAssemblyFlags[name] = hasRuntime;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    libraryTypes.Clear();
+                    runtimeLibraryNames.Clear();
+                    runtimeAssemblyFlags.Clear();
+                }
+            }
+
+            if (runtimeLibraryNames.Count > 0)
+            {
+                // 读取项目程序集或 Furion 官方发布的包，或手动添加引用的dll，或配置特定的包前缀
+                scanAssemblies = runtimeLibraryNames
+                    .Select(name => new {
+                        Name = name,
+                        Type = libraryTypes.TryGetValue(name, out var t) ? t : null,
+                        HasRuntimeAssemblies = runtimeAssemblyFlags.TryGetValue(name, out var has) && has
+                    })
+                    .Where(u =>
+                    {
+                        var name = u.Name;
+                        var type = u.Type;
+
+                        if (string.IsNullOrEmpty(type))
+                            return false;
+
+                        var isProject = type == "project";
+                        var isPackage = type == "package";
+                        var isReference = type == "reference";
+
+                        // 判断是否是项目程序集且不在排除列表中
+                        if (isProject && !excludeAssemblyNames.Any(j => name.EndsWith(j))) return true;
+
+                        // 判断是否是包程序集
+                        if (isPackage)
+                        {
+                            // 判断是否是 Furion 官方发布的包
+                            if (name.StartsWith(nameof(Furion), StringComparison.OrdinalIgnoreCase)) return true;
+
+                            // 判断是否匹配配置特定的包前缀，且存在运行时资产
+                            if (supportPackageNamePrefixs.Any(p => IsMatchPattern(name, p) && u.HasRuntimeAssemblies)) return true;
+                        }
+
+                        // 判断是否启用引用程序集扫描
+                        if (Settings.EnabledReferenceAssemblyScan == true && isReference) return true;
+
+                        return false;
+                    })
+                    .Select(u => LoadOnce(u.Name))
+                    .Where(a => a != null);
+            }
+            else
+            {
+                // 如果 .deps.json 无法解析或不存在，回退到已加载程序集扫描，同时排除系统程序集
+                scanAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(ass =>
+                    !ass.FullName.StartsWith(nameof(System)) &&
+                    !ass.FullName.StartsWith(nameof(Microsoft)) &&
+                    !ass.FullName.StartsWith("netstandard"));
+            }
         }
         // 独立发布/单文件发布
         else
