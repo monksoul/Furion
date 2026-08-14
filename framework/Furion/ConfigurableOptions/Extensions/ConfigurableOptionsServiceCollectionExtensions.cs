@@ -63,11 +63,14 @@ public static class ConfigurableOptionsServiceCollectionExtensions
             var onListenerMethod = optionsType.GetMethod(nameof(IConfigurableOptionsListener<TOptions>.OnListener));
             if (onListenerMethod != null)
             {
+                // 将 MethodInfo 转换为委托
+                var onListenerAction = (Action<TOptions, TOptions, IConfiguration>)Delegate.CreateDelegate(typeof(Action<TOptions, TOptions, IConfiguration>), onListenerMethod);
+
                 // 监听全局配置改变，目前该方式存在触发两次的 bug：https://github.com/dotnet/aspnetcore/issues/2542
                 ChangeToken.OnChange(() => configurationRoot.GetReloadToken(), ((Action)(() =>
                 {
                     var options = optionsConfiguration.Get<TOptions>();
-                    if (options != null) onListenerMethod.Invoke(options, [options, optionsConfiguration]);
+                    if (options != null) onListenerAction(options, options, optionsConfiguration);
                 })).Debounce());
             }
         }
@@ -80,22 +83,24 @@ public static class ConfigurableOptionsServiceCollectionExtensions
               .ValidateDataAnnotations()
               .ValidateOnStart();
 
-        // 实现 Key 映射
-        services.PostConfigureAll<TOptions>(options =>
-        {
-            // 查找所有贴了 MapSettings 的键值对
-            var remapKeys = optionsType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                                           .Where(u => u.IsDefined(typeof(MapSettingsAttribute), true));
-            if (!remapKeys.Any()) return;
+        // 查找所有贴了 MapSettings 的属性和其路径
+        var remapProperties = optionsType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                          .Where(u => u.IsDefined(typeof(MapSettingsAttribute), true))
+                                          .Select(p => (Property: p, p.GetCustomAttribute<MapSettingsAttribute>(true).Path))
+                                          .ToArray();
 
-            foreach (var prop in remapKeys)
+        // 实现 Key 映射
+        if (remapProperties.Length > 0)
+        {
+            services.PostConfigureAll<TOptions>(options =>
             {
-                var propType = prop.PropertyType;
-                var realKey = prop.GetCustomAttribute<MapSettingsAttribute>(true).Path;
-                var realValue = configurationRoot.GetValue(propType, $"{path}:{realKey}");
-                prop.SetValue(options, realValue);
-            }
-        });
+                foreach (var item in remapProperties)
+                {
+                    var realValue = configurationRoot.GetValue(item.Property.PropertyType, $"{path}:{item.Path}");
+                    item.Property.SetValue(options, realValue);
+                }
+            });
+        }
 
         // 配置复杂验证后后期配置
         var validateInterface = optionsType.GetInterfaces()
@@ -107,17 +112,19 @@ public static class ConfigurableOptionsServiceCollectionExtensions
             // 配置复杂验证
             if (genericArguments.Length > 1)
             {
-                services.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IValidateOptions<TOptions>), genericArguments.Last()));
+                services.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IValidateOptions<TOptions>), genericArguments[^1]));
             }
 
             // 配置后期配置
             var postConfigureMethod = optionsType.GetMethod(nameof(IConfigurableOptions<TOptions>.PostConfigure));
             if (postConfigureMethod != null)
             {
+                var postConfigureAction = (Action<TOptions, TOptions, IConfiguration>)Delegate.CreateDelegate(typeof(Action<TOptions, TOptions, IConfiguration>), postConfigureMethod);
+
                 if (optionsSettings?.PostConfigureAll != true)
-                    optionsConfigure.PostConfigure(options => postConfigureMethod.Invoke(options, [options, optionsConfiguration]));
+                    optionsConfigure.PostConfigure(options => postConfigureAction(options, options, optionsConfiguration));
                 else
-                    services.PostConfigureAll<TOptions>(options => postConfigureMethod.Invoke(options, [options, optionsConfiguration]));
+                    services.PostConfigureAll<TOptions>(options => postConfigureAction(options, options, optionsConfiguration));
             }
         }
 

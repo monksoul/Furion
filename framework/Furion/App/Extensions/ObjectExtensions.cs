@@ -191,16 +191,29 @@ public static class ObsoleteObjectExtensions
     /// <returns></returns>
     public static Action<T> Debounce<T>(this Action<T> func, int milliseconds = 300)
     {
-        var last = 0;
+        CancellationTokenSource lastCts = null;
+        var lockObj = new object();
 
         return arg =>
         {
-            var current = Interlocked.Increment(ref last);
-            Task.Delay(milliseconds).ContinueWith(task =>
+            CancellationTokenSource currentCts;
+            lock (lockObj)
             {
-                if (current == last) func(arg);
+                lastCts?.Cancel();
+                lastCts?.Dispose();
+
+                currentCts = new CancellationTokenSource();
+                lastCts = currentCts;
+            }
+
+            Task.Delay(milliseconds, currentCts.Token).ContinueWith(task =>
+            {
+                if (!task.IsCanceled)
+                {
+                    func(arg);
+                }
                 task.Dispose();
-            });
+            }, TaskScheduler.Default);
         };
     }
 
@@ -212,16 +225,29 @@ public static class ObsoleteObjectExtensions
     /// <returns></returns>
     public static Action Debounce(this Action func, int milliseconds = 300)
     {
-        var last = 0;
+        CancellationTokenSource lastCts = null;
+        var lockObj = new object();
 
         return () =>
         {
-            var current = Interlocked.Increment(ref last);
-            Task.Delay(milliseconds).ContinueWith(task =>
+            CancellationTokenSource currentCts;
+            lock (lockObj)
             {
-                if (current == last) func();
+                lastCts?.Cancel();
+                lastCts?.Dispose();
+
+                currentCts = new CancellationTokenSource();
+                lastCts = currentCts;
+            }
+
+            Task.Delay(milliseconds, currentCts.Token).ContinueWith(task =>
+            {
+                if (!task.IsCanceled)
+                {
+                    func();
+                }
                 task.Dispose();
-            });
+            }, TaskScheduler.Default);
         };
     }
 
