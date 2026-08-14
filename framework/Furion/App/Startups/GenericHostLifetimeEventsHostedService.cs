@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -35,11 +36,11 @@ internal class GenericHostLifetimeEventsHostedService : IHostedService
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="host"></param>
-    public GenericHostLifetimeEventsHostedService(IHost host)
+    /// <param name="serviceProvider"></param>
+    public GenericHostLifetimeEventsHostedService(IServiceProvider serviceProvider)
     {
         // 存储根服务
-        InternalApp.RootServices ??= host.Services;
+        InternalApp.RootServices ??= serviceProvider.GetService<IHost>()?.Services ?? serviceProvider;
     }
 
     /// <summary>
