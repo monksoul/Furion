@@ -790,8 +790,7 @@ public static class App
                         var name = u.Name;
                         var type = u.Type;
 
-                        if (string.IsNullOrEmpty(type))
-                            return false;
+                        if (string.IsNullOrEmpty(type)) return false;
 
                         var isProject = type == "project";
                         var isPackage = type == "package";
