@@ -210,19 +210,18 @@ internal static class InternalApp
         var executeDirectory = AppContext.BaseDirectory;
 
         // 获取自定义配置扫描目录
-        var configurationScanDirectories = (configuration.GetSection("ConfigurationScanDirectories")
-                .Get<string[]>()
-            ?? []).Select(u => Path.Combine(executeDirectory, u));
+        var configurationScanDirectories = configuration.GetSection("ConfigurationScanDirectories")
+            .Get<string[]>() ?? [];
 
         // 聚合所有扫描目录，并过滤掉不存在的目录
         var directories = new[] { executeDirectory }
-            .Concat(configurationScanDirectories)
+            .Concat(configurationScanDirectories.Select(u => Path.Combine(executeDirectory, u)))
             .Concat(InjectOptions.InternalConfigurationScanDirectories)
             .Where(Directory.Exists);
 
         // 扫描目录下所有 *.json 文件
         var allJsonFiles = directories
-            .SelectMany(dir => Directory.GetFiles(dir, "*.json", SearchOption.TopDirectoryOnly))
+            .SelectMany(dir => Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly))
             .ToList();
 
         // 如果没有配置文件，中止执行
@@ -244,15 +243,22 @@ internal static class InternalApp
             ?? []).Concat(InjectOptions.InternalIgnoreConfigurationFiles);
 
         // 将忽略列表拆分为精确文件名和 glob 模式
-        var ignoreFileNames = new HashSet<string>(ignoreConfigurationFiles.Where(i => !i.Contains('*') && !i.Contains('?')), StringComparer.OrdinalIgnoreCase);
-        var ignoreMatchers = ignoreConfigurationFiles
-            .Where(i => i.Contains('*') || i.Contains('?'))
-            .Select(i =>
+        var ignoreFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var ignoreMatchers = new List<Matcher>();
+
+        foreach (var ignorePattern in ignoreConfigurationFiles)
+        {
+            if (ignorePattern.Contains('*') || ignorePattern.Contains('?'))
             {
                 var matcher = new Matcher();
-                matcher.AddInclude(i);
-                return matcher;
-            }).ToList();
+                matcher.AddInclude(ignorePattern);
+                ignoreMatchers.Add(matcher);
+            }
+            else
+            {
+                ignoreFileNames.Add(ignorePattern);
+            }
+        }
 
         // 先剔除运行时后缀、忽略文件，再进行分组
         var filteredFiles = allJsonFiles.Where(file =>
@@ -260,7 +266,7 @@ internal static class InternalApp
             var fileName = Path.GetFileName(file);
 
             // 排除运行时生成的文件
-            if (runtimeJsonSuffixs.Any(suffix => fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)))
+            if (IsRuntimeJsonFile(fileName))
                 return false;
 
             // 排除忽略配置中的精确文件名
@@ -298,6 +304,22 @@ internal static class InternalApp
                 configurationBuilder.AddJsonFile(jsonFile, optional: jsonFileScanner.Optional, reloadOnChange: jsonFileScanner.ReloadOnChange);
             }
         }
+    }
+
+    /// <summary>
+    /// 判断是否为运行时 Json 文件
+    /// </summary>
+    /// <param name="fileName">文件名</param>
+    /// <returns></returns>
+    private static bool IsRuntimeJsonFile(string fileName)
+    {
+        foreach (var suffix in runtimeJsonSuffixs)
+        {
+            if (fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>

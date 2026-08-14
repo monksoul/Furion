@@ -96,10 +96,13 @@ public static class ComponentServiceCollectionExtensions
             var component = Activator.CreateInstance(context.ComponentType) as IServiceComponent;
 
             // 调用
-            component.Load(services, context);
+            component?.Load(services, context);
 
             // 释放资源
-            (component as IDisposable)?.Dispose();
+            if (component is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
         return services;

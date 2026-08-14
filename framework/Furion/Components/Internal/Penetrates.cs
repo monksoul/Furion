@@ -48,22 +48,22 @@ internal static class Penetrates
     internal static List<ComponentContext> CreateDependLinkList(Type componentType, object options = default)
     {
         // 获取或创建根组件上下文
-        var rootContext = _cachedRootContexts.GetOrAdd(componentType, _ =>
+        var rootContext = _cachedRootContexts.GetOrAdd(componentType, static (type, opts) =>
         {
             // 根组件上下文
             var context = new ComponentContext
             {
-                ComponentType = componentType,
+                ComponentType = type,
                 IsRoot = true
             };
 
-            if (options != null)
+            if (opts != null)
             {
-                context.SetProperty(componentType, options);
+                context.SetProperty(type, opts);
             }
 
             return context;
-        });
+        }, options);
 
         if (options != null && rootContext != null)
         {
@@ -114,7 +114,7 @@ internal static class Penetrates
         var resolutionState = new ComponentResolutionState(dependLinkList, componentContextLinkList, rootComponentContext);
 
         // 递归解析依赖关系
-        ResolveComponentDependencies(componentType, ref resolutionState, options);
+        ResolveComponentDependencies(componentType, rootComponentContext, ref resolutionState, options);
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ internal static class Penetrates
             DependLinkList = dependLinkList;
             ComponentContextLinkList = componentContextLinkList;
             RootContext = rootContext;
-            ProcessedComponents = new(dependLinkList);
+            ProcessedComponents = new HashSet<Type>(dependLinkList);
             CurrentPath = new Stack<Type>();
         }
         public List<Type> DependLinkList { get; }
@@ -156,7 +156,7 @@ internal static class Penetrates
         /// <summary>
         /// 添加新组件到依赖链
         /// </summary>
-        public void AddComponent(Type componentType, Type parentType, bool isDependency)
+        public ComponentContext AddComponent(Type componentType, Type parentType, bool isDependency)
         {
             var parentIndex = GetIndexOf(parentType);
             var parentContext = GetComponentContext(parentType);
@@ -178,7 +178,7 @@ internal static class Penetrates
             else
             {
                 // 链接组件：添加到末尾
-                if (!DependLinkList.Contains(componentType))
+                if (!ProcessedComponents.Contains(componentType))
                 {
                     DependLinkList.Add(componentType);
                     ComponentContextLinkList.Add(newContext);
@@ -186,13 +186,14 @@ internal static class Penetrates
             }
 
             ProcessedComponents.Add(componentType);
+            return newContext;
         }
     }
 
     /// <summary>
     /// 递归解析组件依赖
     /// </summary>
-    private static void ResolveComponentDependencies(Type componentType, ref ComponentResolutionState state, object options)
+    private static void ResolveComponentDependencies(Type componentType, ComponentContext currentContext, ref ComponentResolutionState state, object options)
     {
         if (componentType == null) return;
 
@@ -209,30 +210,41 @@ internal static class Penetrates
             // 获取 [DependsOn] 特性
             var dependsOnAttribute = componentType.GetCustomAttribute<DependsOnAttribute>(true);
 
+            var rawDepends = dependsOnAttribute?.DependComponents ?? [];
+
             // 获取依赖组件列表
-            var dependComponents = dependsOnAttribute?.DependComponents?.Distinct()?.Where(c => c != null)?.ToArray() ?? [];
+            var dependComponents = new List<Type>(rawDepends.Length);
+            var dependSet = new HashSet<Type>();
+
+            foreach (var c in rawDepends)
+            {
+                if (c != null && dependSet.Add(c)) dependComponents.Add(c);
+            }
+
+            var rawLinks = dependsOnAttribute?.Links ?? [];
 
             // 获取链接组件列表
-            var linkComponents = dependsOnAttribute?.Links?.Distinct()?.Where(c => c != null)?.ToArray() ?? [];
+            var linkComponents = new List<Type>(rawLinks.Length);
+            var linkSet = new HashSet<Type>();
+
+            foreach (var c in rawLinks)
+            {
+                if (c != null && linkSet.Add(c)) linkComponents.Add(c);
+            }
 
             // 检查自引用
-            if (dependComponents.Contains(componentType) || linkComponents.Contains(componentType))
+            if (dependSet.Contains(componentType) || linkSet.Contains(componentType))
             {
                 throw new InvalidOperationException($"Component {componentType.Name} cannot reference itself.");
             }
 
-            // 找出当前组件的序号
-            var index = state.GetIndexOf(componentType);
-            var calledContext = index > -1 ? state.ComponentContextLinkList[index] : state.RootContext;
-
             // 设置当前组件依赖
-            calledContext.DependComponents = dependComponents;
-            calledContext.LinkComponents = linkComponents;
+            currentContext.DependComponents = dependComponents.ToArray();
+            currentContext.LinkComponents = linkComponents.ToArray();
 
             // 处理依赖组件
-            for (var i = 0; i < dependComponents.Length; i++)
+            foreach (var dependComponent in dependComponents)
             {
-                var dependComponent = dependComponents[i];
                 if (dependComponent == null) continue;
 
                 // 检查循环依赖
@@ -241,17 +253,19 @@ internal static class Penetrates
                     throw new InvalidOperationException($"Circular dependency detected between {componentType.Name} and {dependComponent.Name}");
                 }
 
+                ComponentContext dependContext;
+
                 // 如果组件尚未处理
                 if (!state.ProcessedComponents.Contains(dependComponent))
                 {
-                    state.AddComponent(dependComponent, componentType, true);
+                    dependContext = state.AddComponent(dependComponent, componentType, true);
 
                     // 为新组件设置属性
-                    var newContextIndex = state.GetIndexOf(dependComponent);
-                    state.ComponentContextLinkList[newContextIndex].SetProperty(dependComponent, options);
+                    dependContext.SetProperty(dependComponent, options);
                 }
                 else
                 {
+                    dependContext = state.GetComponentContext(dependComponent);
                     // 检查是否出现后向依赖（可能导致循环）
                     if (state.GetIndexOf(dependComponent) > state.GetIndexOf(componentType))
                     {
@@ -260,11 +274,11 @@ internal static class Penetrates
                 }
 
                 // 递归处理依赖
-                ResolveComponentDependencies(dependComponent, ref state, options);
+                ResolveComponentDependencies(dependComponent, dependContext, ref state, options);
             }
 
             // 链接组件处理逻辑
-            if (linkComponents == null || linkComponents.Length == 0) return;
+            if (linkComponents.Count == 0) return;
 
             foreach (var linkComponent in linkComponents)
             {
@@ -282,21 +296,23 @@ internal static class Penetrates
                     throw new InvalidOperationException($"Circular dependency detected in links between {componentType.Name} and {linkComponent.Name}");
                 }
 
+                ComponentContext linkContext;
+
                 // 递归处理链接组件
                 if (!state.ProcessedComponents.Contains(linkComponent))
                 {
-                    state.AddComponent(linkComponent, componentType, false);
+                    linkContext = state.AddComponent(linkComponent, componentType, false);
 
                     // 为新组件设置属性
-                    var newContextIndex = state.GetIndexOf(linkComponent);
-                    if (newContextIndex > -1)
-                    {
-                        state.ComponentContextLinkList[newContextIndex].SetProperty(linkComponent, options);
-                    }
+                    linkContext.SetProperty(linkComponent, options);
+                }
+                else
+                {
+                    linkContext = state.GetComponentContext(linkComponent);
                 }
 
                 // 递归处理链接
-                ResolveComponentDependencies(linkComponent, ref state, options);
+                ResolveComponentDependencies(linkComponent, linkContext, ref state, options);
             }
         }
         finally

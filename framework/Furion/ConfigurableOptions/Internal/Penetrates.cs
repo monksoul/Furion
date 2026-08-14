@@ -48,7 +48,7 @@ internal static class Penetrates
         {
             // 没有贴 [OptionsSettings]，如果选项类以 `Options` 结尾，则移除，否则返回类名称
             null => optionsType.Name.EndsWith(defaultSuffix) ? optionsType.Name[0..^defaultSuffix.Length] : optionsType.Name,
-            // 如果贴有 [OptionsSettings] 特性，但未指定 Path 参数，则直接返回类名，否则返回 Path (移除了冗余的 null 判断)
+            // 如果贴有 [OptionsSettings] 特性，但未指定 Path 参数，则直接返回类名，否则返回 Path
             _ => string.IsNullOrWhiteSpace(optionsSettings.Path) ? optionsType.Name : optionsSettings.Path,
         });
     }

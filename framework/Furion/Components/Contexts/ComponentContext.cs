@@ -166,6 +166,6 @@ public sealed class ComponentContext
     public IReadOnlyDictionary<string, object> GetProperties()
     {
         var source = RootContext == null ? Properties : RootContext.Properties;
-        return new ReadOnlyDictionary<string, object>(source.ToDictionary(u => u.Key, u => u.Value));
+        return new ReadOnlyDictionary<string, object>(new Dictionary<string, object>(source));
     }
 }

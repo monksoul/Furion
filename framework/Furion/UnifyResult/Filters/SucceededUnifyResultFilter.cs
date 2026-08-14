@@ -81,8 +81,8 @@ public class SucceededUnifyResultFilter : IAsyncActionFilter
                     if (UnifyContext.EnabledStatusCodesMiddleware)
                     {
                         // 获取授权失败设置的状态码
-                        var authorizationFailStatusCode = httpContext.Items[AuthorizationHandlerContextExtensions.FAIL_STATUSCODE_KEY];
-                        if (authorizationFailStatusCode != null)
+                        if (httpContext.Items.TryGetValue(AuthorizationHandlerContextExtensions.FAIL_STATUSCODE_KEY, out var authorizationFailStatusCode)
+                            && authorizationFailStatusCode != null)
                         {
                             statusCode = Convert.ToInt32(authorizationFailStatusCode);
                         }
@@ -130,7 +130,7 @@ public class SucceededUnifyResultFilter : IAsyncActionFilter
             // 解析验证消息
             var validationMetadata = ValidatorContext.GetValidationMetadata(badRequestObjectResult.Value);
             var unifyResultSettingsOptions = context.HttpContext.RequestServices.GetService<IOptions<UnifyResultSettingsOptions>>()?.Value;
-            validationMetadata.SingleValidationErrorDisplay = unifyResultSettingsOptions.SingleValidationErrorDisplay ?? false;
+            validationMetadata.SingleValidationErrorDisplay = unifyResultSettingsOptions?.SingleValidationErrorDisplay ?? false;
 
             var result = unifyResult.OnValidateFailed(context, validationMetadata);
             if (result != null) actionExecutedContext.Result = result;

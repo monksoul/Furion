@@ -42,6 +42,16 @@ public sealed class DataValidationPageFilter : IAsyncPageFilter
     private readonly ApiBehaviorOptions _apiBehaviorOptions;
 
     /// <summary>
+    /// 友好异常存储键
+    /// </summary>
+    private const string FriendlyExceptionKey = nameof(DataValidationFilter) + nameof(AppFriendlyException);
+
+    /// <summary>
+    /// 验证元数据存储键
+    /// </summary>
+    private const string ValidationMetadataKey = nameof(DataValidationFilter) + nameof(ValidationMetadata);
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="options"></param>
@@ -76,7 +86,7 @@ public sealed class DataValidationPageFilter : IAsyncPageFilter
         // 排除 WebSocket 请求处理
         if (context.HttpContext.IsWebSocketRequest())
         {
-            await next.Invoke();
+            await next();
             return;
         }
 
@@ -123,13 +133,13 @@ public sealed class DataValidationPageFilter : IAsyncPageFilter
     private async Task CallUnHandleResult(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         // 处理执行后验证信息
-        var resultContext = await next.Invoke();
+        var resultContext = await next();
 
         // 如果异常不为空且属于友好验证异常
         if (resultContext.Exception != null && resultContext.Exception is AppFriendlyException friendlyException && friendlyException.ValidationException)
         {
             // 存储验证执行结果
-            context.HttpContext.Items[nameof(DataValidationFilter) + nameof(AppFriendlyException)] = resultContext;
+            context.HttpContext.Items[FriendlyExceptionKey] = resultContext;
 
             // 处理验证信息
             _ = HandleValidation(context, friendlyException.ErrorMessage, resultContext, friendlyException);
@@ -146,8 +156,6 @@ public sealed class DataValidationPageFilter : IAsyncPageFilter
     /// <returns>返回 false 表示结果没有处理</returns>
     private bool HandleValidation(PageHandlerExecutingContext context, object errors, PageHandlerExecutedContext resultContext = default, AppFriendlyException friendlyException = default)
     {
-        dynamic finalContext = resultContext != null ? resultContext : context;
-
         // 解析验证消息
         var validationMetadata = ValidatorContext.GetValidationMetadata(errors);
         validationMetadata.ErrorCode = friendlyException?.ErrorCode;
@@ -156,13 +164,18 @@ public sealed class DataValidationPageFilter : IAsyncPageFilter
         validationMetadata.Data = friendlyException?.Data;
 
         // 存储验证信息
-        context.HttpContext.Items[nameof(DataValidationFilter) + nameof(ValidationMetadata)] = validationMetadata;
+        context.HttpContext.Items[ValidationMetadataKey] = validationMetadata;
 
         // 返回自定义错误页面
-        finalContext.Result = new BadPageResult(StatusCodes.Status400BadRequest)
+        IActionResult finalResult = new BadPageResult(StatusCodes.Status400BadRequest)
         {
             Code = validationMetadata.Message
         };
+
+        if (resultContext != null)
+            resultContext.Result = finalResult;
+        else
+            context.Result = finalResult;
 
         return true;
     }

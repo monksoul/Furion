@@ -100,10 +100,13 @@ public static class ComponentApplicationBuilderExtensions
             var component = Activator.CreateInstance(componentContext.ComponentType) as IApplicationComponent;
 
             // 调用
-            component.Load(app, env, componentContext);
+            component?.Load(app, env, componentContext);
 
             // 释放资源
-            (component as IDisposable)?.Dispose();
+            if (component is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
         return app;

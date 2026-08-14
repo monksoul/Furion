@@ -98,7 +98,8 @@ public sealed class DependsOnAttribute : Attribute
     {
         if (components == null || components.Length == 0) return [];
 
-        var types = new List<Type>(components.Length);
+        var types = new Type[components.Length];
+        var count = 0;
 
         // 遍历所有依赖组件
         foreach (var component in components)
@@ -106,16 +107,20 @@ public sealed class DependsOnAttribute : Attribute
             // 如果是类型自动载入
             if (component is Type componentType)
             {
-                types.Add(componentType);
+                types[count++] = componentType;
             }
             // 处理字符串配置模式
             else if (component is string typeString)
             {
-                types.Add(Reflect.GetStringType(typeString));
+                types[count++] = Reflect.GetStringType(typeString);
             }
             else throw new InvalidOperationException("Component type can only be `Type` or `String` type of specific format.");
         }
-        return types.ToArray();
+
+        if (count == types.Length) return types;
+
+        Array.Resize(ref types, count);
+        return types;
     }
 
     /// <summary>

@@ -51,6 +51,16 @@ public sealed class DataValidationFilter : IAsyncActionFilter
     private readonly UnifyResultSettingsOptions _unifyResultSettingsOptions;
 
     /// <summary>
+    /// 友好异常存储键
+    /// </summary>
+    private const string FriendlyExceptionKey = nameof(DataValidationFilter) + nameof(AppFriendlyException);
+
+    /// <summary>
+    /// 验证元数据存储键
+    /// </summary>
+    private const string ValidationMetadataKey = nameof(DataValidationFilter) + nameof(ValidationMetadata);
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="options"></param>
@@ -97,7 +107,7 @@ public sealed class DataValidationFilter : IAsyncActionFilter
             method.IsDefined(nonValidationAttributeType, true) ||
             method.DeclaringType.IsDefined(nonValidationAttributeType, true) ||
             modelState.IsValid ||
-            method.DeclaringType.Assembly.GetName().Name.StartsWith("Microsoft.AspNetCore.OData") ||
+            method.DeclaringType.Assembly.FullName?.StartsWith("Microsoft.AspNetCore.OData", StringComparison.OrdinalIgnoreCase) == true ||
             context.Result != null)
         {
             await CallUnHandleResult(context, next, actionDescriptor, method);
@@ -131,7 +141,7 @@ public sealed class DataValidationFilter : IAsyncActionFilter
         if (resultContext.Exception != null && resultContext.Exception is AppFriendlyException friendlyException && friendlyException.ValidationException)
         {
             // 存储验证执行结果
-            context.HttpContext.Items[nameof(DataValidationFilter) + nameof(AppFriendlyException)] = resultContext;
+            context.HttpContext.Items[FriendlyExceptionKey] = resultContext;
 
             // 处理验证信息
             _ = HandleValidation(context, method, actionDescriptor, friendlyException.ErrorMessage, resultContext, friendlyException);
@@ -150,8 +160,6 @@ public sealed class DataValidationFilter : IAsyncActionFilter
     /// <returns>返回 false 表示结果没有处理</returns>
     private bool HandleValidation(ActionExecutingContext context, MethodInfo method, ControllerActionDescriptor actionDescriptor, object errors, ActionExecutedContext resultContext = default, AppFriendlyException friendlyException = default)
     {
-        dynamic finalContext = resultContext != null ? resultContext : context;
-
         // 解析验证消息
         var validationMetadata = ValidatorContext.GetValidationMetadata(errors);
         validationMetadata.ErrorCode = friendlyException?.ErrorCode;
@@ -161,7 +169,10 @@ public sealed class DataValidationFilter : IAsyncActionFilter
         validationMetadata.SingleValidationErrorDisplay = _unifyResultSettingsOptions.SingleValidationErrorDisplay ?? false;
 
         // 存储验证信息
-        context.HttpContext.Items[nameof(DataValidationFilter) + nameof(ValidationMetadata)] = validationMetadata;
+        context.HttpContext.Items[ValidationMetadataKey] = validationMetadata;
+
+        IActionResult finalResult = null;
+        bool handled = true;
 
         // 判断是否跳过规范化结果，如果跳过，返回 400 BadRequestResult
         if (UnifyContext.CheckFailedNonUnify(actionDescriptor.MethodInfo, out var unifyResult))
@@ -172,12 +183,12 @@ public sealed class DataValidationFilter : IAsyncActionFilter
                 // 如果不启用 SuppressModelStateInvalidFilter，则跳过，理应手动验证
                 if (!_apiBehaviorOptions.SuppressModelStateInvalidFilter)
                 {
-                    finalContext.Result = _apiBehaviorOptions.InvalidModelStateResponseFactory(context);
+                    finalResult = _apiBehaviorOptions.InvalidModelStateResponseFactory(context);
                 }
                 else
                 {
                     // 返回 JsonResult
-                    finalContext.Result = new JsonResult(validationMetadata.ValidationResult)
+                    finalResult = new JsonResult(validationMetadata.ValidationResult)
                     {
                         StatusCode = StatusCodes.Status400BadRequest,
                         SerializerSettings = UnifyContext.GetSerializerSettings(context)
@@ -187,7 +198,7 @@ public sealed class DataValidationFilter : IAsyncActionFilter
             else
             {
                 // 返回自定义错误页面
-                finalContext.Result = new BadPageResult(StatusCodes.Status400BadRequest)
+                finalResult = new BadPageResult(StatusCodes.Status400BadRequest)
                 {
                     Code = validationMetadata.Message
                 };
@@ -197,11 +208,24 @@ public sealed class DataValidationFilter : IAsyncActionFilter
         {
             // 判断是否支持 MVC 规范化处理，一旦启用，则自动调用规范化提供器进行操作，这里返回 false 表示没有处理结果
             if (!UnifyContext.CheckSupportMvcController(context.HttpContext, actionDescriptor, out _)
-                || UnifyContext.CheckHttpContextNonUnify(context.HttpContext)) return false;
-
-            finalContext.Result = unifyResult.OnValidateFailed(context, validationMetadata);
+                || UnifyContext.CheckHttpContextNonUnify(context.HttpContext))
+            {
+                handled = false;
+            }
+            else
+            {
+                finalResult = unifyResult.OnValidateFailed(context, validationMetadata);
+            }
         }
 
-        return true;
+        if (handled)
+        {
+            if (resultContext != null)
+                resultContext.Result = finalResult;
+            else
+                context.Result = finalResult;
+        }
+
+        return handled;
     }
 }
