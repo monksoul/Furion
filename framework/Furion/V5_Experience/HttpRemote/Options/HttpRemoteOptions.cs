@@ -57,7 +57,10 @@ public sealed class HttpRemoteOptions
             new FlexibleDateTimeConverter(),
             new FlexibleDateTimeOffsetConverter(),
             // 允许 Number 或 Boolean 转 String
-            new StringJsonConverter()
+            new StringJsonConverter(),
+            // 解决 long 不支持科学计数法问题
+            new FlexibleLongConverter(),
+            new FlexibleNullableLongConverter()
         },
         TypeInfoResolver = new DefaultJsonTypeInfoResolver()
     };
