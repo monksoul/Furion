@@ -1,6 +1,7 @@
 ﻿using Furion.AspNetCore;
 using Furion.DatabaseAccessor.Extensions;
 using Furion.Extensions;
+using Furion.JsonSerialization;
 using Furion.Logging;
 using Furion.Reflection;
 using Furion.Shapeless;
@@ -824,6 +825,14 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
 
         return pageTemplate;
     }
+
+    public TestLong 测试序列化()
+    {
+        var json = "{\"Property\": 1.7828352E12}";
+        var b = JSON.Deserialize<TestLong>(json);
+
+        return b;
+    }
 }
 
 
@@ -961,4 +970,9 @@ public class TestUrlArray
 public class TestLoggingMonitor
 {
     public Guid Id { get; set; }
+}
+
+public class TestLong
+{
+    public long Property { get; set; }
 }

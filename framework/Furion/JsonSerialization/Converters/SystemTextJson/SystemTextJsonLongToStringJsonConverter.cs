@@ -63,9 +63,27 @@ public class SystemTextJsonLongToStringJsonConverter : JsonConverter<long>
     /// <returns></returns>
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return reader.TokenType == JsonTokenType.String
-                ? long.Parse(reader.GetString())
-                : reader.GetInt64();
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.String:
+                return long.Parse(reader.GetString());
+
+            case JsonTokenType.Number:
+                if (reader.TryGetInt64(out var longValue))
+                {
+                    return longValue;
+                }
+
+                var doubleValue = reader.GetDouble();
+                if (doubleValue < long.MinValue || doubleValue > long.MaxValue)
+                {
+                    throw new JsonException($"Value {doubleValue} is out of range for Int64.");
+                }
+                return (long)doubleValue;
+
+            default:
+                throw new JsonException($"Unexpected token type {reader.TokenType} when converting to Int64.");
+        }
     }
 
     /// <summary>
@@ -120,9 +138,27 @@ public class SystemTextJsonNullableLongToStringJsonConverter : JsonConverter<lon
     /// <returns></returns>
     public override long? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return reader.TokenType == JsonTokenType.String
-                ? long.Parse(reader.GetString())
-                : reader.GetInt64();
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.String:
+                return long.Parse(reader.GetString());
+
+            case JsonTokenType.Number:
+                if (reader.TryGetInt64(out var longValue))
+                {
+                    return longValue;
+                }
+
+                var doubleValue = reader.GetDouble();
+                if (doubleValue < long.MinValue || doubleValue > long.MaxValue)
+                {
+                    throw new JsonException($"Value {doubleValue} is out of range for Int64.");
+                }
+                return (long)doubleValue;
+
+            default:
+                throw new JsonException($"Unexpected token type {reader.TokenType} when converting to Int64?.");
+        }
     }
 
     /// <summary>
@@ -133,7 +169,10 @@ public class SystemTextJsonNullableLongToStringJsonConverter : JsonConverter<lon
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, long? value, JsonSerializerOptions options)
     {
-        if (value == null) writer.WriteNullValue();
+        if (value == null)
+        {
+            writer.WriteNullValue();
+        }
         else
         {
             var newValue = value.Value;
@@ -142,7 +181,10 @@ public class SystemTextJsonNullableLongToStringJsonConverter : JsonConverter<lon
                 if (newValue.ToString().Length <= 17) writer.WriteNumberValue(newValue);
                 else writer.WriteStringValue(newValue.ToString());
             }
-            else writer.WriteStringValue(newValue.ToString());
+            else
+            {
+                writer.WriteStringValue(newValue.ToString());
+            }
         }
     }
 }
