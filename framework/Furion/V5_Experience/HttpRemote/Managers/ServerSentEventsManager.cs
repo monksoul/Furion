@@ -236,7 +236,7 @@ internal sealed class ServerSentEventsManager
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
-    private async Task StartCoreAsync(ChannelWriter<ServerSentEventsData> writer, CancellationToken cancellationToken)
+    internal async Task StartCoreAsync(ChannelWriter<ServerSentEventsData> writer, CancellationToken cancellationToken)
     {
         // 记录最后的 Event ID，用于断线重连时实现 SSE 规范的断点续传
         string? lastEventId = null;

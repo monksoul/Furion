@@ -60,10 +60,16 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
                 "HttpTimeoutOptions's Timeout cannot be greater than HttpClient's Timeout, which defaults to 100 seconds.");
         }
 
-        // 创建关联的超时 Token 标识
-        using var timeoutCancellationTokenSource =
-            CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
-        var timeoutCancellationToken = timeoutCancellationTokenSource.Token;
+        // 创建独立的超时令牌，用于控制超时取消
+        using var timeoutCancellationTokenSource = new CancellationTokenSource();
+
+        // 创建关联令牌，将原始取消令牌与超时令牌组合
+        using var linkedCancellationTokenSource =
+            CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken,
+                timeoutCancellationTokenSource.Token);
+
+        // 获取超时令牌
+        var timeoutToken = timeoutCancellationTokenSource.Token;
 
         // 定义标志位，用于判断是否引发了超时操作
         var isTimeoutTriggered = false;
@@ -71,11 +77,12 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         // 调用超时发生时要执行的操作
         if (httpTimeoutOptions.OnTimeout is not null)
         {
-            timeoutCancellationToken.Register(httpTimeoutOptions.OnTimeout.TryInvoke);
+            // 仅在超时令牌上注册，解决调用者主动取消原始令牌时误触发
+            timeoutToken.Register(httpTimeoutOptions.OnTimeout.TryInvoke);
         }
 
         // 注册回调，用于标记是否是超时触发的取消
-        timeoutCancellationToken.Register(() => isTimeoutTriggered = true);
+        timeoutToken.Register(() => isTimeoutTriggered = true);
 
         // 延迟指定时间后取消任务
         timeoutCancellationTokenSource.CancelAfter(httpTimeoutOptions.Timeout.Value);
@@ -84,7 +91,7 @@ internal sealed class TimeoutPipelineHandler : IHttpRequestPipelineHandler
         var originalToken = context.CancellationToken;
 
         // 更新上下文
-        context.CancellationToken = timeoutCancellationToken;
+        context.CancellationToken = linkedCancellationTokenSource.Token;
 
         try
         {

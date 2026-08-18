@@ -163,6 +163,18 @@ internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache, IHttpRemoteL
         ArgumentNullException.ThrowIfNull(httpResponseMessage);
         ArgumentNullException.ThrowIfNull(entityTagHeaderValue);
 
+        // 检查是否包含 Cache-Control: no-store/private 响应标头
+        if (httpResponseMessage.Headers.CacheControl is { } cacheControl &&
+            (cacheControl.NoStore || cacheControl.Private))
+        {
+            // 打印警告日志：跳过缓存
+            logger.LogWarning(
+                "Skip caching response for cache key '{CacheKey}' because Cache-Control disallows caching (NoStore: {NoStore}, Private: {Private}).",
+                cacheKey, cacheControl.NoStore, cacheControl.Private);
+
+            return;
+        }
+
         // 初始化响应内容字节数组
         byte[]? contentBytes = null;
 
@@ -172,6 +184,20 @@ internal sealed class ETagPipelineHandler(IHttpETagCache eTagCache, IHttpRemoteL
         {
             // 读取响应内容字节数组
             contentBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+
+            // 替换响应内容为可重复读取的 ByteArrayContent，避免原响应流被读取后无法再次使用
+            var originalContentHeaders = httpResponseMessage.Content.Headers;
+            var byteArrayContent = new ByteArrayContent(contentBytes);
+
+            // 还原原始响应内容标头
+            foreach (var header in originalContentHeaders)
+            {
+                byteArrayContent.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            // 释放原始内容并替换
+            httpResponseMessage.Content.Dispose();
+            httpResponseMessage.Content = byteArrayContent;
         }
 
         // 初始化 HttpETagCacheItem 实例

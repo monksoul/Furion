@@ -212,6 +212,13 @@ internal sealed class FileDownloadManager
 
                 // 同步实际接收到的字节大小
                 actualBytesReceived = _totalBytesReceived;
+
+                // 确保最终文件大小等于 Content-Length
+                if (contentLength > 0 && fileStream.Length != contentLength)
+                {
+                    throw new InvalidOperationException(
+                        $"Download incomplete. Expected {contentLength} bytes, but received {fileStream.Length} bytes.");
+                }
             }
             else
             {
@@ -302,9 +309,10 @@ internal sealed class FileDownloadManager
         // 创建联动取消令牌，防止某个分块彻底失败导致其他分块继续运行
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        // 初始化任务列表和每个分块创建的临时文件列表
+        // 初始化任务列表、每个分块创建的临时文件列表和每个分块的期望大小
         var tasks = new List<Task>(maxThreads);
         var chunkTempFiles = new string[maxThreads];
+        var chunkSizes = new long[maxThreads];
 
         // 根据配置的最大线程数创建分块下载任务
         for (var i = 0; i < maxThreads; i++)
@@ -312,18 +320,43 @@ internal sealed class FileDownloadManager
             // 计算当前分块的起始和结束位置
             var start = i * chunkSize;
             var end = Math.Min(((i + 1) * chunkSize) - 1, contentLength - 1);
+            var expectedChunkSize = end - start + 1;
+
+            // 保存期望分块大小
+            chunkSizes[i] = expectedChunkSize;
 
             // 为每个分块创建独立的临时文件
             chunkTempFiles[i] = Path.GetTempFileName();
 
             // 启动分块下载任务
-            tasks.Add(DownloadChunkWithFailFastAsync(start, end, chunkTempFiles[i], linkedCts));
+            tasks.Add(DownloadChunkWithFailFastAsync(start, end, expectedChunkSize, chunkTempFiles[i], contentLength,
+                linkedCts));
         }
 
         try
         {
             // 等待所有分块下载任务完成
             await Task.WhenAll(tasks);
+
+            // 合并前校验每个分块文件长度
+            for (var i = 0; i < maxThreads; i++)
+            {
+                var chunkFile = chunkTempFiles[i];
+
+                // 检查当前分块文件是否存在
+                if (!File.Exists(chunkFile))
+                {
+                    throw new FileNotFoundException($"Chunk file '{chunkFile}' is missing.");
+                }
+
+                // 验证实际接收到的分块大小是否等于当前期望的分块大小
+                var actualChunkSize = new FileInfo(chunkFile).Length;
+                if (actualChunkSize != chunkSizes[i])
+                {
+                    throw new InvalidOperationException(
+                        $"Chunk file '{chunkFile}' size mismatch. Expected {chunkSizes[i]} bytes, but found {actualChunkSize} bytes.");
+                }
+            }
 
             // 重置文件流指针至起始位置
             fileStream.Seek(0, SeekOrigin.Begin);
@@ -333,12 +366,6 @@ internal sealed class FileDownloadManager
             // 将所有分块文件按顺序合并到主文件中
             foreach (var chunkFile in chunkTempFiles)
             {
-                // 检查分块文件是否存在
-                if (!File.Exists(chunkFile))
-                {
-                    continue;
-                }
-
                 // 读取分块文件
                 await using var chunkStream = new FileStream(chunkFile, FileMode.Open, FileAccess.Read,
                     FileShare.Read, _httpFileDownloadBuilder.BufferSize, true);
@@ -349,6 +376,13 @@ internal sealed class FileDownloadManager
                 {
                     await fileStream.WriteAsync(mergeBuffer.AsMemory(0, bytesRead), cancellationToken);
                 }
+            }
+
+            // 合并后校验总长度
+            if (fileStream.Length != contentLength)
+            {
+                throw new InvalidOperationException(
+                    $"Merged file size mismatch. Expected {contentLength} bytes, but file length is {fileStream.Length} bytes.");
             }
         }
         finally
@@ -382,12 +416,13 @@ internal sealed class FileDownloadManager
         return;
 
         // 包装分块下载任务，实现异常时的联动取消
-        async Task DownloadChunkWithFailFastAsync(long start, long end, string chunkTempFilePath,
-            CancellationTokenSource cts)
+        async Task DownloadChunkWithFailFastAsync(long start, long end, long expectedChunkSize,
+            string chunkTempFilePath, long totalLength, CancellationTokenSource cts)
         {
             try
             {
-                await DownloadChunkAsync(start, end, chunkTempFilePath, fileTransferProgress, stopwatch, cts.Token);
+                await DownloadChunkAsync(start, end, expectedChunkSize, chunkTempFilePath, totalLength,
+                    fileTransferProgress, stopwatch, cts.Token);
             }
             catch
             {
@@ -404,7 +439,9 @@ internal sealed class FileDownloadManager
     /// </summary>
     /// <param name="start">分块起始字节位置</param>
     /// <param name="end">分块结束字节位置</param>
+    /// <param name="expectedChunkSize">该分块应接收的总字节数</param>
     /// <param name="chunkTempFilePath">分块专属的临时文件路径</param>
+    /// <param name="totalContentLength">整个文件的总长度（来自 Content-Length）</param>
     /// <param name="fileTransferProgress">
     ///     <see cref="FileTransferProgress" />
     /// </param>
@@ -415,8 +452,11 @@ internal sealed class FileDownloadManager
     ///     <see cref="CancellationToken" />
     /// </param>
     /// <exception cref="InvalidOperationException"></exception>
-    internal async Task DownloadChunkAsync(long start, long end, string chunkTempFilePath,
-        FileTransferProgress fileTransferProgress, Stopwatch stopwatch, CancellationToken cancellationToken)
+    /// <exception cref="EndOfStreamException"></exception>
+    /// <exception cref="TimeoutException"></exception>
+    internal async Task DownloadChunkAsync(long start, long end, long expectedChunkSize, string chunkTempFilePath,
+        long totalContentLength, FileTransferProgress fileTransferProgress, Stopwatch stopwatch,
+        CancellationToken cancellationToken)
     {
         // 初始化读取数据的缓冲区和记录进度所需的变量
         var buffer = new byte[_httpFileDownloadBuilder.BufferSize];
@@ -475,6 +515,20 @@ internal sealed class FileDownloadManager
                         $"Server did not return partial content for range {currentStart}-{end}. Status code: {httpResponseMessage.StatusCode}.");
                 }
 
+                // 验证 Content-Range 响应头，确保返回的范围与请求一致
+                if (httpResponseMessage.Content.Headers.ContentRange is not { } contentRange)
+                {
+                    throw new InvalidOperationException("Response is missing Content-Range header.");
+                }
+
+                // 验证当前分块起始与结尾的位置以及大小是否一致
+                if (contentRange.From != currentStart || contentRange.To != end ||
+                    contentRange.Length != totalContentLength)
+                {
+                    throw new InvalidOperationException(
+                        $"Content-Range mismatch. Expected bytes {currentStart}-{end}/{totalContentLength}, but got {contentRange.From}-{contentRange.To}/{contentRange.Length}.");
+                }
+
                 // 获取 HTTP 响应内容中的内容流
                 await using var stream = await httpResponseMessage.Content.ReadAsStreamAsync(attemptCts.Token);
 
@@ -486,8 +540,11 @@ internal sealed class FileDownloadManager
                 chunkFileStream.SetLength(bytesReceived);
                 chunkFileStream.Seek(0, SeekOrigin.End);
 
-                // 循环读取数据直到取消请求或分块完成
-                while (true)
+                // 计算剩余需要读取的字节数
+                var remainingBytes = expectedChunkSize - bytesReceived;
+
+                // 循环读取数据直到分块完成
+                while (remainingBytes > 0)
                 {
                     // 处理用户主动取消
                     cancellationToken.ThrowIfCancellationRequested();
@@ -501,11 +558,13 @@ internal sealed class FileDownloadManager
                         readCts.CancelAfter(chunkTimeout);
                     }
 
+                    // 限制单次读取不超过剩余字节数
+                    var maxRead = (int)Math.Min(buffer.Length, remainingBytes);
                     int numBytesRead;
                     try
                     {
                         // 读取分块流
-                        numBytesRead = await stream.ReadAsync(buffer, readCts.Token);
+                        numBytesRead = await stream.ReadAsync(buffer.AsMemory(0, maxRead), readCts.Token);
                     }
                     catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
                                                              readCts.IsCancellationRequested)
@@ -513,10 +572,11 @@ internal sealed class FileDownloadManager
                         throw new TimeoutException($"Chunk read idle timeout after {chunkTimeout.TotalSeconds}s.");
                     }
 
-                    // 检查是否存在读取到的内容
+                    // 如果流提前结束（EOF），且尚未读完期望字节数，则抛出异常触发重试
                     if (numBytesRead == 0)
                     {
-                        break;
+                        throw new EndOfStreamException(
+                            $"Stream ended prematurely. Expected {expectedChunkSize} bytes, but only received {bytesReceived} bytes.");
                     }
 
                     // 写入当前分块专属的临时文件
@@ -535,6 +595,9 @@ internal sealed class FileDownloadManager
                         fileTransferProgress.UpdateProgress(newTotalBytesReceived, stopwatch.Elapsed);
                         await _progressChannel.Writer.WriteAsync(fileTransferProgress, cancellationToken);
                     }
+
+                    // 更新剩余字节数
+                    remainingBytes = expectedChunkSize - bytesReceived;
                 }
 
                 break;
