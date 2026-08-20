@@ -532,7 +532,9 @@ public sealed class HttpRemoteBuilder
         {
             // 移除所有已存在的 IHttpRemoteLogger 注册
             services.RemoveAll<IHttpRemoteLogger>();
-            services.AddSingleton(typeof(IHttpRemoteLogger), _httpRemoteLoggerType);
+            services.AddSingleton<IHttpRemoteLogger>(provider =>
+                (IHttpRemoteLogger)ActivatorUtilities.CreateInstance(provider, _httpRemoteLoggerType,
+                    isLoggingRegistered));
         }
         else
         {
