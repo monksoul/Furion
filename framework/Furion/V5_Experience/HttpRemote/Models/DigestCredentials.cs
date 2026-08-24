@@ -66,6 +66,12 @@ public sealed class DigestCredentials
     public string? Qop { get; private init; }
 
     /// <summary>
+    ///     摘要算法
+    /// </summary>
+    /// <remarks>支持 <c>MD5</c> 和 <c>MD5-sess</c>。</remarks>
+    public string? Algorithm { get; private init; }
+
+    /// <summary>
     ///     非一次性计数器
     /// </summary>
     public int Nc { get; private init; }
@@ -78,7 +84,7 @@ public sealed class DigestCredentials
     /// <summary>
     ///     服务器提供的不透明数据
     /// </summary>
-    /// <remarks>服务器通过 <c>WWW-Authenticate</c> 响应标头返回，客户端需原样回去。</remarks>
+    /// <remarks>服务器通过 <c>WWW-Authenticate</c> 响应标头返回，客户端需原样返回。</remarks>
     public string? Opaque { get; private init; }
 
     /// <summary>
@@ -128,10 +134,20 @@ public sealed class DigestCredentials
                     "Unable to initiate digest authentication: The server did not return a 401 Unauthorized status or the `WWW-Authenticate` header is missing.");
             }
 
+            // 从 WWW-Authenticate 标头中筛选出 Digest 方案
+            var digestChallenge = httpResponseMessage.Headers.WwwAuthenticate.FirstOrDefault(h =>
+                h.Scheme.Equals(Constants.DIGEST_AUTHENTICATION_SCHEME, StringComparison.OrdinalIgnoreCase))?.Parameter;
+
+            // 空检查
+            if (string.IsNullOrWhiteSpace(digestChallenge))
+            {
+                throw new InvalidOperationException(
+                    "The `WWW-Authenticate` header does not contain a Digest challenge.");
+            }
+
             // 创建 DigestCredentials 实例并生成授权凭证
-            var digestCredentials =
-                Create(username, password, httpResponseMessage.Headers.WwwAuthenticate.First().ToString())
-                    .GenerateCredentials(httpResponseMessage.RequestMessage?.RequestUri?.PathAndQuery, httpMethod);
+            var digestCredentials = Create(username, password, digestChallenge)
+                .GenerateCredentials(httpResponseMessage.RequestMessage?.RequestUri?.PathAndQuery, httpMethod);
 
             return digestCredentials;
         }
@@ -147,10 +163,13 @@ public sealed class DigestCredentials
     /// <param name="username">用户名</param>
     /// <param name="password">密码</param>
     /// <param name="wwwAuthenticateValue">服务器响应标头 <c>WWW-Authenticate</c> 的值</param>
+    /// <param name="nc">非一次性计数器；默认值为：1</param>
     /// <returns>
     ///     <see cref="DigestCredentials" />
     /// </returns>
-    internal static DigestCredentials Create(string username, string password, string wwwAuthenticateValue)
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal static DigestCredentials Create(string username, string password, string wwwAuthenticateValue, int nc = 1)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
@@ -163,6 +182,12 @@ public sealed class DigestCredentials
         var qop = ExtractParameterValueFromHeader("qop", wwwAuthenticateValue);
         var opaque = ExtractParameterValueFromHeader("opaque", wwwAuthenticateValue);
         var algorithm = ExtractParameterValueFromHeader("algorithm", wwwAuthenticateValue) ?? "MD5";
+
+        // 根据 RFC 7616 规范，realm 和 nonce 是服务器挑战中绝对必需的参数
+        if (string.IsNullOrWhiteSpace(realm) || string.IsNullOrWhiteSpace(nonce))
+        {
+            throw new InvalidOperationException("Missing required 'realm' or 'nonce' in WWW-Authenticate header.");
+        }
 
         // 检查是否是 MD5 和 MD5-sess 算法
         if (!algorithm.Equals("MD5", StringComparison.OrdinalIgnoreCase) &&
@@ -199,7 +224,8 @@ public sealed class DigestCredentials
             Realm = realm,
             Nonce = nonce,
             Qop = selectedQop,
-            Nc = 1, // 注意
+            Algorithm = algorithm,
+            Nc = nc > 0 ? nc : 1,
             CNonce = cNonce,
             Opaque = opaque
         };
@@ -215,16 +241,22 @@ public sealed class DigestCredentials
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     internal string GenerateCredentials(string? digestUri, HttpMethod httpMethod)
     {
         // 空检查
-        if (string.IsNullOrEmpty(digestUri))
-        {
-            throw new InvalidOperationException("digestUri cannot be null or empty.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(digestUri);
+        ArgumentNullException.ThrowIfNull(httpMethod);
 
-        var ha1 = GenerateMd5Hash($"{Username}:{Realm}:{Password}");
+        // 计算基础 HA1
+        var ha1Base = GenerateMd5Hash($"{Username}:{Realm}:{Password}");
+
+        // 根据算法计算最终 HA1（MD5-sess 需要再散列一次）
+        var ha1 = Algorithm?.Equals("MD5-sess", StringComparison.OrdinalIgnoreCase) == true
+            ? GenerateMd5Hash($"{ha1Base}:{Nonce}:{CNonce}")
+            : ha1Base;
+
         var ha2 = GenerateMd5Hash($"{httpMethod}:{digestUri}");
 
         string digestResponse;
@@ -234,15 +266,15 @@ public sealed class DigestCredentials
             $"realm=\"{Realm}\"",
             $"nonce=\"{Nonce}\"",
             $"uri=\"{digestUri}\"",
-            "algorithm=MD5"
+            $"algorithm={Algorithm ?? "MD5"}"
         };
 
         // 空检查
         if (!string.IsNullOrWhiteSpace(Qop))
         {
-            digestResponse = GenerateMd5Hash($"{ha1}:{Nonce}:{Nc:00000000}:{CNonce}:{Qop}:{ha2}");
+            digestResponse = GenerateMd5Hash($"{ha1}:{Nonce}:{Nc:x8}:{CNonce}:{Qop}:{ha2}");
             parts.Add($"qop={Qop}");
-            parts.Add($"nc={Nc:00000000}");
+            parts.Add($"nc={Nc:x8}");
             parts.Add($"cnonce=\"{CNonce}\"");
         }
         else
@@ -269,6 +301,7 @@ public sealed class DigestCredentials
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="ArgumentException"></exception>
     internal static string? ExtractParameterValueFromHeader(string name, string wwwAuthenticateValue)
     {
         // 空检查
@@ -289,6 +322,7 @@ public sealed class DigestCredentials
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
     internal static string GenerateMd5Hash(string input)
     {
         // 空检查

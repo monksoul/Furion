@@ -78,37 +78,37 @@ internal static class Constants
     /// <summary>
     ///     禁用请求分析工具键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string DISABLE_PROFILER_KEY = "__DISABLE_PROFILER__";
 
     /// <summary>
     ///     请求分析工具打印标识键
     /// </summary>
-    /// <remarks>解决重复打印问题。被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>解决重复打印问题。用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string PROFILER_PRINTED_KEY = "__PROFILER_PRINTED__";
 
     /// <summary>
     ///     启用 JSON 响应反序列化包装器键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string ENABLE_JSON_RESPONSE_WRAPPER_KEY = "__ENABLE_JSON_RESPONSE_WRAPPER__";
 
     /// <summary>
     ///     启用 JSON 响应内容字符串的解包处理（双重序列化）
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string ENABLE_JSON_RESPONSE_STRING_UNWRAP_KEY = "__ENABLE_JSON_RESPONSE_STRING_UNWRAP__";
 
     /// <summary>
     ///     HTTP 声明式请求方法签名键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string DECLARATIVE_METHOD_KEY = "__DECLARATIVE_METHOD__";
 
     /// <summary>
     ///     HTTP 请求 <see cref="HttpClient" /> 实例的配置名称键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string HTTP_CLIENT_NAME = "__HTTP_CLIENT_NAME__";
 
     /// <summary>
@@ -119,26 +119,26 @@ internal static class Constants
     /// <summary>
     ///     请求管道上下文中请求分析工具的键
     /// </summary>
-    /// <remarks>被用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="HttpRemoteAnalyzer" /> 实例。</remarks>
+    /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="HttpRemoteAnalyzer" /> 实例。</remarks>
     internal const string PROFILER_ANALYZER_KEY = "ProfilerAnalyzer";
 
     /// <summary>
     ///     请求管道上下文中请求事件处理程序的键
     /// </summary>
-    /// <remarks>被用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="IHttpRequestEventHandler" /> 实例。</remarks>
+    /// <remarks>用于在 <see cref="HttpRequestPipelineContext.Items" /> 中存储或获取 <see cref="IHttpRequestEventHandler" /> 实例。</remarks>
     internal const string REQUEST_EVENT_HANDLER_KEY = "RequestEventHandler";
 
     /// <summary>
     ///     请求 <see cref="HttpCompletionOption" /> 选项键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string HTTP_COMPLETION_OPTION_KEY = "__HTTP_COMPLETION_OPTION__";
 
     /// <summary>
     ///     ETag 响应缓存标识键
     /// </summary>
     /// <remarks>
-    ///     被用于标记 <see cref="HttpResponseMessage" /> 是否从 ETag 缓存中重建。被用于从 <see cref="HttpResponseMessage" /> 的
+    ///     用于标记 <see cref="HttpResponseMessage" /> 是否从 ETag 缓存中重建。用于从 <see cref="HttpResponseMessage" /> 的
     ///     <c>Options</c> 属性中读取。
     /// </remarks>
     internal const string ETAG_CACHED_KEY = "__ETAG_CACHED__";
@@ -146,12 +146,30 @@ internal static class Constants
     /// <summary>
     ///     cURL 命令字符串键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string CURL_COMMAND_KEY = "CURL_COMMAND";
 
     /// <summary>
     ///     JSON 命令字符串键
     /// </summary>
-    /// <remarks>被用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
+    /// <remarks>用于从 <see cref="HttpRequestMessage" /> 的 <c>Options</c> 属性中读取。</remarks>
     internal const string JSON_COMMAND_KEY = "JSON_COMMAND";
+
+    /// <summary>
+    ///     内部身份认证方案
+    /// </summary>
+    /// <remarks>用于在 <see cref="HttpRequestBuilder.Items" /> 中暂存认证方案，供内部组件切换认证方案时使用。</remarks>
+    internal const string INTERNAL_AUTH_SCHEME_KEY = "__INTERNAL_AUTH_SCHEME__";
+
+    /// <summary>
+    ///     内部身份认证用户名键
+    /// </summary>
+    /// <remarks>用于在 <see cref="HttpRequestBuilder.Items" /> 中暂存用户名，供内部组件切换认证方案时使用。</remarks>
+    internal const string INTERNAL_AUTH_USERNAME_KEY = "__INTERNAL_AUTH_USERNAME__";
+
+    /// <summary>
+    ///     内部身份认证密码键
+    /// </summary>
+    /// <remarks>用于在 <see cref="HttpRequestBuilder.Items" /> 中暂存密码，供内部组件切换认证方案时使用。</remarks>
+    internal const string INTERNAL_AUTH_PASSWORD_KEY = "__INTERNAL_AUTH_PASSWORD__";
 }

@@ -195,9 +195,9 @@ public sealed partial class HttpRequestBuilder
     public long? MaxResponseContentBufferSize { get; private set; }
 
     /// <summary>
-    ///     身份验证凭据请求授权标头
+    ///     身份认证凭据请求授权标头
     /// </summary>
-    /// <remarks>可为单次请求设置身份验证凭据请求授权标头。</remarks>
+    /// <remarks>可为单次请求设置身份认证凭据请求授权标头。</remarks>
     public AuthenticationHeaderValue? AuthenticationHeader { get; private set; }
 
     /// <summary>
@@ -297,6 +297,11 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <remarks>用于标识属于哪个配额组，例如接口路径。</remarks>
     public string? QuotaKey { get; private set; }
+
+    /// <summary>
+    ///     自定义数据
+    /// </summary>
+    public IDictionary<string, object?>? Items { get; private set; }
 
     /// <summary>
     ///     如果 HTTP 响应的 <c>IsSuccessStatusCode</c> 属性是 <c>false</c>，则引发异常。

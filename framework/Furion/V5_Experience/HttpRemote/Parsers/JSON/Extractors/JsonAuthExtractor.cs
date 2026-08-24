@@ -77,12 +77,12 @@ internal sealed class JsonAuthExtractor : HttpJsonExtractorBase
                         if (string.IsNullOrWhiteSpace(headerName) ||
                             headerName.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                         {
-                            // 设置 Bearer 身份验证凭据请求授权标头
+                            // 设置 Bearer 身份认证凭据请求授权标头
                             httpRequestBuilder.AddBearerAuthentication(token);
                         }
                         else
                         {
-                            // 设置 Bearer 身份验证凭据请求授权标头（自定义标头）
+                            // 设置 Bearer 身份认证凭据请求授权标头（自定义标头）
                             httpRequestBuilder.AddBearerAuthentication(headerName, token);
                         }
                     }
@@ -98,7 +98,7 @@ internal sealed class JsonAuthExtractor : HttpJsonExtractorBase
                     // 空检查
                     if (!string.IsNullOrWhiteSpace(username))
                     {
-                        // 设置 Basic 身份验证凭据请求授权标头
+                        // 设置 Basic 身份认证凭据请求授权标头
                         httpRequestBuilder.AddBasicAuthentication(username, password);
                     }
 
@@ -113,7 +113,7 @@ internal sealed class JsonAuthExtractor : HttpJsonExtractorBase
                     // 空检查
                     if (!string.IsNullOrWhiteSpace(username))
                     {
-                        // 设置 Digest 摘要身份验证凭据请求授权标头
+                        // 设置 Digest 摘要身份认证凭据请求授权标头
                         httpRequestBuilder.AddDigestAuthentication(username, password ?? string.Empty);
                     }
 

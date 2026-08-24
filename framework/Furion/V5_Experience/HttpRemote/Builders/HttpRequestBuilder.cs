@@ -497,38 +497,45 @@ public sealed partial class HttpRequestBuilder
     /// </param>
     internal void AppendAuthentication(HttpRequestMessage httpRequestMessage)
     {
+        // 检查是否是 Digest 摘要认证
+        if (Items?.TryGetValue(Constants.INTERNAL_AUTH_SCHEME_KEY, out var schemeObj) == true &&
+            schemeObj is string scheme &&
+            scheme.Equals(Constants.DIGEST_AUTHENTICATION_SCHEME, StringComparison.OrdinalIgnoreCase))
+        {
+            // 从自定义数据中获取暂存的用户名和密码
+            var username =
+                Items?.TryGetValue(Constants.INTERNAL_AUTH_USERNAME_KEY, out var usernameObj) == true
+                    ? usernameObj as string
+                    : null;
+            var password = Items?.TryGetValue(Constants.INTERNAL_AUTH_PASSWORD_KEY, out var passwordObj) == true
+                ? passwordObj as string
+                : null;
+
+            // 空检查
+            if (username is null || password is null)
+            {
+                return;
+            }
+
+            // 获取 Digest 摘要认证授权凭证
+            var digestCredentials =
+                DigestCredentials.GetDigestCredentials(httpRequestMessage.RequestUri?.OriginalString, username,
+                    password, HttpMethod!);
+
+            // 设置身份认证凭据请求授权标头
+            httpRequestMessage.Headers.Authorization =
+                new AuthenticationHeaderValue(Constants.DIGEST_AUTHENTICATION_SCHEME, digestCredentials);
+
+            return;
+        }
+
         // 空检查
         if (AuthenticationHeader is null)
         {
             return;
         }
 
-        // 检查是否是 Digest 摘要认证
-        if (AuthenticationHeader.Scheme != Constants.DIGEST_AUTHENTICATION_SCHEME)
-        {
-            httpRequestMessage.Headers.Authorization = AuthenticationHeader;
-
-            return;
-        }
-
-        // 检查参数是否包含预设的 Digest 授权凭证
-        const string separator = "|:|";
-        if (AuthenticationHeader.Parameter?.Contains(separator) != true)
-        {
-            return;
-        }
-
-        // 分割预设的用户名和密码
-        var parts = AuthenticationHeader.Parameter.Split(separator);
-
-        // 获取 Digest 摘要认证授权凭证
-        var digestCredentials =
-            DigestCredentials.GetDigestCredentials(httpRequestMessage.RequestUri?.OriginalString, parts[0], parts[1],
-                HttpMethod!);
-
-        // 设置身份验证凭据请求授权标头
-        httpRequestMessage.Headers.Authorization =
-            new AuthenticationHeaderValue(Constants.DIGEST_AUTHENTICATION_SCHEME, digestCredentials);
+        httpRequestMessage.Headers.Authorization = AuthenticationHeader;
     }
 
     /// <summary>

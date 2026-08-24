@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Converters.Json;
 using Furion.JsonSerialization;
 using Furion.Logging;
 using Furion.Shapeless;
@@ -131,6 +132,22 @@ public static class SystemTextJsonExtensions
     public static IList<JsonConverter> AddDataSetConverters(this IList<JsonConverter> converters)
     {
         converters.Add(new SystemTextJsonDataSetJsonConverter());
+
+        return converters;
+    }
+
+    /// <summary>
+    /// 添加枚举类型序列化处理
+    /// </summary>
+    /// <param name="converters"></param>
+    /// <param name="writeAsString">控制序列化时是否将枚举输出为字符串（枚举名称）</param>
+    /// <returns></returns>
+    public static IList<JsonConverter> AddEnumConverters(this IList<JsonConverter> converters, bool writeAsString = false)
+    {
+        converters.Add(new EnumJsonConverter
+        {
+            WriteAsString = writeAsString
+        });
 
         return converters;
     }

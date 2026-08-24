@@ -23,8 +23,6 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using System.Text;
-
 namespace Furion.HttpRemote;
 
 /// <summary>
@@ -98,7 +96,7 @@ internal sealed class CurlAuthExtractor : IHttpCurlExtractor
         // 处理 Bearer Token
         if (string.Equals(flag, "--bearer", StringComparison.OrdinalIgnoreCase))
         {
-            // 设置 Bearer 身份验证凭据请求授权标头
+            // 设置 Bearer 身份认证凭据请求授权标头
             httpRequestBuilder.AddBearerAuthentication(argument);
 
             return;
@@ -120,7 +118,7 @@ internal sealed class CurlAuthExtractor : IHttpCurlExtractor
             password = string.Empty;
         }
 
-        // 设置 Basic 身份验证凭据请求授权标头
+        // 设置 Basic 身份认证凭据请求授权标头
         httpRequestBuilder.AddBasicAuthentication(username, password);
     }
 
@@ -133,61 +131,32 @@ internal sealed class CurlAuthExtractor : IHttpCurlExtractor
     /// <param name="flag">当前匹配的命令标志</param>
     internal static void ProcessAuthScheme(HttpRequestBuilder httpRequestBuilder, string flag)
     {
-        // 获取当前的身份验证凭据请求授权标头
-        var currentAuth = httpRequestBuilder.AuthenticationHeader;
+        // 从自定义数据获取暂存的用户名和密码
+        var username =
+            httpRequestBuilder.Items?.TryGetValue(Constants.INTERNAL_AUTH_USERNAME_KEY, out var usernameObj) == true
+                ? usernameObj as string
+                : null;
+        var password =
+            httpRequestBuilder.Items?.TryGetValue(Constants.INTERNAL_AUTH_PASSWORD_KEY, out var passwordObj) == true
+                ? passwordObj as string
+                : null;
 
-        // 空检查
-        if (currentAuth is null || string.IsNullOrWhiteSpace(currentAuth.Parameter))
+        // 检查是否没有预先通过 -u 或 --user 设置过凭证
+        if (string.IsNullOrWhiteSpace(username))
         {
             return;
         }
 
-        // 处理当前已设置了 Basic 认证
-        if (string.Equals(currentAuth.Scheme, Constants.BASIC_AUTHENTICATION_SCHEME,
-                StringComparison.OrdinalIgnoreCase))
+        // 根据最新的 flag 切换方案
+        if (string.Equals(flag, "--digest", StringComparison.OrdinalIgnoreCase))
         {
-            // 解码 Base64 获取 username:password
-            var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(currentAuth.Parameter));
-            var colonIndex = decoded.IndexOf(':');
-
-            // 解析出用户名和密码
-            var username = colonIndex > 0 ? decoded[..colonIndex] : decoded;
-            var password = colonIndex > 0 ? decoded[(colonIndex + 1)..] : string.Empty;
-
-            // 根据最新的 flag 切换方案
-            if (string.Equals(flag, "--digest", StringComparison.OrdinalIgnoreCase))
-            {
-                // 设置 Digest 摘要身份验证凭据请求授权标头
-                httpRequestBuilder.AddDigestAuthentication(username, password);
-            }
-            else if (string.Equals(flag, "--basic", StringComparison.OrdinalIgnoreCase))
-            {
-                // 设置 Basic 身份验证凭据请求授权标头
-                httpRequestBuilder.AddBasicAuthentication(username, password);
-            }
+            // 设置 Digest 摘要身份验证凭据请求授权标头
+            httpRequestBuilder.AddDigestAuthentication(username, password ?? string.Empty);
         }
-        // 处理当前已设置了 Digest 认证
-        else if (string.Equals(currentAuth.Scheme, Constants.DIGEST_AUTHENTICATION_SCHEME,
-                     StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(flag, "--basic", StringComparison.OrdinalIgnoreCase))
         {
-            // 使用 |:| 进行分割出用户名和密码
-            var parts = currentAuth.Parameter.Split("|:|");
-
-            // ReSharper disable once InvertIf
-            if (parts.Length == 2)
-            {
-                // 根据最新的 flag 切换方案
-                if (string.Equals(flag, "--basic", StringComparison.OrdinalIgnoreCase))
-                {
-                    // 设置 Basic 身份验证凭据请求授权标头
-                    httpRequestBuilder.AddBasicAuthentication(parts[0], parts[1]);
-                }
-                else if (string.Equals(flag, "--digest", StringComparison.OrdinalIgnoreCase))
-                {
-                    // 设置 Digest 摘要身份验证凭据请求授权标头
-                    httpRequestBuilder.AddDigestAuthentication(parts[0], parts[1]);
-                }
-            }
+            // 设置 Basic 身份验证凭据请求授权标头
+            httpRequestBuilder.AddBasicAuthentication(username, password);
         }
     }
 }

@@ -49,7 +49,7 @@ public class FurionAccessTokenProvider(IHttpAccessTokenManager accessTokenManage
     /// <inheritdoc />
     public virtual void Configure(HttpRequestBuilder httpRequestBuilder, HttpAccessToken httpAccessToken)
     {
-        // 设置 JWT 身份验证凭据请求授权标头
+        // 设置 JWT 身份认证凭据请求授权标头
         httpRequestBuilder.AddBearerAuthentication(httpAccessToken.Value);
 
         // 检查 Access Token 是否过期且刷新 Token 不为空

@@ -60,7 +60,9 @@ public sealed class HttpRemoteOptions
             new StringJsonConverter(),
             // 解决 long 不支持科学计数法问题
             new FlexibleLongConverter(),
-            new FlexibleNullableLongConverter()
+            new FlexibleNullableLongConverter(),
+            // 解决枚举不支持字符串数字或枚举名称问题
+            new EnumJsonConverter()
         },
         TypeInfoResolver = new DefaultJsonTypeInfoResolver()
     };

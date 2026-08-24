@@ -1445,7 +1445,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 Basic 身份验证凭据请求授权标头
+    ///     设置 Basic 身份认证凭据请求授权标头
     /// </summary>
     /// <param name="username">用户名</param>
     /// <param name="password">密码</param>
@@ -1458,6 +1458,11 @@ public sealed partial class HttpRequestBuilder
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
 
+        // 将用户名和密码存入自定义数据中，供内部组件切换方案时使用
+        WithData(Constants.INTERNAL_AUTH_SCHEME_KEY, Constants.BASIC_AUTHENTICATION_SCHEME);
+        WithData(Constants.INTERNAL_AUTH_USERNAME_KEY, username);
+        WithData(Constants.INTERNAL_AUTH_PASSWORD_KEY, password);
+
         // 将用户名和密码转换为 Base64 字符串
         var base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
 
@@ -1467,7 +1472,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 Bearer 身份验证凭据请求授权标头
+    ///     设置 Bearer 身份认证凭据请求授权标头
     /// </summary>
     /// <param name="token">令牌</param>
     /// <returns>
@@ -1485,7 +1490,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 Bearer 身份验证凭据请求授权标头
+    ///     设置 Bearer 身份认证凭据请求授权标头
     /// </summary>
     /// <param name="headerName">自定义标头</param>
     /// <param name="token">令牌</param>
@@ -1503,7 +1508,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 Digest 摘要身份验证凭据请求授权标头
+    ///     设置 Digest 摘要身份认证凭据请求授权标头
     /// </summary>
     /// <remarks>建议先使用 <see cref="DigestCredentials.GetDigestCredentials" /> 获取凭证并缓存，再直接设置 <c>Authorization</c> 标头，避免每次请求触发探测。</remarks>
     /// <param name="username">用户名</param>
@@ -1518,18 +1523,22 @@ public sealed partial class HttpRequestBuilder
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
-        // 设置预设授权凭证
-        AddAuthentication(new AuthenticationHeaderValue(Constants.DIGEST_AUTHENTICATION_SCHEME,
-            $"{username}|:|{password}"));
+        // 将用户名和密码存入自定义数据中，供内部组件切换方案时使用
+        WithData(Constants.INTERNAL_AUTH_SCHEME_KEY, Constants.DIGEST_AUTHENTICATION_SCHEME);
+        WithData(Constants.INTERNAL_AUTH_USERNAME_KEY, username);
+        WithData(Constants.INTERNAL_AUTH_PASSWORD_KEY, password);
+
+        // 清除可能存在的认证信息
+        AuthenticationHeader = null;
 
         return this;
     }
 
     /// <summary>
-    ///     设置身份验证凭据请求授权标头
+    ///     设置身份认证凭据请求授权标头
     /// </summary>
-    /// <param name="scheme">身份验证的方案</param>
-    /// <param name="parameter">身份验证的凭证</param>
+    /// <param name="scheme">身份认证的方案</param>
+    /// <param name="parameter">身份认证的凭证</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -1537,7 +1546,7 @@ public sealed partial class HttpRequestBuilder
         AddAuthentication(new AuthenticationHeaderValue(scheme, parameter));
 
     /// <summary>
-    ///     设置身份验证凭据请求授权标头
+    ///     设置身份认证凭据请求授权标头
     /// </summary>
     /// <param name="authenticationHeader">
     ///     <see cref="AuthenticationHeaderValue" />
@@ -2500,6 +2509,50 @@ public sealed partial class HttpRequestBuilder
 
         return WithHeader("SOAPAction", addQuotes ? soapAction.AddQuotes() : soapAction, replace: true);
     }
+
+    /// <summary>
+    ///     设置自定义数据
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentException"></exception>
+    public HttpRequestBuilder WithData(string key, object? value)
+    {
+        // 空检查
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        return WithData(new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { { key, value } });
+    }
+
+    /// <summary>
+    ///     批量设置自定义数据
+    /// </summary>
+    /// <remarks>支持多次调用。</remarks>
+    /// <param name="data">数据字典</param>
+    /// <returns>
+    ///     <see cref="HttpRequestBuilder" />
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public HttpRequestBuilder WithData(IDictionary<string, object?> data)
+    {
+        // 空检查
+        ArgumentNullException.ThrowIfNull(data);
+
+        Items ??= new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+
+        // 遍历数据字典并添加或更新
+        foreach (var (key, value) in data)
+        {
+            Items[key] = value;
+        }
+
+        return this;
+    }
+
 
     /// <summary>
     ///     将一组标头合并到现有标头字典中

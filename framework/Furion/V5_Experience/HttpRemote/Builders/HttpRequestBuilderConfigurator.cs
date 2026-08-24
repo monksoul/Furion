@@ -117,7 +117,7 @@ public abstract class HttpRequestBuilderConfigurator<THttpBuilder>
         With(builder => builder.DisableCache(disabled));
 
     /// <summary>
-    ///     设置 Bearer 身份验证凭据请求授权标头
+    ///     设置 Bearer 身份认证凭据请求授权标头
     /// </summary>
     /// <param name="token">令牌</param>
     /// <returns>
@@ -127,7 +127,7 @@ public abstract class HttpRequestBuilderConfigurator<THttpBuilder>
         With(builder => builder.AddBearerAuthentication(token));
 
     /// <summary>
-    ///     设置 Bearer 身份验证凭据请求授权标头
+    ///     设置 Bearer 身份认证凭据请求授权标头
     /// </summary>
     /// <param name="headerName">自定义标头</param>
     /// <param name="token">令牌</param>
