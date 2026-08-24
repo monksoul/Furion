@@ -23,7 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
-using Furion.Extensions;
+using System.Globalization;
 using System.Text.Json;
 
 namespace Furion.JsonSerialization;
@@ -34,26 +34,163 @@ namespace Furion.JsonSerialization;
 internal static class Penetrates
 {
     /// <summary>
-    /// 转换
+    /// 将 JSON 中的值转换为 DateTime
     /// </summary>
     /// <param name="reader"></param>
+    /// <param name="format"></param>
+    /// <param name="localized"></param>
     /// <returns></returns>
-    internal static DateTime ConvertToDateTime(ref Utf8JsonReader reader)
+    internal static DateTime ConvertToDateTime(ref Utf8JsonReader reader, string format, bool localized)
     {
-        // 处理时间戳自动转换
+        // 处理 JSON 数字时间戳
         if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var longValue))
         {
-            return longValue.ConvertToDateTime();
+            return ConvertFromUnixTimestampToDateTime(longValue, localized);
         }
 
         var stringValue = reader.GetString();
 
-        // 处理时间戳自动转换
+        // 处理纯数字字符串时间戳
         if (long.TryParse(stringValue, out var longValue2))
         {
-            return longValue2.ConvertToDateTime();
+            return ConvertFromUnixTimestampToDateTime(longValue2, localized);
         }
 
-        return Convert.ToDateTime(stringValue);
+        // 处理日期字符串
+        return ParseDateTimeString(stringValue, format);
+    }
+
+    /// <summary>
+    /// 将 JSON 中的值转换为 DateTimeOffset
+    /// </summary>
+    /// <param name="reader"></param>
+    /// <param name="format"></param>
+    /// <param name="localized"></param>
+    /// <returns></returns>
+    internal static DateTimeOffset ConvertToDateTimeOffset(ref Utf8JsonReader reader, string format, bool localized)
+    {
+        // 处理 JSON 数字时间戳
+        if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var longValue))
+        {
+            return ConvertFromUnixTimestampToDateTimeOffset(longValue, localized);
+        }
+
+        var stringValue = reader.GetString();
+
+        // 处理纯数字字符串时间戳
+        if (long.TryParse(stringValue, out var longValue2))
+        {
+            return ConvertFromUnixTimestampToDateTimeOffset(longValue2, localized);
+        }
+
+        // 处理日期字符串
+        return ParseDateTimeOffsetString(stringValue, format, localized);
+    }
+
+    /// <summary>
+    /// 将 Unix 时间戳（秒或毫秒）转换为 DateTime
+    /// </summary>
+    /// <param name="timestamp"></param>
+    /// <param name="localized"></param>
+    /// <returns></returns>
+    private static DateTime ConvertFromUnixTimestampToDateTime(long timestamp, bool localized)
+    {
+        DateTimeOffset dto;
+
+        // 判断是秒还是毫秒
+        if (Math.Abs(timestamp) > 100000000000)
+        {
+            dto = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
+        }
+        else
+        {
+            dto = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+        }
+
+        return localized ? dto.LocalDateTime : dto.UtcDateTime;
+    }
+
+    /// <summary>
+    /// 将 Unix 时间戳（秒或毫秒）转换为 DateTimeOffset
+    /// </summary>
+    /// <param name="timestamp"></param>
+    /// <param name="localized"></param>
+    /// <returns></returns>
+    private static DateTimeOffset ConvertFromUnixTimestampToDateTimeOffset(long timestamp, bool localized)
+    {
+        DateTimeOffset dto;
+
+        // 判断是秒还是毫秒
+        if (Math.Abs(timestamp) > 100000000000)
+        {
+            dto = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
+        }
+        else
+        {
+            dto = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+        }
+
+        return localized ? dto.ToLocalTime() : dto.ToUniversalTime();
+    }
+
+    /// <summary>
+    /// 解析日期时间字符串为 DateTime
+    /// </summary>
+    /// <param name="stringValue"></param>
+    /// <param name="format"></param>
+    /// <returns></returns>
+    private static DateTime ParseDateTimeString(string stringValue, string format)
+    {
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to DateTime.");
+        }
+
+        // 尝试按指定格式解析
+        if (!string.IsNullOrEmpty(format) &&
+            DateTime.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var exactDateTime))
+        {
+            return exactDateTime;
+        }
+
+        // 回退到通用解析
+        if (DateTime.TryParse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+        {
+            return dateTime;
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to DateTime.");
+    }
+
+    /// <summary>
+    /// 解析日期时间字符串为 DateTimeOffset
+    /// </summary>
+    /// <param name="stringValue"></param>
+    /// <param name="format"></param>
+    /// <param name="localized"></param>
+    /// <returns></returns>
+    private static DateTimeOffset ParseDateTimeOffsetString(string stringValue, string format, bool localized)
+    {
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to DateTimeOffset.");
+        }
+
+        var dateTimeStyles = localized ? DateTimeStyles.AssumeLocal : DateTimeStyles.AssumeUniversal;
+
+        // 尝试按指定格式解析
+        if (!string.IsNullOrEmpty(format) &&
+            DateTimeOffset.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, dateTimeStyles, out var dtoExact))
+        {
+            return localized ? dtoExact.ToLocalTime() : dtoExact.ToUniversalTime();
+        }
+
+        // 回退到通用解析
+        if (DateTimeOffset.TryParse(stringValue, CultureInfo.InvariantCulture, dateTimeStyles, out var dto))
+        {
+            return localized ? dto.ToLocalTime() : dto.ToUniversalTime();
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to DateTimeOffset.");
     }
 }

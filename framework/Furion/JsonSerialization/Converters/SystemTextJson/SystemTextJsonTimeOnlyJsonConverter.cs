@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -34,10 +35,10 @@ namespace Furion.JsonSerialization;
 public class SystemTextJsonTimeOnlyJsonConverter : JsonConverter<TimeOnly>
 {
     /// <summary>
-    /// 构造函数
+    /// 默认构造函数
     /// </summary>
     public SystemTextJsonTimeOnlyJsonConverter()
-        : this(default)
+        : this("HH:mm:ss")
     {
     }
 
@@ -64,7 +65,26 @@ public class SystemTextJsonTimeOnlyJsonConverter : JsonConverter<TimeOnly>
     /// <returns></returns>
     public override TimeOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return TimeOnly.Parse(reader.GetString());
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            throw new JsonException("Cannot convert null value to TimeOnly.");
+        }
+
+        var stringValue = reader.GetString();
+
+        // 空检查
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to TimeOnly.");
+        }
+
+        // 使用指定的格式进行解析
+        if (TimeOnly.TryParseExact(stringValue, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            return time;
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to TimeOnly.");
     }
 
     /// <summary>
@@ -88,7 +108,7 @@ public class SystemTextJsonNullableTimeOnlyJsonConverter : JsonConverter<TimeOnl
     /// 默认构造函数
     /// </summary>
     public SystemTextJsonNullableTimeOnlyJsonConverter()
-        : this(default)
+        : this("HH:mm:ss")
     {
     }
 
@@ -115,7 +135,26 @@ public class SystemTextJsonNullableTimeOnlyJsonConverter : JsonConverter<TimeOnl
     /// <returns></returns>
     public override TimeOnly? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return TimeOnly.TryParse(reader.GetString(), out var time) ? time : null;
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        var stringValue = reader.GetString();
+
+        // 空检查
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to TimeOnly.");
+        }
+
+        // 使用指定的格式进行解析
+        if (TimeOnly.TryParseExact(stringValue, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            return time;
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to TimeOnly.");
     }
 
     /// <summary>
@@ -126,7 +165,13 @@ public class SystemTextJsonNullableTimeOnlyJsonConverter : JsonConverter<TimeOnl
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, TimeOnly? value, JsonSerializerOptions options)
     {
-        if (value == null) writer.WriteNullValue();
-        else writer.WriteStringValue(value.Value.ToString(Format));
+        if (value == null)
+        {
+            writer.WriteNullValue();
+        }
+        else
+        {
+            writer.WriteStringValue(value.Value.ToString(Format));
+        }
     }
 }

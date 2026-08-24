@@ -37,7 +37,7 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     /// 默认构造函数
     /// </summary>
     public SystemTextJsonDateTimeJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd HH:mm:ss")
     {
     }
 
@@ -67,7 +67,7 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     public string Format { get; private set; }
 
     /// <summary>
-    /// 是否输出为为当地时间
+    /// 是否输出为当地时间
     /// </summary>
     public bool Localized { get; private set; } = false;
 
@@ -80,7 +80,7 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     /// <returns></returns>
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Penetrates.ConvertToDateTime(ref reader);
+        return Penetrates.ConvertToDateTime(ref reader, Format, Localized);
     }
 
     /// <summary>
@@ -91,9 +91,14 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        // 判断是否序列化成当地时间
-        var formatDateTime = Localized ? value.ToLocalTime() : value;
-        writer.WriteStringValue(formatDateTime.ToString(Format));
+        if (value.Kind == DateTimeKind.Unspecified)
+        {
+            writer.WriteStringValue(value.ToString(Format));
+            return;
+        }
+
+        var output = Localized ? value.ToLocalTime() : value.ToUniversalTime();
+        writer.WriteStringValue(output.ToString(Format));
     }
 }
 
@@ -106,7 +111,7 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     /// 默认构造函数
     /// </summary>
     public SystemTextJsonNullableDateTimeJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd HH:mm:ss")
     {
     }
 
@@ -136,7 +141,7 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     public string Format { get; private set; }
 
     /// <summary>
-    /// 是否输出为为当地时间
+    /// 是否输出为当地时间
     /// </summary>
     public bool Localized { get; private set; } = false;
 
@@ -149,7 +154,12 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     /// <returns></returns>
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Penetrates.ConvertToDateTime(ref reader);
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        return Penetrates.ConvertToDateTime(ref reader, Format, Localized);
     }
 
     /// <summary>
@@ -160,12 +170,19 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
     {
-        if (value == null) writer.WriteNullValue();
-        else
+        if (value == null)
         {
-            // 判断是否序列化成当地时间
-            var formatDateTime = Localized ? value.Value.ToLocalTime() : value.Value;
-            writer.WriteStringValue(formatDateTime.ToString(Format));
+            writer.WriteNullValue();
+            return;
         }
+
+        if (value.Value.Kind == DateTimeKind.Unspecified)
+        {
+            writer.WriteStringValue(value.Value.ToString(Format));
+            return;
+        }
+
+        var output = Localized ? value.Value.ToLocalTime() : value.Value.ToUniversalTime();
+        writer.WriteStringValue(output.ToString(Format));
     }
 }

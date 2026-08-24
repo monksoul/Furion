@@ -833,6 +833,19 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
 
         return b;
     }
+
+    public object 测试时间序列化()
+    {
+        return new
+        {
+            dt1 = DateTime.Parse("2026-08-25 00:00:00"),
+            dt2 = DateTime.Parse("2026-08-25T00:00:00"),
+            dt3 = DateTime.Parse("2026-08-25T00:00:00Z"),
+            dt4 = DateTimeOffset.Parse("2026-08-25 00:00:00"),
+            dt5 = DateTimeOffset.Parse("2026-08-25T00:00:00"),
+            dt6 = DateTimeOffset.Parse("2026-08-25T00:00:00Z"),
+        };
+    }
 }
 
 

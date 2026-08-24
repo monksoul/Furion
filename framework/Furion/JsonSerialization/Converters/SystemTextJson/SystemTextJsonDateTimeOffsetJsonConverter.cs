@@ -34,10 +34,10 @@ namespace Furion.JsonSerialization;
 public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
 {
     /// <summary>
-    /// 构造函数
+    /// 默认构造函数
     /// </summary>
     public SystemTextJsonDateTimeOffsetJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd HH:mm:ss", true)
     {
     }
 
@@ -46,8 +46,8 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// </summary>
     /// <param name="format"></param>
     public SystemTextJsonDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+        : this(format, true)
     {
-        Format = format;
     }
 
     /// <summary>
@@ -55,9 +55,9 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
-        : this(format)
+    public SystemTextJsonDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
     {
+        Format = format;
         Localized = outputToLocalDateTime;
     }
 
@@ -67,9 +67,9 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     public string Format { get; private set; }
 
     /// <summary>
-    /// 是否输出为为当地时间
+    /// 是否输出为当地时间
     /// </summary>
-    public bool Localized { get; private set; } = false;
+    public bool Localized { get; private set; } = true;
 
     /// <summary>
     /// 反序列化
@@ -80,7 +80,7 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// <returns></returns>
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return DateTime.SpecifyKind(Penetrates.ConvertToDateTime(ref reader), Localized ? DateTimeKind.Local : DateTimeKind.Utc);
+        return Penetrates.ConvertToDateTimeOffset(ref reader, Format, Localized);
     }
 
     /// <summary>
@@ -91,9 +91,8 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
-        // 判断是否序列化成当地时间
-        var formatDateTime = Localized ? value.ToLocalTime() : value;
-        writer.WriteStringValue(formatDateTime.ToString(Format));
+        var output = Localized ? value.ToLocalTime() : value.ToUniversalTime();
+        writer.WriteStringValue(output.ToString(Format));
     }
 }
 
@@ -103,10 +102,10 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
 public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset?>
 {
     /// <summary>
-    /// 构造函数
+    /// 默认构造函数
     /// </summary>
     public SystemTextJsonNullableDateTimeOffsetJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd HH:mm:ss", true)
     {
     }
 
@@ -115,8 +114,8 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// </summary>
     /// <param name="format"></param>
     public SystemTextJsonNullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+        : this(format, true)
     {
-        Format = format;
     }
 
     /// <summary>
@@ -124,9 +123,9 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonNullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
-        : this(format)
+    public SystemTextJsonNullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
     {
+        Format = format;
         Localized = outputToLocalDateTime;
     }
 
@@ -136,9 +135,9 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     public string Format { get; private set; }
 
     /// <summary>
-    /// 是否输出为为当地时间
+    /// 是否输出为当地时间
     /// </summary>
-    public bool Localized { get; private set; } = false;
+    public bool Localized { get; private set; } = true;
 
     /// <summary>
     /// 反序列化
@@ -149,7 +148,12 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// <returns></returns>
     public override DateTimeOffset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return DateTime.SpecifyKind(Penetrates.ConvertToDateTime(ref reader), Localized ? DateTimeKind.Local : DateTimeKind.Utc);
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        return Penetrates.ConvertToDateTimeOffset(ref reader, Format, Localized);
     }
 
     /// <summary>
@@ -160,12 +164,13 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset? value, JsonSerializerOptions options)
     {
-        if (value == null) writer.WriteNullValue();
-        else
+        if (value == null)
         {
-            // 判断是否序列化成当地时间
-            var formatDateTime = Localized ? value.Value.ToLocalTime() : value.Value;
-            writer.WriteStringValue(formatDateTime.ToString(Format));
+            writer.WriteNullValue();
+            return;
         }
+
+        var output = Localized ? value.Value.ToLocalTime() : value.Value.ToUniversalTime();
+        writer.WriteStringValue(output.ToString(Format));
     }
 }

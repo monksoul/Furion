@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -34,10 +35,10 @@ namespace Furion.JsonSerialization;
 public class SystemTextJsonDateOnlyJsonConverter : JsonConverter<DateOnly>
 {
     /// <summary>
-    /// 构造函数
+    /// 默认构造函数
     /// </summary>
     public SystemTextJsonDateOnlyJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd")
     {
     }
 
@@ -64,7 +65,26 @@ public class SystemTextJsonDateOnlyJsonConverter : JsonConverter<DateOnly>
     /// <returns></returns>
     public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return DateOnly.Parse(reader.GetString());
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            throw new JsonException("Cannot convert null value to DateOnly.");
+        }
+
+        var stringValue = reader.GetString();
+
+        // 空检查
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to DateOnly.");
+        }
+
+        // 使用指定的格式进行解析
+        if (DateOnly.TryParseExact(stringValue, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            return date;
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to DateOnly.");
     }
 
     /// <summary>
@@ -85,10 +105,10 @@ public class SystemTextJsonDateOnlyJsonConverter : JsonConverter<DateOnly>
 public class SystemTextJsonNullableDateOnlyJsonConverter : JsonConverter<DateOnly?>
 {
     /// <summary>
-    /// 构造函数
+    /// 默认构造函数
     /// </summary>
     public SystemTextJsonNullableDateOnlyJsonConverter()
-        : this(default)
+        : this("yyyy-MM-dd")
     {
     }
 
@@ -115,7 +135,27 @@ public class SystemTextJsonNullableDateOnlyJsonConverter : JsonConverter<DateOnl
     /// <returns></returns>
     public override DateOnly? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return DateOnly.TryParse(reader.GetString(), out var date) ? date : null;
+        // 可空类型：JSON null 直接返回 null
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        var stringValue = reader.GetString();
+
+        // 空检查
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            throw new JsonException("Cannot parse an empty string to DateOnly.");
+        }
+
+        // 使用指定的格式进行解析
+        if (DateOnly.TryParseExact(stringValue, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            return date;
+        }
+
+        throw new JsonException($"Cannot parse string '{stringValue}' to DateOnly.");
     }
 
     /// <summary>
@@ -126,7 +166,13 @@ public class SystemTextJsonNullableDateOnlyJsonConverter : JsonConverter<DateOnl
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, DateOnly? value, JsonSerializerOptions options)
     {
-        if (value == null) writer.WriteNullValue();
-        else writer.WriteStringValue(value.Value.ToString(Format));
+        if (value == null)
+        {
+            writer.WriteNullValue();
+        }
+        else
+        {
+            writer.WriteStringValue(value.Value.ToString(Format));
+        }
     }
 }
