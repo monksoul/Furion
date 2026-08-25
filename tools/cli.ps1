@@ -335,7 +335,7 @@ if ($options -eq "G" -and $runtimeOS -eq "Windows" -and $DbProvider -like "*SqlS
 
     # 加载连接设置
     function loadConnectionSettings($settingsPath) {
-        $appsetting = Get-Content $settingsPath -Raw
+        $appsetting = [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
         $connectionDefine = [regex]::Matches($appsetting, '"ConnectionStrings"\s*:\s*\{(?<define>[\s\S]*?)\}')
         if ($connectionDefine.Count -eq 0) { return }
 
@@ -651,7 +651,8 @@ try
         Write-Info "已创建输出目录：$OutputDir"
     }
 
-    $dbContextContent = Get-Content "$TempOutputDir\$Context.cs" -raw
+    # 显式 UTF-8 读取 DbContext 文件
+    $dbContextContent = [System.IO.File]::ReadAllText("$TempOutputDir\$Context.cs", [System.Text.Encoding]::UTF8)
 
     # 提取每个实体的配置代码
     $entityConfigures = [regex]::Matches($dbContextContent, "modelBuilder\.Entity<(?<table>\w+)>\(\s*\w+\s*=>\s*\{(?<content>(?:[^{}]|(?<open>{)|(?<-open>}))+(?(open)(?!)))\}\);")
@@ -701,7 +702,8 @@ using $CoreProject;
 
         Write-Info "正在生成 $fileName.cs 实体代码......"
 
-        $entityContent = Get-Content $file.FullName -Raw
+        # 显式 UTF-8 读取实体文件
+        $entityContent = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
         $propsMatch = [regex]::Match($entityContent, $propRegex)
         if (-not $propsMatch.Success) {
             Write-Warn "无法解析实体 $fileName 的属性，跳过注释添加。"
@@ -753,7 +755,8 @@ public partial class $fileName$extents
 {$newPropsContent}
 "@
 
-        Set-Content -Path $file.FullName -Value $finalClass -Encoding UTF8
+        # 显式 UTF-8 无 BOM 写入文件
+        [System.IO.File]::WriteAllText($file.FullName, $finalClass, [System.Text.Encoding]::UTF8)
         Write-Success "成功生成 $fileName.cs 实体代码"
         Move-Item -Path $file.FullName -Destination (Join-Path $OutputDir "$fileName.cs") -Force
     }
