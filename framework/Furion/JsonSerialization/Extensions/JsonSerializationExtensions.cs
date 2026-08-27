@@ -31,9 +31,9 @@ using System.Text.Json.Serialization;
 namespace System.Text.Json;
 
 /// <summary>
-/// System.Text.Json 扩展
+/// JSON 序列化扩展
 /// </summary>
-public static class SystemTextJsonExtensions
+public static class JsonSerializationExtensions
 {
     /// <summary>
     /// 添加 DateTime/DateTime?/DateTimeOffset/DateTimeOffset? 类型序列化处理

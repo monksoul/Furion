@@ -234,7 +234,7 @@ public static class AppServiceCollectionExtensions
         services.AddDependencyInjection();
 
         // 注册默认服务（JSON 序列化和分布式 ID 生成器）
-        services.TryAddSingleton<IJsonSerializerProvider, SystemTextJsonSerializerProvider>();
+        services.TryAddSingleton<IJsonSerializerProvider, DefaultJsonSerializerProvider>();
         services.TryAddSingleton<IDistributedIDGenerator, SequentialGuidIDGenerator>();
         services.TryAddSingleton<SequentialGuidIDGenerator>();
 

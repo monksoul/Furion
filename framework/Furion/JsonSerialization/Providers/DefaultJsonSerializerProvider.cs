@@ -30,9 +30,9 @@ using System.Text.Json;
 namespace Furion.JsonSerialization;
 
 /// <summary>
-/// System.Text.Json 序列化提供器（默认实现）
+/// 默认 JSON 序列化提供器
 /// </summary>
-internal class SystemTextJsonSerializerProvider : IJsonSerializerProvider
+internal class DefaultJsonSerializerProvider : IJsonSerializerProvider
 {
     /// <summary>
     /// 获取 JSON 配置选项
@@ -43,7 +43,7 @@ internal class SystemTextJsonSerializerProvider : IJsonSerializerProvider
     /// 构造函数
     /// </summary>
     /// <param name="options"></param>
-    public SystemTextJsonSerializerProvider(IOptions<JsonOptions> options)
+    public DefaultJsonSerializerProvider(IOptions<JsonOptions> options)
     {
         _jsonOptions = options.Value;
     }
