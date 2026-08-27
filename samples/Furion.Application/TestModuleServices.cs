@@ -846,6 +846,11 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
             dt6 = DateTimeOffset.Parse("2026-08-25T00:00:00Z"),
         };
     }
+
+    public string 测试Email验证(EmailModel model)
+    {
+        return model.Email;
+    }
 }
 
 
@@ -988,4 +993,10 @@ public class TestLoggingMonitor
 public class TestLong
 {
     public long Property { get; set; }
+}
+
+public class EmailModel
+{
+    [EmailAddress]
+    public string Email { get; set; }
 }

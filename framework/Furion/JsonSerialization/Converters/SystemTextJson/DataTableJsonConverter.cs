@@ -27,12 +27,12 @@ using System.Data;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Furion.Logging;
+namespace Furion.JsonSerialization;
 
 /// <summary>
-/// DataSet 转换器
+/// DataTable 转换器
 /// </summary>
-public sealed class SystemTextJsonDataSetJsonConverter : JsonConverter<DataSet>
+public sealed class DataTableJsonConverter : JsonConverter<DataTable>
 {
     /// <summary>
     /// 反序列化
@@ -42,7 +42,7 @@ public sealed class SystemTextJsonDataSetJsonConverter : JsonConverter<DataSet>
     /// <param name="options"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public override DataSet Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override DataTable Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotSupportedException($"Deserialization of '{typeToConvert.Name}' is not supported.");
     }
@@ -53,16 +53,31 @@ public sealed class SystemTextJsonDataSetJsonConverter : JsonConverter<DataSet>
     /// <param name="writer"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
-    public override void Write(Utf8JsonWriter writer, DataSet value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, DataTable value, JsonSerializerOptions options)
     {
-        writer.WriteStartObject();
+        writer.WriteStartArray();
 
-        foreach (DataTable table in value.Tables)
+        foreach (DataRow row in value.Rows)
         {
-            writer.WritePropertyName(string.IsNullOrEmpty(table.TableName) ? "Table" : table.TableName);
-            JsonSerializer.Serialize(writer, table, options);
+            writer.WriteStartObject();
+            foreach (DataColumn col in value.Columns)
+            {
+                writer.WritePropertyName(col.ColumnName);
+                var cellValue = row[col];
+
+                // 处理 DBNull 和 null
+                if (cellValue == DBNull.Value || cellValue == null)
+                {
+                    writer.WriteNullValue();
+                }
+                else
+                {
+                    JsonSerializer.Serialize(writer, cellValue, cellValue.GetType(), options);
+                }
+            }
+            writer.WriteEndObject();
         }
 
-        writer.WriteEndObject();
+        writer.WriteEndArray();
     }
 }

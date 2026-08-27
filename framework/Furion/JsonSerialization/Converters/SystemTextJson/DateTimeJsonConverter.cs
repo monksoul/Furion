@@ -31,12 +31,12 @@ namespace Furion.JsonSerialization;
 /// <summary>
 /// DateTime 类型序列化
 /// </summary>
-public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
+public class DateTimeJsonConverter : JsonConverter<DateTime>
 {
     /// <summary>
     /// 默认构造函数
     /// </summary>
-    public SystemTextJsonDateTimeJsonConverter()
+    public DateTimeJsonConverter()
         : this("yyyy-MM-dd HH:mm:ss")
     {
     }
@@ -45,7 +45,7 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     /// 构造函数
     /// </summary>
     /// <param name="format"></param>
-    public SystemTextJsonDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+    public DateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
     {
         Format = format;
     }
@@ -55,7 +55,7 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
+    public DateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
         : this(format)
     {
         Localized = outputToLocalDateTime;
@@ -105,12 +105,12 @@ public class SystemTextJsonDateTimeJsonConverter : JsonConverter<DateTime>
 /// <summary>
 /// DateTime? 类型序列化
 /// </summary>
-public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTime?>
+public class NullableDateTimeJsonConverter : JsonConverter<DateTime?>
 {
     /// <summary>
     /// 默认构造函数
     /// </summary>
-    public SystemTextJsonNullableDateTimeJsonConverter()
+    public NullableDateTimeJsonConverter()
         : this("yyyy-MM-dd HH:mm:ss")
     {
     }
@@ -119,7 +119,7 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     /// 构造函数
     /// </summary>
     /// <param name="format"></param>
-    public SystemTextJsonNullableDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+    public NullableDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
     {
         Format = format;
     }
@@ -129,7 +129,7 @@ public class SystemTextJsonNullableDateTimeJsonConverter : JsonConverter<DateTim
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonNullableDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
+    public NullableDateTimeJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = false)
         : this(format)
     {
         Localized = outputToLocalDateTime;

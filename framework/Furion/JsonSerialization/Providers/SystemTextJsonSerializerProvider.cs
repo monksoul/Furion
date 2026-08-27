@@ -32,7 +32,7 @@ namespace Furion.JsonSerialization;
 /// <summary>
 /// System.Text.Json 序列化提供器（默认实现）
 /// </summary>
-public class SystemTextJsonSerializerProvider : IJsonSerializerProvider
+internal class SystemTextJsonSerializerProvider : IJsonSerializerProvider
 {
     /// <summary>
     /// 获取 JSON 配置选项

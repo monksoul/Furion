@@ -25,7 +25,6 @@
 
 using Furion.Converters.Json;
 using Furion.JsonSerialization;
-using Furion.Logging;
 using Furion.Shapeless;
 using System.Text.Json.Serialization;
 
@@ -45,11 +44,11 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddDateTimeTypeConverters(this IList<JsonConverter> converters, string outputFormat = "yyyy-MM-dd HH:mm:ss", bool localized = false)
     {
-        converters.Add(new SystemTextJsonDateTimeJsonConverter(outputFormat, localized));
-        converters.Add(new SystemTextJsonNullableDateTimeJsonConverter(outputFormat, localized));
+        converters.Add(new DateTimeJsonConverter(outputFormat, localized));
+        converters.Add(new NullableDateTimeJsonConverter(outputFormat, localized));
 
-        converters.Add(new SystemTextJsonDateTimeOffsetJsonConverter(outputFormat, localized));
-        converters.Add(new SystemTextJsonNullableDateTimeOffsetJsonConverter(outputFormat, localized));
+        converters.Add(new DateTimeOffsetJsonConverter(outputFormat, localized));
+        converters.Add(new NullableDateTimeOffsetJsonConverter(outputFormat, localized));
 
         return converters;
     }
@@ -62,8 +61,8 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddLongTypeConverters(this IList<JsonConverter> converters, bool overMaxLengthOf17 = false)
     {
-        converters.Add(new SystemTextJsonLongToStringJsonConverter(overMaxLengthOf17));
-        converters.Add(new SystemTextJsonNullableLongToStringJsonConverter(overMaxLengthOf17));
+        converters.Add(new LongToStringJsonConverter(overMaxLengthOf17));
+        converters.Add(new NullableLongToStringJsonConverter(overMaxLengthOf17));
 
         return converters;
     }
@@ -92,8 +91,8 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddDateOnlyConverters(this IList<JsonConverter> converters, string outputFormat = "yyyy-MM-dd")
     {
-        converters.Add(new SystemTextJsonDateOnlyJsonConverter(outputFormat));
-        converters.Add(new SystemTextJsonNullableDateOnlyJsonConverter(outputFormat));
+        converters.Add(new DateOnlyJsonConverter(outputFormat));
+        converters.Add(new NullableDateOnlyJsonConverter(outputFormat));
 
         return converters;
     }
@@ -106,8 +105,8 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddTimeOnlyConverters(this IList<JsonConverter> converters, string outputFormat = "HH:mm:ss")
     {
-        converters.Add(new SystemTextJsonTimeOnlyJsonConverter(outputFormat));
-        converters.Add(new SystemTextJsonNullableTimeOnlyJsonConverter(outputFormat));
+        converters.Add(new TimeOnlyJsonConverter(outputFormat));
+        converters.Add(new NullableTimeOnlyJsonConverter(outputFormat));
 
         return converters;
     }
@@ -119,7 +118,7 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddDataTableConverters(this IList<JsonConverter> converters)
     {
-        converters.Add(new SystemTextJsonDataTableJsonConverter());
+        converters.Add(new DataTableJsonConverter());
 
         return converters;
     }
@@ -131,7 +130,7 @@ public static class SystemTextJsonExtensions
     /// <returns></returns>
     public static IList<JsonConverter> AddDataSetConverters(this IList<JsonConverter> converters)
     {
-        converters.Add(new SystemTextJsonDataSetJsonConverter());
+        converters.Add(new DataSetJsonConverter());
 
         return converters;
     }
@@ -148,6 +147,25 @@ public static class SystemTextJsonExtensions
         {
             WriteAsString = writeAsString
         });
+
+        return converters;
+    }
+
+    /// <summary>
+    /// 添加可空类型序列化处理
+    /// </summary>
+    /// <remarks>将 JSON 空字符串或空白字符串视为 null。</remarks>
+    /// <param name="converters"></param>
+    /// <param name="enableNullableValueType">是否同时启用可空值类型处理，默认值为：<c>false</c></param>
+    /// <returns></returns>
+    public static IList<JsonConverter> AddNullableConverters(this IList<JsonConverter> converters, bool enableNullableValueType = false)
+    {
+        converters.Add(new EmptyStringToNullConverter());
+
+        if (enableNullableValueType)
+        {
+            converters.Add(new NullableConverterFactory());
+        }
 
         return converters;
     }

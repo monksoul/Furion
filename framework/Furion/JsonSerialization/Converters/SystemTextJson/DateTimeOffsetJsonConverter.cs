@@ -31,12 +31,12 @@ namespace Furion.JsonSerialization;
 /// <summary>
 /// DateTimeOffset 类型序列化
 /// </summary>
-public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
+public class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
 {
     /// <summary>
     /// 默认构造函数
     /// </summary>
-    public SystemTextJsonDateTimeOffsetJsonConverter()
+    public DateTimeOffsetJsonConverter()
         : this("yyyy-MM-dd HH:mm:ss", true)
     {
     }
@@ -45,7 +45,7 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// 构造函数
     /// </summary>
     /// <param name="format"></param>
-    public SystemTextJsonDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+    public DateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
         : this(format, true)
     {
     }
@@ -55,7 +55,7 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
+    public DateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
     {
         Format = format;
         Localized = outputToLocalDateTime;
@@ -99,12 +99,12 @@ public class SystemTextJsonDateTimeOffsetJsonConverter : JsonConverter<DateTimeO
 /// <summary>
 /// DateTimeOffset? 类型序列化
 /// </summary>
-public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset?>
+public class NullableDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset?>
 {
     /// <summary>
     /// 默认构造函数
     /// </summary>
-    public SystemTextJsonNullableDateTimeOffsetJsonConverter()
+    public NullableDateTimeOffsetJsonConverter()
         : this("yyyy-MM-dd HH:mm:ss", true)
     {
     }
@@ -113,7 +113,7 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// 构造函数
     /// </summary>
     /// <param name="format"></param>
-    public SystemTextJsonNullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
+    public NullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss")
         : this(format, true)
     {
     }
@@ -123,7 +123,7 @@ public class SystemTextJsonNullableDateTimeOffsetJsonConverter : JsonConverter<D
     /// </summary>
     /// <param name="format"></param>
     /// <param name="outputToLocalDateTime"></param>
-    public SystemTextJsonNullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
+    public NullableDateTimeOffsetJsonConverter(string format = "yyyy-MM-dd HH:mm:ss", bool outputToLocalDateTime = true)
     {
         Format = format;
         Localized = outputToLocalDateTime;

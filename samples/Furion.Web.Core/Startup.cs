@@ -58,6 +58,7 @@ public sealed class Startup : AppStartup
                     options.JsonSerializerOptions.Converters.AddDataTableConverters();
                     options.JsonSerializerOptions.Converters.AddDataSetConverters();
                     options.JsonSerializerOptions.Converters.AddLongTypeConverters();
+                    options.JsonSerializerOptions.Converters.AddNullableConverters();
                 })
                 .AddClayOptions(options =>
                 {

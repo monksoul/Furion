@@ -31,12 +31,12 @@ namespace Furion.JsonSerialization;
 /// <summary>
 /// 解决 long 精度问题
 /// </summary>
-public class SystemTextJsonLongToStringJsonConverter : JsonConverter<long>
+public class LongToStringJsonConverter : JsonConverter<long>
 {
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SystemTextJsonLongToStringJsonConverter()
+    public LongToStringJsonConverter()
     {
     }
 
@@ -44,7 +44,7 @@ public class SystemTextJsonLongToStringJsonConverter : JsonConverter<long>
     /// 构造函数
     /// </summary>
     /// <param name="overMaxLengthOf17"></param>
-    public SystemTextJsonLongToStringJsonConverter(bool overMaxLengthOf17 = false)
+    public LongToStringJsonConverter(bool overMaxLengthOf17 = false)
     {
         OverMaxLengthOf17 = overMaxLengthOf17;
     }
@@ -106,12 +106,12 @@ public class SystemTextJsonLongToStringJsonConverter : JsonConverter<long>
 /// <summary>
 /// 解决 long? 精度问题
 /// </summary>
-public class SystemTextJsonNullableLongToStringJsonConverter : JsonConverter<long?>
+public class NullableLongToStringJsonConverter : JsonConverter<long?>
 {
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SystemTextJsonNullableLongToStringJsonConverter()
+    public NullableLongToStringJsonConverter()
     {
     }
 
@@ -119,7 +119,7 @@ public class SystemTextJsonNullableLongToStringJsonConverter : JsonConverter<lon
     /// 构造函数
     /// </summary>
     /// <param name="overMaxLengthOf17"></param>
-    public SystemTextJsonNullableLongToStringJsonConverter(bool overMaxLengthOf17 = false)
+    public NullableLongToStringJsonConverter(bool overMaxLengthOf17 = false)
     {
         OverMaxLengthOf17 = overMaxLengthOf17;
     }
