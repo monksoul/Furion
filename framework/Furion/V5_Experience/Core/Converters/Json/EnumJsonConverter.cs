@@ -31,21 +31,36 @@ namespace Furion.Converters.Json;
 /// <summary>
 ///     枚举 JSON 序列化转换器
 /// </summary>
-/// <remarks>支持将 JSON 数字、字符串数字（如 "1"）或枚举名称（忽略大小写）反序列化为枚举。</remarks>
+/// <remarks>支持将 JSON 数字、字符串数字或枚举名称反序列化为枚举，并支持可空枚举。</remarks>
 public class EnumJsonConverter : JsonConverter<object>
 {
     /// <summary>
-    ///     控制序列化时是否将枚举输出为字符串（枚举名称）
+    ///     控制序列化时是否将枚举输出为枚举名称
     /// </summary>
     /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool WriteAsString { get; set; }
 
     /// <inheritdoc />
-    public override bool CanConvert(Type typeToConvert) => typeToConvert.IsEnum;
+    public override bool HandleNull => true;
+
+    /// <inheritdoc />
+    public override bool CanConvert(Type typeToConvert) =>
+        typeToConvert.IsEnum || Nullable.GetUnderlyingType(typeToConvert)?.IsEnum == true;
 
     /// <inheritdoc />
     public override object? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
+        // 处理可空枚举的 null 值
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return Nullable.GetUnderlyingType(typeToConvert) is not null
+                ? null
+                : throw new JsonException($"Unexpected token Null when parsing enum {typeToConvert.Name}.");
+        }
+
+        // 获取实际的枚举类型
+        var enumType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
+
         // 处理 JSON 数字 token
         // ReSharper disable once ConvertIfStatementToSwitchStatement
         if (reader.TokenType == JsonTokenType.Number)
@@ -62,11 +77,10 @@ public class EnumJsonConverter : JsonConverter<object>
             }
             else
             {
-                throw new JsonException($"The JSON number could not be converted to enum {typeToConvert.Name}.");
+                throw new JsonException($"The JSON number could not be converted to enum {enumType.Name}.");
             }
 
-            // 将指定的整数值转换为枚举成员
-            return Enum.ToObject(typeToConvert, numValue);
+            return Enum.ToObject(enumType, numValue);
         }
 
         // 处理 JSON 字符串 token
@@ -75,21 +89,20 @@ public class EnumJsonConverter : JsonConverter<object>
             var stringValue = reader.GetString();
 
             // 尝试按枚举名称解析（忽略大小写）
-            if (Enum.TryParse(typeToConvert, stringValue, true, out var nameResult))
+            if (Enum.TryParse(enumType, stringValue, true, out var nameResult))
             {
                 return nameResult;
             }
 
             // 获取枚举的底层类型
-            var underlyingType = Enum.GetUnderlyingType(typeToConvert);
+            var underlyingType = Enum.GetUnderlyingType(enumType);
 
             try
             {
                 // 尝试将字符串解析为底层类型的数字
                 var numericValue = Convert.ChangeType(stringValue, underlyingType);
 
-                // 将指定的整数值转换为枚举成员
-                return Enum.ToObject(typeToConvert, numericValue!);
+                return Enum.ToObject(enumType, numericValue!);
             }
             catch
             {
@@ -97,16 +110,24 @@ public class EnumJsonConverter : JsonConverter<object>
             }
 
             throw new JsonException(
-                $"The JSON string \"{stringValue}\" could not be converted to enum {typeToConvert.Name}.");
+                $"The JSON string \"{stringValue}\" could not be converted to enum {enumType.Name}.");
         }
 
-        throw new JsonException($"Unexpected token {reader.TokenType} when parsing enum {typeToConvert.Name}.");
+        throw new JsonException($"Unexpected token {reader.TokenType} when parsing enum {enumType.Name}.");
     }
 
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
     {
-        // 检查是否将枚举输出为字符串（枚举名称）
+        // 空检查
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        // 检查是否将枚举输出为枚举名称
         if (WriteAsString)
         {
             writer.WriteStringValue(value.ToString());
