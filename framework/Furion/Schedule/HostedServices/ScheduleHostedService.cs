@@ -520,6 +520,21 @@ internal sealed class ScheduleHostedService : BackgroundService
             // 将作业触发器运行数据写入持久化
             _schedulerFactory.Shorthand(jobDetail, trigger);
 
+            // 处理临时作业，执行完成后移除（手动执行不会移除）
+            //if (jobDetail.Temporary && trigger.Mode == 0)
+            //{
+            //    _schedulerFactory.TryRemoveJob(jobDetail.JobId, out _);
+            //}
+
+            // 重置触发模式：0:定时，1:手动
+            trigger.Mode = 0;
+
+            // 清除触发器上的临时自定义数据
+            trigger.ManualRunCustomData = null;
+
+            // 清空存储作业执行过程中传递的数据
+            trigger.Result = null;
+
             // 输出阻塞日志
             _logger.LogWarning("{occurrenceTime}: The <{TriggerId}> trigger for job <{JobId}> was skipped as the job is configured for serial execution and a previous instance is still running.", occurrenceTime, trigger.TriggerId, jobDetail.JobId);
 
