@@ -249,7 +249,7 @@ def extract_entity_configs(dbcontext_content: str) -> Dict[str, str]:
 def main():
     args = parse_args()
 
-    fur_tools = "Furion Tools v4.9.9.85"
+    fur_tools = "Furion Tools v4.9.9.86"
     copyright_text = r"""
 // -----------------------------------------------------------------------------
 //  ______          _               _______          _
