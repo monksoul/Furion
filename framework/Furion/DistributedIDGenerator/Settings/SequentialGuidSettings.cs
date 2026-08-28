@@ -31,12 +31,12 @@ namespace Furion.DistributedIDGenerator;
 public sealed class SequentialGuidSettings
 {
     /// <summary>
-    /// 当前时间
+    /// 自定义时间
     /// </summary>
     public DateTimeOffset? TimeNow { get; set; }
 
     /// <summary>
-    /// LittleEndianBinary 16 格式化
+    /// 是否生成适合 Little-Endian 二进制存储的格式
     /// </summary>
     public bool LittleEndianBinary16Format { get; set; }
 }

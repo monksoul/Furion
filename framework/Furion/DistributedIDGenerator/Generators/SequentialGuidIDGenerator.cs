@@ -38,6 +38,9 @@ public class SequentialGuidIDGenerator : IDistributedIDGenerator
     /// </summary>
     private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
 
+    private static long _lastTimestamp = DateTime.UtcNow.Ticks;
+    private static int _counter;
+
     /// <summary>
     /// 生成逻辑
     /// </summary>
@@ -54,36 +57,46 @@ public class SequentialGuidIDGenerator : IDistributedIDGenerator
 
         var options = idGeneratorOptions as SequentialGuidSettings;
 
-        var randomBytes = new byte[7];
+        var timestamp = (options?.TimeNow ?? DateTimeOffset.UtcNow).Ticks;
+
+        timestamp = EnsureMonotonicTimestamp(timestamp);
+
+        var ticks = (ulong)timestamp;
+
+        var randomBytes = new byte[9];
         _rng.GetBytes(randomBytes);
-        var ticks = (ulong)(options?.TimeNow == null ? DateTimeOffset.UtcNow : options.TimeNow.Value).Ticks;
 
-        var uuidVersion = (ushort)4;
-        var uuidVariant = (ushort)0b1000;
+        const ushort uuidVersion = 4;
+        const ushort uuidVariant = 0b1000;
 
-        var ticksAndVersion = (ushort)((ticks << 48 >> 52) | (ushort)(uuidVersion << 12));
-        var ticksAndVariant = (byte)((ticks << 60 >> 60) | (byte)(uuidVariant << 4));
+        var ticksPart3 = (uint)((ticks >> 4) & 0x0FFFUL);
+        var ticksAndVersion = (ticksPart3 & 0x0FFFU) | ((uint)uuidVersion << 12);
+
+        var ticksPart4 = (uint)(ticks & 0x0FUL);
+        var ticksAndVariant = (ticksPart4 & 0x0FU) | ((uint)uuidVariant << 4);
 
         if (options?.LittleEndianBinary16Format == true)
         {
             var guidBytes = new byte[16];
-            var tickBytes = BitConverter.GetBytes(ticks);
-            if (BitConverter.IsLittleEndian)
+
+            for (var i = 0; i < 6; i++)
             {
-                Array.Reverse(tickBytes);
+                guidBytes[i] = (byte)(ticks >> (40 - i * 8));
             }
 
-            Buffer.BlockCopy(tickBytes, 0, guidBytes, 0, 6);
-            guidBytes[6] = (byte)(ticksAndVersion << 8 >> 8);
-            guidBytes[7] = (byte)(ticksAndVersion >> 8);
-            guidBytes[8] = ticksAndVariant;
-            Buffer.BlockCopy(randomBytes, 0, guidBytes, 9, 7);
+            guidBytes[6] = (byte)(((uint)uuidVersion << 4) | (uint)((ticks >> 4) & 0x0FUL));
+            guidBytes[7] = (byte)(((uint)(ticks & 0x0FUL) << 4) | (uint)(randomBytes[0] & 0x0F));
+            guidBytes[8] = (byte)(((uint)uuidVariant << 4) | (uint)(randomBytes[1] & 0x0F));
+            Buffer.BlockCopy(randomBytes, 2, guidBytes, 9, 7);
 
             return new Guid(guidBytes);
         }
 
-        var guid = new Guid((uint)(ticks >> 32), (ushort)(ticks << 32 >> 48), ticksAndVersion,
-            ticksAndVariant,
+        var guid = new Guid(
+            (uint)(ticks >> 32),
+            (ushort)(ticks << 32 >> 48),
+            (ushort)ticksAndVersion,
+            (byte)ticksAndVariant,
             randomBytes[0],
             randomBytes[1],
             randomBytes[2],
@@ -93,5 +106,28 @@ public class SequentialGuidIDGenerator : IDistributedIDGenerator
             randomBytes[6]);
 
         return guid;
+    }
+
+    /// <summary>
+    /// 确保时间戳单调递增
+    /// </summary>
+    /// <param name="timestamp"></param>
+    /// <returns></returns>
+    private static long EnsureMonotonicTimestamp(long timestamp)
+    {
+        while (true)
+        {
+            var original = Interlocked.Read(ref _lastTimestamp);
+            var newValue = Math.Max(timestamp, original + 1);
+
+            if (Interlocked.CompareExchange(ref _lastTimestamp, newValue, original) == original)
+            {
+                if (newValue > timestamp)
+                {
+                    Interlocked.Increment(ref _counter);
+                }
+                return newValue;
+            }
+        }
     }
 }

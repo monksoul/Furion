@@ -1,5 +1,6 @@
 ﻿using Furion.AspNetCore;
 using Furion.DatabaseAccessor.Extensions;
+using Furion.DistributedIDGenerator;
 using Furion.Extensions;
 using Furion.JsonSerialization;
 using Furion.Logging;
@@ -850,6 +851,41 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
     public string 测试Email验证(EmailModel model)
     {
         return model.Email;
+    }
+
+    public void 测试连续GUID()
+    {
+        var generator = new SequentialGuidIDGenerator();
+
+        Console.WriteLine("=== 默认格式（适合 SQL Server / .NET 比较）===");
+        for (int i = 0; i < 5; i++)
+        {
+            var guid = (Guid)generator.Create();
+            Console.WriteLine(guid.ToString());
+        }
+
+        Console.WriteLine("\n=== Little-Endian 二进制格式（适合 MySQL BINARY(16)）===");
+        var options = new SequentialGuidSettings { LittleEndianBinary16Format = true };
+        for (int i = 0; i < 5; i++)
+        {
+            var guid = (Guid)generator.Create(options);
+            var bytes = guid.ToByteArray();
+            Console.WriteLine(Convert.ToHexString(bytes));
+        }
+
+        Console.WriteLine("\n=== 验证顺序性（默认格式）===");
+        var previous = Guid.Empty;
+        for (int i = 0; i < 1000; i++)
+        {
+            var current = (Guid)generator.Create();
+            if (current.CompareTo(previous) < 0)
+            {
+                Console.WriteLine($"乱序发生：{previous} -> {current}");
+                break;
+            }
+            previous = current;
+        }
+        Console.WriteLine("顺序性检查完成。");
     }
 }
 
