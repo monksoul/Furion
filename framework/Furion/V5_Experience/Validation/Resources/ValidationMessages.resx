@@ -327,4 +327,10 @@
   <data name="SensitiveWordValidator_ValidationError_ShowMatchedWords" xml:space="preserve">
     <value>The field {0} contains sensitive or prohibited words: {1}.</value>
   </data>
+  <data name="UnifiedSocialCreditCodeValidator_ValidationError" xml:space="preserve">
+    <value>The field {0} is not a valid unified social credit code.</value>
+  </data>
+  <data name="UnifiedSocialCreditCodeValidator_ValidationError_AllowLooseMatch" xml:space="preserve">
+    <value>The field {0} is not a valid unified social credit code (loose match).</value>
+  </data>
 </root>

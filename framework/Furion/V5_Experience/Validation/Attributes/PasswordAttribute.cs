@@ -34,7 +34,7 @@ namespace System.ComponentModel.DataAnnotations;
 /// <remarks>
 ///     支持普通和强密码两种模式：
 ///     普通模式：密码长度为 8-64 位，包含至少一个字母和一个数字。
-///     强密码模式：密码长度为 12-64 位，必须包含大小写字母、数字、特殊字符（如 <![CDATA[!@#$%^&*]]>）。
+///     强密码模式：密码长度为 12-64 位，必须包含大小写字母、数字、任意非空白特殊字符。
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class PasswordAttribute : ValidationBaseAttribute

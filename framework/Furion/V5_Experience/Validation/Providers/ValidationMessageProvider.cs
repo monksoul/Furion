@@ -150,7 +150,9 @@ public static class ValidationMessageProvider
             { "HaveLengthValidator_ValidationError_AllowEmpty", "字段 {0} 必须为空，或长度恰好为“{1}”。" },
             { "FileExtensionsValidator_ValidationError", "字段 {0} 仅接受以下扩展名的文件：{1}。" },
             { "SensitiveWordValidator_ValidationError", "字段 {0} 包含敏感或违禁词汇。" },
-            { "SensitiveWordValidator_ValidationError_ShowMatchedWords", "字段 {0} 包含敏感或违禁词汇：{1}。" }
+            { "SensitiveWordValidator_ValidationError_ShowMatchedWords", "字段 {0} 包含敏感或违禁词汇：{1}。" },
+            { "UnifiedSocialCreditCodeValidator_ValidationError", "字段 {0} 不是有效的统一社会信用代码。" },
+            { "UnifiedSocialCreditCodeValidator_ValidationError_AllowLooseMatch", "字段 {0} 不是有效的统一社会信用代码（宽松匹配）。" }
         };
 
         AddOverrides(chineseMessages);

@@ -1166,6 +1166,16 @@ public static class Validators
         DateTimeStyles style = DateTimeStyles.None) => new(formats) { Provider = provider, Style = style };
 
     /// <summary>
+    ///     创建统一社会信用代码验证器
+    /// </summary>
+    /// <param name="allowLooseMatch">是否使用宽松匹配模式，允许 15/18/20 位数字或字母。默认值为：<c>false</c>。</param>
+    /// <returns>
+    ///     <see cref="UnifiedSocialCreditCodeValidator" />
+    /// </returns>
+    public static UnifiedSocialCreditCodeValidator UnifiedSocialCreditCode(bool allowLooseMatch = false) =>
+        new() { AllowLooseMatch = allowLooseMatch };
+
+    /// <summary>
     ///     创建 URL 地址验证器
     /// </summary>
     /// <param name="supportsFtp">是否支持 FTP 协议。默认值为：<c>false</c>。</param>

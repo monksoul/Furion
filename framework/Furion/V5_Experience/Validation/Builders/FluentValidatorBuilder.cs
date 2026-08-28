@@ -1110,6 +1110,16 @@ public abstract class FluentValidatorBuilder<T, TSelf> : IValidatorInitializer
         AddValidator(new TimeOnlyValidator(formats) { Provider = provider, Style = style });
 
     /// <summary>
+    ///     添加统一社会信用代码验证器
+    /// </summary>
+    /// <param name="allowLooseMatch">是否使用宽松匹配模式，允许 15/18/20 位数字或字母。默认值为：<c>false</c>。</param>
+    /// <returns>
+    ///     <typeparamref name="TSelf" />
+    /// </returns>
+    public virtual TSelf UnifiedSocialCreditCode(bool allowLooseMatch = false) =>
+        AddValidator(new UnifiedSocialCreditCodeValidator { AllowLooseMatch = allowLooseMatch });
+
+    /// <summary>
     ///     添加 URL 地址验证器
     /// </summary>
     /// <param name="supportsFtp">是否支持 FTP 协议。默认值为：<c>false</c>。</param>

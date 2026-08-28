@@ -209,7 +209,7 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
     /// <param name="entityBuilder">实体类型构建器</param>
     /// <param name="dbContext">数据库上下文</param>
     /// <param name="onTableTenantId">多租户Id属性名</param>
-    /// <returns>表达式</returns>
+    /// <returns></returns>
     protected virtual LambdaExpression BuildTenantQueryFilter(EntityTypeBuilder entityBuilder, DbContext dbContext, string onTableTenantId = default)
     {
         onTableTenantId ??= Db.OnTableTenantId;

@@ -655,6 +655,24 @@ namespace Furion.Validation.Resources {
         }
         
         /// <summary>
+        ///   查找类似 The field {0} is not a valid unified social credit code. 的本地化字符串。
+        /// </summary>
+        internal static string UnifiedSocialCreditCodeValidator_ValidationError {
+            get {
+                return ResourceManager.GetString("UnifiedSocialCreditCodeValidator_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 The field {0} is not a valid unified social credit code (loose match). 的本地化字符串。
+        /// </summary>
+        internal static string UnifiedSocialCreditCodeValidator_ValidationError_AllowLooseMatch {
+            get {
+                return ResourceManager.GetString("UnifiedSocialCreditCodeValidator_ValidationError_AllowLooseMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 The {0} field is not a valid fully-qualified http, https URL. 的本地化字符串。
         /// </summary>
         internal static string UrlValidator_ValidationError {

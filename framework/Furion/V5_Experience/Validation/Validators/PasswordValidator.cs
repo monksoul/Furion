@@ -34,7 +34,7 @@ namespace Furion.Validation;
 /// <remarks>
 ///     支持普通和强密码两种模式：
 ///     普通模式：密码长度为 8-64 位，包含至少一个字母和一个数字。
-///     强密码模式：密码长度为 12-64 位，必须包含大小写字母、数字、特殊字符（如 <![CDATA[!@#$%^&*]]>）。
+///     强密码模式：密码长度为 12-64 位，必须包含大小写字母、数字、任意非空白特殊字符。
 /// </remarks>
 public partial class PasswordValidator : ValidatorBase
 {
@@ -81,6 +81,6 @@ public partial class PasswordValidator : ValidatorBase
     ///     强密码正则表达式
     /// </summary>
     /// <remarks>必须包含大小写、数字、特殊字符，长度 12-64 位。</remarks>
-    [GeneratedRegex(@"\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{12,64}\z")]
+    [GeneratedRegex(@"\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9\s]).{12,64}\z")]
     private static partial Regex StrongRegex();
 }

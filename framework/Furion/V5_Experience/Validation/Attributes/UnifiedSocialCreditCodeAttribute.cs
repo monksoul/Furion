@@ -23,17 +23,55 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Validation;
+using Furion.Validation.Resources;
+
 namespace System.ComponentModel.DataAnnotations;
 
 /// <summary>
-///     强密码模式验证特性
+///     统一社会信用代码验证特性
 /// </summary>
-/// <remarks>密码长度为 12-64 位，必须包含大小写字母、数字、任意非空白特殊字符。</remarks>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
-public class StrongPasswordAttribute : PasswordAttribute
+public class UnifiedSocialCreditCodeAttribute : ValidationBaseAttribute
 {
+    /// <inheritdoc cref="UnifiedSocialCreditCodeValidator" />
+    internal readonly UnifiedSocialCreditCodeValidator _validator;
+
     /// <summary>
-    ///     <inheritdoc cref="StrongPasswordAttribute" />
+    ///     <inheritdoc cref="UnifiedSocialCreditCodeAttribute" />
     /// </summary>
-    public StrongPasswordAttribute() => Strong = true;
+    public UnifiedSocialCreditCodeAttribute()
+    {
+        _validator = new UnifiedSocialCreditCodeValidator();
+
+        UseResourceKey(GetResourceKey);
+    }
+
+    /// <summary>
+    ///     是否使用宽松匹配模式
+    /// </summary>
+    /// <remarks>允许 15/18/20 位数字或字母。默认值为：<c>false</c>。</remarks>
+    public bool AllowLooseMatch
+    {
+        get;
+        set
+        {
+            field = value;
+            _validator.AllowLooseMatch = value;
+        }
+    }
+
+    /// <inheritdoc />
+    public override bool IsValid(object? value) => _validator.IsValid(value);
+
+    /// <summary>
+    ///     获取错误信息对应的资源键
+    /// </summary>
+    /// <returns>
+    ///     <see cref="string" />
+    /// </returns>
+    internal string GetResourceKey() =>
+        AllowLooseMatch
+            ? nameof(ValidationMessages.UnifiedSocialCreditCodeValidator_ValidationError_AllowLooseMatch)
+            : nameof(ValidationMessages.UnifiedSocialCreditCodeValidator_ValidationError);
 }
