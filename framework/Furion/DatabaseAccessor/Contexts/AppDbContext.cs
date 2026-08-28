@@ -231,7 +231,7 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
     /// <summary>
     /// 正在更改并跟踪的数据
     /// </summary>
-    private Dictionary<EntityEntry, PropertyValues> ChangeTrackerEntities { get; set; }
+    private Dictionary<EntityEntry, (EntityState State, PropertyValues OriginalValues)> ChangeTrackerEntities { get; set; }
 
     /// <summary>
     /// 内部数据库上下文提交更改之前执行事件
@@ -251,7 +251,10 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
                 ChangeTrackerEntities = dbContext.ChangeTracker.Entries()
                     .Where(u => !u.Entity.GetType().IsDefined(typeof(SuppressChangedListenerAttribute), true)
                         && (u.State == EntityState.Added || u.State == EntityState.Modified || u.State == EntityState.Deleted))
-                    .ToDictionary(u => u, u => u.State == EntityState.Added ? default : u.GetDatabaseValues());
+                    .ToDictionary(
+                        u => u,
+                        u => (u.State, OriginalValues: u.State == EntityState.Added ? null : u.GetDatabaseValues())
+                    );
 
                 AttachEntityChangedListener(eventData.Context, "OnChanging", ChangeTrackerEntities);
             }
@@ -277,7 +280,8 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
         try
         {
             // 附加实体更改通知
-            if (EnabledEntityChangedListener) AttachEntityChangedListener(eventData.Context, "OnChanged", ChangeTrackerEntities);
+            if (EnabledEntityChangedListener)
+                AttachEntityChangedListener(eventData.Context, "OnChanged", ChangeTrackerEntities);
 
             SavedChangesEvent(eventData, result);
         }
@@ -296,7 +300,8 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
         try
         {
             // 附加实体更改通知
-            if (EnabledEntityChangedListener) AttachEntityChangedListener(eventData.Context, "OnChangeFailed", ChangeTrackerEntities);
+            if (EnabledEntityChangedListener)
+                AttachEntityChangedListener(eventData.Context, "OnChangeFailed", ChangeTrackerEntities);
 
             SaveChangesFailedEvent(eventData);
         }
@@ -312,8 +317,13 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
     /// <param name="dbContext"></param>
     /// <param name="triggerMethodName"></param>
     /// <param name="changeTrackerEntities"></param>
-    private static void AttachEntityChangedListener(DbContext dbContext, string triggerMethodName, Dictionary<EntityEntry, PropertyValues> changeTrackerEntities = null)
+    private static void AttachEntityChangedListener(
+        DbContext dbContext,
+        string triggerMethodName,
+        Dictionary<EntityEntry, (EntityState State, PropertyValues OriginalValues)> changeTrackerEntities = null)
     {
+        if (changeTrackerEntities == null || changeTrackerEntities.Count == 0) return;
+
         // 获取所有改变的类型
         var entityChangedTypes = AppDbContextBuilder.DbContextLocatorCorrelationTypes.TryGetValue(typeof(TDbContextLocator), out var correlation)
             ? correlation.EntityChangedTypes
@@ -321,53 +331,119 @@ public abstract class AppDbContext<TDbContext, TDbContextLocator> : DbContext
 
         if (entityChangedTypes.Count == 0) return;
 
-        // 遍历所有的改变的实体
-        foreach (var trackerEntities in changeTrackerEntities)
-        {
-            var entryEntity = trackerEntities.Key;
-            var entity = entryEntity.Entity;
-            var stateProperty = entity.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault();
+        // 获取实体类型到监听器信息的缓存
+        var listenerCache = AppDbContextBuilder.EntityChangedListenerCache;
 
-            if (triggerMethodName == "OnChanging")
+        // 遍历所有的改变的实体
+        foreach (var trackerEntry in changeTrackerEntities)
+        {
+            var entry = trackerEntry.Key;
+            var entity = entry.Entity;
+            var entityType = entity.GetType();
+            var state = trackerEntry.Value.State;
+
+            // 构建复合缓存键
+            var cacheKey = (entityType, typeof(TDbContextLocator));
+
+            // 从缓存中获取或构建当前实体类型对应的监听器信息
+            if (!listenerCache.TryGetValue(cacheKey, out var listeners))
             {
-                if (stateProperty != null && stateProperty.Name == "__State__")
-                {
-                    stateProperty.SetValue(entity, entryEntity.State);
-                }
+                listeners = BuildListenersForEntity(entityType, entityChangedTypes);
+                listenerCache.TryAdd(cacheKey, listeners);
             }
 
-            // 获取该实体类型监听配置
-            var entitiesTypeByChanged = entityChangedTypes
-                .Where(u => u.GetInterfaces()
-                    .Any(i => i.HasImplementedRawGeneric(typeof(IPrivateEntityChangedListener<>)) && i.GenericTypeArguments.Contains(entity.GetType()))).ToList();
-
-            if (entitiesTypeByChanged.Count == 0) continue;
-
-            // 通知所有的监听类型
-            foreach (var entityChangedType in entitiesTypeByChanged)
+            foreach (var listenerInfo in listeners)
             {
-                var OnChangeMethod = entityChangedType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                                                                .FirstOrDefault(u => u.Name == triggerMethodName
-                                                                    && u.GetParameters().Length > 0
-                                                                    && u.GetParameters()[0].ParameterType == entity.GetType());
-                if (OnChangeMethod == null) continue;
+                var instance = Activator.CreateInstance(listenerInfo.ListenerType);
 
-                var instance = Activator.CreateInstance(entityChangedType);
-                var state = stateProperty == null ? EntityState.Unchanged : (EntityState)stateProperty.GetValue(entity);
-
-                // 对 OnChanged 进行特别处理
-                if (triggerMethodName.Equals("OnChanged", StringComparison.Ordinal))
+                if (triggerMethodName == "OnChanged")
                 {
                     // 获取实体旧值
-                    var oldEntity = trackerEntities.Value?.ToObject();
-
-                    OnChangeMethod.Invoke(instance, [entity, oldEntity, dbContext, typeof(TDbContextLocator), state]);
+                    var oldEntity = trackerEntry.Value.OriginalValues?.ToObject();
+                    listenerInfo.OnChangedMethod?.Invoke(instance, [entity, oldEntity, dbContext, typeof(TDbContextLocator), state]);
                 }
                 else
                 {
-                    OnChangeMethod.Invoke(instance, [entity, dbContext, typeof(TDbContextLocator), state]);
+                    var method = triggerMethodName == "OnChanging" ? listenerInfo.OnChangingMethod : listenerInfo.OnChangeFailedMethod;
+                    method?.Invoke(instance, [entity, dbContext, typeof(TDbContextLocator), state]);
                 }
             }
         }
     }
+
+    /// <summary>
+    /// 为指定实体类型构建监听器信息列表
+    /// </summary>
+    /// <param name="entityType">实体类型</param>
+    /// <param name="entityChangedTypes">该上下文定位器关联的所有实体改变监听器类型</param>
+    /// <returns></returns>
+    private static List<EntityChangedListenerInfo> BuildListenersForEntity(Type entityType, List<Type> entityChangedTypes)
+    {
+        var result = new List<EntityChangedListenerInfo>();
+
+        foreach (var listenerType in entityChangedTypes)
+        {
+            // 检查该监听器是否实现了 IPrivateEntityChangedListener<TEntity> 且 TEntity 与实体类型兼容
+            var interfaces = listenerType.GetInterfaces();
+            var isMatch = interfaces.Any(i =>
+                i.IsGenericType &&
+                i.GetGenericTypeDefinition() == typeof(IPrivateEntityChangedListener<>) &&
+                i.GetGenericArguments()[0].IsAssignableFrom(entityType));
+
+            if (!isMatch) continue;
+
+            // 获取监听器中的相关方法
+            var methods = listenerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            var onChanging = methods.FirstOrDefault(m =>
+                m.Name == "OnChanging" &&
+                m.GetParameters().Length > 0 &&
+                m.GetParameters()[0].ParameterType.IsAssignableFrom(entityType));
+
+            var onChanged = methods.FirstOrDefault(m =>
+                m.Name == "OnChanged" &&
+                m.GetParameters().Length > 1 &&
+                m.GetParameters()[0].ParameterType.IsAssignableFrom(entityType));
+
+            var onFailed = methods.FirstOrDefault(m =>
+                m.Name == "OnChangeFailed" &&
+                m.GetParameters().Length > 0 &&
+                m.GetParameters()[0].ParameterType.IsAssignableFrom(entityType));
+
+            result.Add(new EntityChangedListenerInfo
+            {
+                ListenerType = listenerType,
+                OnChangingMethod = onChanging,
+                OnChangedMethod = onChanged,
+                OnChangeFailedMethod = onFailed
+            });
+        }
+
+        return result;
+    }
+}
+
+/// <summary>
+/// 实体改变监听器信息
+/// </summary>
+internal sealed class EntityChangedListenerInfo
+{
+    /// <summary>
+    /// 监听器类型
+    /// </summary>
+    public Type ListenerType { get; set; }
+
+    /// <summary>
+    /// OnChanging 方法
+    /// </summary>
+    public MethodInfo OnChangingMethod { get; set; }
+
+    /// <summary>
+    /// OnChanged 方法
+    /// </summary>
+    public MethodInfo OnChangedMethod { get; set; }
+
+    /// <summary>
+    /// OnChangeFailed 方法
+    /// </summary>
+    public MethodInfo OnChangeFailedMethod { get; set; }
 }

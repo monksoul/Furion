@@ -61,6 +61,11 @@ internal static class AppDbContextBuilder
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
+    /// 实体类型到监听器信息列表的缓存
+    /// </summary>
+    internal static readonly ConcurrentDictionary<(Type EntityType, Type DbContextLocator), List<EntityChangedListenerInfo>> EntityChangedListenerCache = new();
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     static AppDbContextBuilder()
