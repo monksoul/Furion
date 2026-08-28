@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Furion.DistributedIDGenerator;
@@ -37,6 +38,8 @@ public static class ShortIDGen
     private const string Smalls = "abcdefghjklmnopqrstuvwxyz";
     private const string Numbers = "0123456789";
     private const string Specials = "_-";
+
+    private static readonly object SyncRoot = new();
     private static string _pool = $"{Smalls}{Bigs}";
 
     /// <summary>
@@ -51,7 +54,7 @@ public static class ShortIDGen
         {
             UseNumbers = true,
             UseSpecialCharacters = false,
-            Length = 8
+            Length = Constants.MinimumAutoLength
         });
     }
 
@@ -62,39 +65,28 @@ public static class ShortIDGen
     /// <returns></returns>
     public static string NextID(GenerationOptions options)
     {
-        // 配置必填
         ArgumentNullException.ThrowIfNull(options);
 
-        // 判断生成的长度是否小于规定的长度，规定为 8
+        // 长度范围检查
         if (options.Length < Constants.MinimumAutoLength)
         {
             throw new ArgumentException(
                 $"The specified length of {options.Length} is less than the lower limit of {Constants.MinimumAutoLength} to avoid conflicts.");
         }
-
-        var characterPool = _pool;
-        var poolBuilder = new StringBuilder(characterPool);
-
-        // 是否包含数字
-        if (options.UseNumbers)
+        if (options.Length > Constants.MaximumIDLength)
         {
-            poolBuilder.Append(Numbers);
+            throw new ArgumentException(
+                $"The specified length of {options.Length} exceeds the maximum allowed length of {Constants.MaximumIDLength}.");
         }
 
-        // 是否包含特殊字符
-        if (options.UseSpecialCharacters)
-        {
-            poolBuilder.Append(Specials);
-        }
+        // 根据配置构建字符池
+        var pool = GetCharacterPool(options);
 
-        var pool = poolBuilder.ToString();
-
-        // 生成拼接
+        // 使用加密安全随机数生成索引
         var output = new char[options.Length];
         for (var i = 0; i < options.Length; i++)
         {
-            var charIndex = Random.Shared.Next(0, pool.Length);
-            output[i] = pool[charIndex];
+            output[i] = pool[RandomNumberGenerator.GetInt32(pool.Length)];
         }
 
         return new string(output);
@@ -123,7 +115,10 @@ public static class ShortIDGen
                 $"The replacement characters must be at least {Constants.MinimumCharacterSetLength} letters in length and without whitespace.");
         }
 
-        _pool = new string(charSet);
+        lock (SyncRoot)
+        {
+            _pool = new string(charSet);
+        }
     }
 
     /// <summary>
@@ -131,6 +126,34 @@ public static class ShortIDGen
     /// </summary>
     public static void Reset()
     {
-        _pool = $"{Smalls}{Bigs}";
+        lock (SyncRoot)
+        {
+            _pool = $"{Smalls}{Bigs}";
+        }
+    }
+
+    /// <summary>
+    /// 根据配置构建字符池
+    /// </summary>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    private static string GetCharacterPool(GenerationOptions options)
+    {
+        lock (SyncRoot)
+        {
+            var poolBuilder = new StringBuilder(_pool);
+
+            if (options.UseNumbers)
+            {
+                poolBuilder.Append(Numbers);
+            }
+
+            if (options.UseSpecialCharacters)
+            {
+                poolBuilder.Append(Specials);
+            }
+
+            return poolBuilder.ToString();
+        }
     }
 }

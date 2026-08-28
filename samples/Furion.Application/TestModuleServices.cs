@@ -887,6 +887,74 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
         }
         Console.WriteLine("顺序性检查完成。");
     }
+
+    public void 短ID生成()
+    {
+        Console.WriteLine("默认生成：");
+        for (int i = 0; i < 5; i++)
+        {
+            Console.WriteLine(ShortIDGen.NextID());
+        }
+
+        Console.WriteLine("\n自定义选项（无数字，含特殊字符，长度10）：");
+        var options = new GenerationOptions
+        {
+            UseNumbers = false,
+            UseSpecialCharacters = true,
+            Length = 10
+        };
+        for (int i = 0; i < 5; i++)
+        {
+            Console.WriteLine(ShortIDGen.NextID(options));
+        }
+
+        Console.WriteLine("\n长度低于最小值异常测试：");
+        try
+        {
+            ShortIDGen.NextID(new GenerationOptions { Length = 7 });
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        Console.WriteLine("\n长度超过最大值异常测试：");
+        try
+        {
+            ShortIDGen.NextID(new GenerationOptions { Length = 257 });
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        Console.WriteLine("\n自定义字符集：");
+        var customChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        ShortIDGen.SetCharacters(customChars);
+        Console.WriteLine(ShortIDGen.NextID(new GenerationOptions { Length = 8, UseNumbers = false, UseSpecialCharacters = false }));
+
+        Console.WriteLine("\n重置后生成：");
+        ShortIDGen.Reset();
+        Console.WriteLine(ShortIDGen.NextID());
+
+        Console.WriteLine("\n并发生成测试：");
+        try
+        {
+            Parallel.For(0, 1000, i =>
+            {
+                var id = ShortIDGen.NextID();
+                if (id.Length != 8)
+                {
+                    throw new Exception("长度不符合预期");
+                }
+            });
+            Console.WriteLine("并发生成成功，无异常。");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
 }
 
 

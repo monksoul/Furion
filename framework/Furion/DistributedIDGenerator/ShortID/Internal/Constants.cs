@@ -36,7 +36,7 @@ internal static class Constants
     public const int MinimumAutoLength = 8;
 
     /// <summary>
-    /// 最大长度
+    /// 最大自动长度
     /// </summary>
     public const int MaximumAutoLength = 14;
 
@@ -44,4 +44,9 @@ internal static class Constants
     /// 最小可选字符长度
     /// </summary>
     public const int MinimumCharacterSetLength = 50;
+
+    /// <summary>
+    /// 最大长度限制
+    /// </summary>
+    public const int MaximumIDLength = 256;
 }

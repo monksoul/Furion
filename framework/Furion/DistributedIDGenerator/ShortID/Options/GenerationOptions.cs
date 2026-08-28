@@ -44,6 +44,7 @@ public class GenerationOptions
 
     /// <summary>
     /// 设置短 ID 长度
+    /// <para>默认 8 位，允许范围 [8, 256]</para>
     /// </summary>
-    public int Length { get; set; } = Random.Shared.Next(Constants.MinimumAutoLength, Constants.MaximumAutoLength);
+    public int Length { get; set; } = Constants.MinimumAutoLength;
 }
