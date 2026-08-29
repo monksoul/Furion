@@ -28,6 +28,7 @@ using Furion.DistributedIDGenerator;
 using Furion.JsonSerialization;
 using Furion.UnifyResult;
 using Furion.Utilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
@@ -219,12 +220,13 @@ public static class AppServiceCollectionExtensions
     /// 添加应用配置
     /// </summary>
     /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
     /// <param name="configure">服务配置</param>
     /// <returns>服务集合</returns>
-    internal static IServiceCollection AddApp(this IServiceCollection services, Action<IServiceCollection> configure = null)
+    internal static IServiceCollection AddApp(this IServiceCollection services, IConfiguration configuration, Action<IServiceCollection> configure = null)
     {
         // 注册全局配置选项
-        services.AddConfigurableOptions<AppSettingsOptions>();
+        services.AddConfigurableOptions<AppSettingsOptions>(configuration);
 
         // 注册内存和分布式内存
         services.AddMemoryCache();
@@ -242,7 +244,7 @@ public static class AppServiceCollectionExtensions
         if (!(App.Settings.DisableAppStartupScan == true || (AppContext.TryGetSwitch(nameof(AppSettingsOptions.DisableAppStartupScan), out var isEnabled) && isEnabled)))
         {
             // 注册全局 Startup 扫描
-            services.AddStartups();
+            services.AddStartups(configuration);
         }
 
         // 添加对象映射
@@ -261,8 +263,9 @@ public static class AppServiceCollectionExtensions
     /// 添加 Startup 自动扫描
     /// </summary>
     /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
     /// <returns>服务集合</returns>
-    internal static IServiceCollection AddStartups(this IServiceCollection services)
+    internal static IServiceCollection AddStartups(this IServiceCollection services, IConfiguration configuration)
     {
         // 扫描所有继承 AppStartup 或标记 [AppStartup] 特性的类
         var startups = App.EffectiveTypes
@@ -271,11 +274,14 @@ public static class AppServiceCollectionExtensions
 
         foreach (var type in startups)
         {
-            // 获取所有符合依赖注入格式的方法，如返回值 void，且第一个参数是 IServiceCollection 类型
+            // 获取所有符合依赖注入格式的方法：
+            // 返回值 void，参数个数为 1 或 2，第一个参数类型为 IServiceCollection，
+            // 如果参数个数为 2，第二个参数类型为 IConfiguration
             var serviceMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
                 .Where(u => u.ReturnType == typeof(void)
-                            && u.GetParameters().Length > 0
-                            && u.GetParameters()[0].ParameterType == typeof(IServiceCollection))
+                            && u.GetParameters().Length >= 1 && u.GetParameters().Length <= 2
+                            && u.GetParameters()[0].ParameterType == typeof(IServiceCollection)
+                            && (u.GetParameters().Length == 1 || u.GetParameters()[1].ParameterType == typeof(IConfiguration)))
                 .ToList();
 
             if (serviceMethods.Count == 0) continue;
@@ -297,7 +303,12 @@ public static class AppServiceCollectionExtensions
             foreach (var method in serviceMethods)
             {
                 var target = method.IsStatic ? null : instance;
-                method.Invoke(target, [services]);
+
+                // 根据参数个数传入不同的参数
+                var parameters = method.GetParameters().Length == 1
+                    ? new object[] { services }
+                    : new object[] { services, configuration };
+                method.Invoke(target, parameters);
             }
         }
 

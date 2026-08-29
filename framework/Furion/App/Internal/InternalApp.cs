@@ -106,7 +106,7 @@ internal static class InternalApp
             services.AddHttpContextAccessor();
 
             // 初始化应用服务
-            services.AddApp();
+            services.AddApp(hostContext.Configuration);
 
             // 加载自定义配置
             InjectOptions.WebServicesConfigure?.Invoke(hostContext, services);
@@ -136,7 +136,7 @@ internal static class InternalApp
             services.AddHostedService<GenericHostLifetimeEventsHostedService>();
 
             // 初始化应用服务
-            services.AddApp();
+            services.AddApp(hostContext.Configuration);
 
             // 自动注册 BackgroundService
             if (autoRegisterBackgroundService) services.AddAppHostedService();
@@ -169,7 +169,7 @@ internal static class InternalApp
         hostApplicationBuilder.Services.AddHostedService<GenericHostLifetimeEventsHostedService>();
 
         // 初始化应用服务
-        hostApplicationBuilder.Services.AddApp();
+        hostApplicationBuilder.Services.AddApp(hostApplicationBuilder.Configuration);
 
         // 自动注册 BackgroundService
         if (autoRegisterBackgroundService) hostApplicationBuilder.Services.AddAppHostedService();

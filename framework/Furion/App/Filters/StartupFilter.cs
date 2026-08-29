@@ -51,7 +51,7 @@ public class StartupFilter : IStartupFilter
             InternalApp.RootServices ??= app.ApplicationServices;
 
             // 环境名
-            var envName = App.HostEnvironment?.EnvironmentName ?? "Unknown";
+            var envName = App.HostEnvironment?.EnvironmentName;
             var version = $"{GetType().Assembly.GetName().Version}";
 
             // 设置响应报文头信息
@@ -61,8 +61,11 @@ public class StartupFilter : IStartupFilter
                 if (context.IsWebSocketRequest()) await next.Invoke();
                 else
                 {
-                    // 输出当前环境标识
-                    context.Response.Headers["Environment"] = envName;
+                    if (!string.IsNullOrWhiteSpace(envName))
+                    {
+                        // 输出当前环境标识
+                        context.Response.Headers["Environment"] = envName;
+                    }
 
                     // 输出框架版本
                     context.Response.Headers[nameof(Furion)] = version;

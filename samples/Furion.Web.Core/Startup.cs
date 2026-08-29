@@ -5,11 +5,11 @@ using Furion.VirtualFileServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -50,7 +50,7 @@ public sealed class Startup : AppStartup
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-                    options.JsonSerializerOptions.Converters.AddDateTimeTypeConverters(localized: true);
+                    options.JsonSerializerOptions.Converters.AddDateTimeConverters(localized: true);
                     options.JsonSerializerOptions.Converters.AddClayConverters();
 
                     options.JsonSerializerOptions.Converters.AddDateOnlyConverters("yyyy-MM-dd");
@@ -58,7 +58,7 @@ public sealed class Startup : AppStartup
 
                     options.JsonSerializerOptions.Converters.AddDataTableConverters();
                     options.JsonSerializerOptions.Converters.AddDataSetConverters();
-                    options.JsonSerializerOptions.Converters.AddLongTypeConverters();
+                    options.JsonSerializerOptions.Converters.AddLongConverters();
                     options.JsonSerializerOptions.Converters.AddNullableConverters();
                 })
                 .AddClayOptions(options =>

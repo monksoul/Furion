@@ -44,8 +44,9 @@ public static class ConfigurableOptionsServiceCollectionExtensions
     /// </summary>
     /// <typeparam name="TOptions">选项类型</typeparam>
     /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
     /// <returns>服务集合</returns>
-    public static IServiceCollection AddConfigurableOptions<TOptions>(this IServiceCollection services)
+    public static IServiceCollection AddConfigurableOptions<TOptions>(this IServiceCollection services, IConfiguration configuration = null)
         where TOptions : class, IConfigurableOptions
     {
         var optionsType = typeof(TOptions);
@@ -54,7 +55,7 @@ public static class ConfigurableOptionsServiceCollectionExtensions
         var (optionsSettings, path) = Penetrates.GetOptionsConfiguration(optionsType);
 
         // 配置选项（含验证信息）
-        var configurationRoot = App.Configuration;
+        var configurationRoot = configuration ?? App.Configuration;
         var optionsConfiguration = configurationRoot.GetSection(path);
 
         // 配置选项监听
