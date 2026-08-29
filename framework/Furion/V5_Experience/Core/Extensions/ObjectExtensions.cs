@@ -72,8 +72,8 @@ internal static class ObjectExtensions
         {
             null => null,
             string s => s,
-            DateTime dt => dt.ToString("o", culture),
-            DateTimeOffset df => df.ToString("o", culture),
+            DateTime dt => dt.ToString("O", culture),
+            DateTimeOffset df => df.ToString("O", culture),
             DateOnly od => od.ToString("yyyy-MM-dd", culture),
             TimeOnly ot => ot.ToString("HH':'mm':'ss", culture),
             Enum e when enumAsString => e.ToString(),

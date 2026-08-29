@@ -286,7 +286,7 @@ public class ExpandoObjectJsonConverter : JsonConverter<ExpandoObject>
                 break;
             case DateTime dateTimeValue:
                 // ISO 8601 格式
-                writer.WriteStringValue(dateTimeValue.ToString("o", CultureInfo.InvariantCulture));
+                writer.WriteStringValue(dateTimeValue.ToString("O", CultureInfo.InvariantCulture));
                 break;
             case ExpandoObject expandoValue:
                 Write(writer, expandoValue, options);

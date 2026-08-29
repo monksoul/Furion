@@ -64,7 +64,7 @@ public partial class FlexibleDateTimeConverter : JsonConverter<DateTime>
 
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options) =>
-        JsonSerializer.Serialize(writer, value);
+        writer.WriteStringValue(value.ToString("O"));
 
     [GeneratedRegex(@"^/Date\(([+-]*\d+)\)/$", RegexOptions.CultureInvariant)]
     private static partial Regex Regex();
