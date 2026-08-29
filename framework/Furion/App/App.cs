@@ -454,14 +454,16 @@ public static class App
     /// <param name="csharpCode">字符串代码</param>
     /// <param name="assemblyName">自定义程序集名称</param>
     /// <param name="additionalAssemblies">附加的程序集</param>
-    /// <returns><see cref="Assembly"/></returns>
-    public static Assembly CompileCSharpClassCode(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
+    /// <returns><see cref="DynamicCompiledAssembly"/></returns>
+    public static DynamicCompiledAssembly CompileCSharpClassCode(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
     {
         // 编译代码
         using var memoryStream = CompileCSharpClassCodeToStream(csharpCode, assemblyName, additionalAssemblies);
 
         var alc = new AssemblyLoadContext("Furion.DynamicCompile", isCollectible: true);
-        return alc.LoadFromStream(memoryStream);
+        var assembly = alc.LoadFromStream(memoryStream);
+
+        return new DynamicCompiledAssembly(assembly, alc);
     }
 
     /// <summary>
@@ -470,8 +472,8 @@ public static class App
     /// <param name="csharpCode">字符串代码</param>
     /// <param name="assemblyName">自定义程序集名称</param>
     /// <param name="additionalAssemblies">附加的程序集</param>
-    /// <returns><see cref="Assembly"/></returns>
-    public static Assembly CompileCSharpClassCodeToDllFile(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
+    /// <returns><see cref="DynamicCompiledAssembly"/></returns>
+    public static DynamicCompiledAssembly CompileCSharpClassCodeToDllFile(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
     {
         var assName = string.IsNullOrWhiteSpace(assemblyName)
             ? Path.GetFileNameWithoutExtension(Path.GetRandomFileName())
@@ -482,22 +484,25 @@ public static class App
         // 编译代码
         using var memoryStream = CompileCSharpClassCodeToStream(csharpCode, assName, additionalAssemblies);
 
-        // 保存到 dll 文件
+        var tempPath = dllPath + ".tmp";
         using (var fileStream = new FileStream(
-            path: dllPath,
+            path: tempPath,
             mode: FileMode.Create,
             access: FileAccess.Write,
-            share: FileShare.Read,
+            share: FileShare.None,
             bufferSize: 8192,
             useAsync: false))
         {
             memoryStream.CopyTo(fileStream);
         }
+        File.Move(tempPath, dllPath, overwrite: true);
 
-        memoryStream.Position = 0;
-
+        // 加载程序集
         var alc = new AssemblyLoadContext("Furion.DynamicCompile", isCollectible: true);
-        return alc.LoadFromStream(memoryStream);
+        using var loadStream = new MemoryStream(memoryStream.ToArray());
+        var assembly = alc.LoadFromStream(loadStream);
+
+        return new DynamicCompiledAssembly(assembly, alc);
     }
 
     /// <summary>
@@ -506,8 +511,8 @@ public static class App
     /// <param name="csharpCode">字符串代码</param>
     /// <param name="assemblyName">自定义程序集名称</param>
     /// <param name="additionalAssemblies">附加的程序集</param>
-    /// <returns><see cref="Assembly"/></returns>
-    public static async Task<Assembly> CompileCSharpClassCodeToDllFileAsync(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
+    /// <returns><see cref="DynamicCompiledAssembly"/></returns>
+    public static async Task<DynamicCompiledAssembly> CompileCSharpClassCodeToDllFileAsync(string csharpCode, string assemblyName = default, params Assembly[] additionalAssemblies)
     {
         var assName = string.IsNullOrWhiteSpace(assemblyName)
             ? Path.GetFileNameWithoutExtension(Path.GetRandomFileName())
@@ -518,22 +523,25 @@ public static class App
         // 编译代码
         using var memoryStream = CompileCSharpClassCodeToStream(csharpCode, assName, additionalAssemblies);
 
-        // 保存到 dll 文件
+        var tempPath = dllPath + ".tmp";
         await using (var fileStream = new FileStream(
-              path: dllPath,
-              mode: FileMode.Create,
-              access: FileAccess.Write,
-              share: FileShare.Read,
-              bufferSize: 8192,
+            path: tempPath,
+            mode: FileMode.Create,
+            access: FileAccess.Write,
+            share: FileShare.None,
+            bufferSize: 8192,
             useAsync: true))
         {
             await memoryStream.CopyToAsync(fileStream);
         }
+        File.Move(tempPath, dllPath, overwrite: true);
 
-        memoryStream.Position = 0;
-
+        // 加载程序集
         var alc = new AssemblyLoadContext("Furion.DynamicCompile", isCollectible: true);
-        return alc.LoadFromStream(memoryStream);
+        using var loadStream = new MemoryStream(memoryStream.ToArray());
+        var assembly = alc.LoadFromStream(loadStream);
+
+        return new DynamicCompiledAssembly(assembly, alc);
     }
 
     /// <summary>
