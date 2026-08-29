@@ -194,7 +194,7 @@ function NormalizeIndent($code, $indent) {
     return $normalizedLines -join [Environment]::NewLine
 }
 
-$FurTools = "Furion Tools v4.9.9.87"
+$FurTools = "Furion Tools v4.9.9.88"
 
 # 输出信息
 $copyright = @"
