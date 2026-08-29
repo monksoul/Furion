@@ -42,7 +42,7 @@ public static class JsonSerializationExtensions
     /// <param name="outputFormat"></param>
     /// <param name="localized">自动转换 DateTime/DateTimeOffset 为当地时间</param>
     /// <returns></returns>
-    public static IList<JsonConverter> AddDateTimeTypeConverters(this IList<JsonConverter> converters, string outputFormat = "yyyy-MM-dd HH:mm:ss", bool localized = false)
+    public static IList<JsonConverter> AddDateTimeConverters(this IList<JsonConverter> converters, string outputFormat = "yyyy-MM-dd HH:mm:ss", bool localized = false)
     {
         converters.Add(new DateTimeJsonConverter(outputFormat, localized));
         converters.Add(new NullableDateTimeJsonConverter(outputFormat, localized));
@@ -59,7 +59,7 @@ public static class JsonSerializationExtensions
     /// <param name="converters"></param>
     /// <param name="overMaxLengthOf17">是否超过最大长度 17 再处理</param>
     /// <returns></returns>
-    public static IList<JsonConverter> AddLongTypeConverters(this IList<JsonConverter> converters, bool overMaxLengthOf17 = false)
+    public static IList<JsonConverter> AddLongConverters(this IList<JsonConverter> converters, bool overMaxLengthOf17 = false)
     {
         converters.Add(new LongToStringJsonConverter(overMaxLengthOf17));
         converters.Add(new NullableLongToStringJsonConverter(overMaxLengthOf17));

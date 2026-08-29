@@ -714,14 +714,14 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
             if (longTypeConverter)
             {
                 // 解决 long 精度问题
-                options.Converters.AddLongTypeConverters();
+                options.Converters.AddLongConverters();
             }
 
             // 解决粘土对象序列化问题
             options.Converters.AddClayConverters();
 
             // 解决 DateTime/DateTimeOffset 格式化问题
-            options.Converters.AddDateTimeTypeConverters();
+            options.Converters.AddDateTimeConverters();
 
             // 解决 DataTable 和 DataSet 的问题
             options.Converters.AddDataTableConverters();
