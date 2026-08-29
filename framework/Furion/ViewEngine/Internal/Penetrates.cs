@@ -38,22 +38,6 @@ internal static class Penetrates
     private const string TemplateTypeName = "Furion.ViewEngine.Template";
 
     /// <summary>
-    /// 获取模板文件名
-    /// </summary>
-    /// <param name="fileName"></param>
-    /// <returns></returns>
-    internal static string GetTemplateFileName(string fileName)
-    {
-        var templateSaveDir = Path.Combine(AppContext.BaseDirectory, "templates");
-        if (!Directory.Exists(templateSaveDir)) Directory.CreateDirectory(templateSaveDir);
-
-        if (!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) fileName += ".dll";
-        var templatePath = Path.Combine(templateSaveDir, "~" + fileName);
-
-        return templatePath;
-    }
-
-    /// <summary>
     /// 加载模板类型
     /// </summary>
     /// <param name="assemblyBytes"></param>

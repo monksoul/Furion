@@ -269,7 +269,7 @@ internal sealed class ViewEngine : IViewEngine
     public IViewEngineTemplate CompileFromCached(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction));
-        var templatePath = Penetrates.GetTemplateFileName(fileName);
+        var templatePath = GetTemplateFileName(fileName);
 
         IViewEngineTemplate template = null;
 
@@ -340,7 +340,7 @@ internal sealed class ViewEngine : IViewEngine
     public async Task<IViewEngineTemplate> CompileFromCachedAsync(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction));
-        var templatePath = Penetrates.GetTemplateFileName(fileName);
+        var templatePath = GetTemplateFileName(fileName);
 
         IViewEngineTemplate template = null;
 
@@ -380,7 +380,7 @@ internal sealed class ViewEngine : IViewEngine
         where T : IViewEngineModel
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction, typeof(T)));
-        var templatePath = Penetrates.GetTemplateFileName(fileName);
+        var templatePath = GetTemplateFileName(fileName);
 
         IViewEngineTemplate<T> template = null;
 
@@ -457,7 +457,7 @@ internal sealed class ViewEngine : IViewEngine
         where T : IViewEngineModel
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction, typeof(T)));
-        var templatePath = Penetrates.GetTemplateFileName(fileName);
+        var templatePath = GetTemplateFileName(fileName);
 
         IViewEngineTemplate<T> template = null;
 
@@ -650,5 +650,27 @@ internal sealed class ViewEngine : IViewEngine
         stringBuilder.Append(content);
 
         return stringBuilder.ToString();
+    }
+
+    /// <summary>
+    /// 获取模板文件名
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <returns></returns>
+    internal string GetTemplateFileName(string fileName)
+    {
+        var templateSaveDir = _globalOptions.CacheDirectory;
+
+        if (string.IsNullOrWhiteSpace(templateSaveDir))
+        {
+            templateSaveDir = Path.Combine(AppContext.BaseDirectory, "templates");
+        }
+
+        if (!Directory.Exists(templateSaveDir)) Directory.CreateDirectory(templateSaveDir);
+
+        if (!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) fileName += ".dll";
+        var templatePath = Path.Combine(templateSaveDir, "~" + fileName);
+
+        return templatePath;
     }
 }

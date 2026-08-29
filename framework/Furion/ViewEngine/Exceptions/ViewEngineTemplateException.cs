@@ -103,7 +103,7 @@ public class ViewEngineTemplateException : ViewEngineException
 
                 sb.AppendLine().AppendFormat("  [{0}] ({1},{2}): {3}", error.Id, line, col, error.GetMessage());
 
-                // 显示错误代码上下文（上下各 ContextLines 行）
+                // 显示错误代码上下文
                 if (lines != null)
                 {
                     var start = Math.Max(0, line - 1 - ContextLines);

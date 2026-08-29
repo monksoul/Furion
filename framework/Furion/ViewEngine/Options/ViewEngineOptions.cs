@@ -75,6 +75,7 @@ public class ViewEngineOptions
         DefaultUsings = new(other.DefaultUsings);
         CodeContextLines = other.CodeContextLines;
         CacheSlidingExpiration = other.CacheSlidingExpiration;
+        CacheDirectory = other.CacheDirectory;
     }
 
     /// <summary>
@@ -123,6 +124,11 @@ public class ViewEngineOptions
     /// </summary>
     /// <remarks>默认 8 小时</remarks>
     public TimeSpan CacheSlidingExpiration { get; set; }
+
+    /// <summary>
+    /// 模板编译缓存文件存储目录
+    /// </summary>
+    public string CacheDirectory { get; set; } = Path.Combine(AppContext.BaseDirectory, "templates");
 }
 
 /// <summary>
