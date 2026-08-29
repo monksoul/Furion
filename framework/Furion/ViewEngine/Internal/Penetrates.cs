@@ -35,21 +35,76 @@ internal static class Penetrates
     /// <summary>
     /// 模板类型全名
     /// </summary>
-    private const string TemplateTypeName = "Furion.ViewEngine.Template";
+    internal const string TemplateTypeName = "Furion.ViewEngine.Template";
 
     /// <summary>
-    /// 加载模板类型
+    /// 从程序集字节中加载模板类型
     /// </summary>
     /// <param name="assemblyBytes"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    internal static Type LoadTemplateType(byte[] assemblyBytes)
+    internal static (Type Type, AssemblyLoadContext Context) LoadTemplateType(byte[] assemblyBytes)
     {
         var alc = new AssemblyLoadContext(TemplateTypeName, isCollectible: true);
 
         using var ms = new MemoryStream(assemblyBytes);
         var assembly = alc.LoadFromStream(ms);
 
-        return assembly.GetType(TemplateTypeName) ?? throw new InvalidOperationException("Template type not found in compiled assembly.");
+        var type = assembly.GetType(TemplateTypeName)
+            ?? throw new InvalidOperationException("Template type not found in compiled assembly.");
+
+        return (type, alc);
+    }
+
+    /// <summary>
+    /// 从文件加载模板
+    /// </summary>
+    internal static IViewEngineTemplate LoadTemplateFromFileSafely(string templatePath)
+    {
+        var bytes = File.ReadAllBytes(templatePath);
+
+        var (_, alc) = LoadTemplateType(bytes);
+        alc.Unload();
+
+        return new ViewEngineTemplate(bytes, TemplateTypeName, templatePath);
+    }
+
+    /// <summary>
+    /// 从文件加载模板
+    /// </summary>
+    internal static IViewEngineTemplate<T> LoadTemplateFromFileSafely<T>(string templatePath) where T : IViewEngineModel
+    {
+        var bytes = File.ReadAllBytes(templatePath);
+
+        var (_, alc) = LoadTemplateType(bytes);
+        alc.Unload();
+
+        return new ViewEngineTemplate<T>(bytes, TemplateTypeName, templatePath);
+    }
+
+    /// <summary>
+    /// 写入模板文件
+    /// </summary>
+    internal static void SaveTemplateAtomically(string templatePath, IViewEngineTemplate template)
+    {
+        var tempPath = templatePath + ".tmp";
+        using (var stream = File.Create(tempPath))
+        {
+            template.SaveToStream(stream);
+        }
+        File.Move(tempPath, templatePath, overwrite: true);
+    }
+
+    /// <summary>
+    /// 写入模板文件
+    /// </summary>
+    internal static void SaveTemplateAtomically<T>(string templatePath, IViewEngineTemplate<T> template) where T : IViewEngineModel
+    {
+        var tempPath = templatePath + ".tmp";
+        using (var stream = File.Create(tempPath))
+        {
+            template.SaveToStream(stream);
+        }
+        File.Move(tempPath, templatePath, overwrite: true);
     }
 }

@@ -35,12 +35,12 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// <summary>
     /// 程序集字节码
     /// </summary>
-    private readonly byte[] _assemblyBytes;
+    private byte[] _assemblyBytes;
 
     /// <summary>
-    /// 模板类型
+    /// 模板类型全名
     /// </summary>
-    private readonly Type _templateType;
+    private string _templateTypeName;
 
     /// <summary>
     /// 是否已释放
@@ -50,15 +50,15 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// <summary>
     /// 缓存文件路径
     /// </summary>
-    private readonly string? _cacheFilePath;
+    private string? _cacheFilePath;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateType">模板类型</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, Type templateType)
-        : this(assemblyBytes, templateType, null)
+    /// <param name="templateTypeName">模板类型全名</param>
+    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName)
+        : this(assemblyBytes, templateTypeName, null)
     {
     }
 
@@ -66,16 +66,16 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateType">模板类型</param>
+    /// <param name="templateTypeName">模板类型全名</param>
     /// <param name="cacheFilePath">缓存文件路径</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, Type templateType, string? cacheFilePath)
+    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName, string? cacheFilePath)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(assemblyBytes);
-        ArgumentNullException.ThrowIfNull(templateType);
+        ArgumentNullException.ThrowIfNull(templateTypeName);
 
         _assemblyBytes = assemblyBytes;
-        _templateType = templateType;
+        _templateTypeName = templateTypeName;
         _cacheFilePath = cacheFilePath;
     }
 
@@ -137,9 +137,10 @@ public class ViewEngineTemplate : IViewEngineTemplate
             model = new AnonymousTypeWrapper(model);
         }
 
+        var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (IViewEngineModel)Activator.CreateInstance(_templateType);
+            var instance = (IViewEngineModel)Activator.CreateInstance(type);
             instance.Model = model;
 
             instance.Execute();
@@ -148,6 +149,10 @@ public class ViewEngineTemplate : IViewEngineTemplate
         catch (InvalidCastException ex)
         {
             throw GetCacheMismatchException(ex);
+        }
+        finally
+        {
+            alc.Unload();
         }
     }
 
@@ -165,9 +170,10 @@ public class ViewEngineTemplate : IViewEngineTemplate
             model = new AnonymousTypeWrapper(model);
         }
 
+        var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (IViewEngineModel)Activator.CreateInstance(_templateType);
+            var instance = (IViewEngineModel)Activator.CreateInstance(type);
             instance.Model = model;
 
             await instance.ExecuteAsync();
@@ -176,6 +182,10 @@ public class ViewEngineTemplate : IViewEngineTemplate
         catch (InvalidCastException ex)
         {
             throw GetCacheMismatchException(ex);
+        }
+        finally
+        {
+            alc.Unload();
         }
     }
 
@@ -187,8 +197,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
     public static IViewEngineTemplate LoadFromFile(string fullName)
     {
         var bytes = File.ReadAllBytes(fullName);
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate(bytes, type, fullName);
+        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName, fullName);
     }
 
     /// <summary>
@@ -199,8 +208,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
     public static async Task<IViewEngineTemplate> LoadFromFileAsync(string fullName)
     {
         var bytes = await File.ReadAllBytesAsync(fullName);
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate(bytes, type, fullName);
+        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName, fullName);
     }
 
     /// <summary>
@@ -213,8 +221,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate(bytes, type);
+        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName);
     }
 
     /// <summary>
@@ -227,14 +234,19 @@ public class ViewEngineTemplate : IViewEngineTemplate
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
         var bytes = ms.ToArray();
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate(bytes, type);
+        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (_disposed) return;
         _disposed = true;
+
+        // 释放引用
+        _assemblyBytes = null!;
+        _templateTypeName = null!;
+        _cacheFilePath = null!;
     }
 
     /// <summary>
@@ -263,12 +275,12 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     /// <summary>
     /// 程序集字节码
     /// </summary>
-    private readonly byte[] _assemblyBytes;
+    private byte[] _assemblyBytes;
 
     /// <summary>
-    /// 模板类型
+    /// 模板类型全名
     /// </summary>
-    private readonly Type _templateType;
+    private string _templateTypeName;
 
     /// <summary>
     /// 是否已释放
@@ -278,15 +290,15 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     /// <summary>
     /// 缓存文件路径
     /// </summary>
-    private readonly string? _cacheFilePath;
+    private string? _cacheFilePath;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateType">模板类型</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, Type templateType)
-        : this(assemblyBytes, templateType, null)
+    /// <param name="templateTypeName">模板类型全名</param>
+    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName)
+        : this(assemblyBytes, templateTypeName, null)
     {
     }
 
@@ -294,16 +306,16 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateType">模板类型</param>
+    /// <param name="templateTypeName">模板类型全名</param>
     /// <param name="cacheFilePath">缓存文件路径</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, Type templateType, string? cacheFilePath)
+    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName, string? cacheFilePath)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(assemblyBytes);
-        ArgumentNullException.ThrowIfNull(templateType);
+        ArgumentNullException.ThrowIfNull(templateTypeName);
 
         _assemblyBytes = assemblyBytes;
-        _templateType = templateType;
+        _templateTypeName = templateTypeName;
         _cacheFilePath = cacheFilePath;
     }
 
@@ -360,9 +372,10 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     {
         if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
 
+        var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (T)Activator.CreateInstance(_templateType);
+            var instance = (T)Activator.CreateInstance(type);
             initializer(instance);
 
             instance.Execute();
@@ -371,6 +384,10 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
         catch (InvalidCastException ex)
         {
             throw GetCacheMismatchException(ex);
+        }
+        finally
+        {
+            alc.Unload();
         }
     }
 
@@ -383,9 +400,10 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     {
         if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
 
+        var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (T)Activator.CreateInstance(_templateType);
+            var instance = (T)Activator.CreateInstance(type);
             initializer(instance);
 
             await instance.ExecuteAsync();
@@ -394,6 +412,10 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
         catch (InvalidCastException ex)
         {
             throw GetCacheMismatchException(ex);
+        }
+        finally
+        {
+            alc.Unload();
         }
     }
 
@@ -405,8 +427,7 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     public static IViewEngineTemplate<T> LoadFromFile(string fullName)
     {
         var bytes = File.ReadAllBytes(fullName);
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate<T>(bytes, type, fullName);
+        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName, fullName);
     }
 
     /// <summary>
@@ -417,8 +438,7 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     public static async Task<IViewEngineTemplate<T>> LoadFromFileAsync(string fullName)
     {
         var bytes = await File.ReadAllBytesAsync(fullName);
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate<T>(bytes, type, fullName);
+        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName, fullName);
     }
 
     /// <summary>
@@ -431,8 +451,7 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate<T>(bytes, type);
+        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName);
     }
 
     /// <summary>
@@ -445,14 +464,19 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
         var bytes = ms.ToArray();
-        var type = Penetrates.LoadTemplateType(bytes);
-        return new ViewEngineTemplate<T>(bytes, type);
+        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (_disposed) return;
         _disposed = true;
+
+        // 释放引用
+        _assemblyBytes = null!;
+        _templateTypeName = null!;
+        _cacheFilePath = null!;
     }
 
     /// <summary>

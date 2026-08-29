@@ -70,12 +70,24 @@ internal sealed class ViewEngine : IViewEngine
     private readonly ConcurrentDictionary<string, MetadataReference> _metadataReferenceCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    /// 文件锁字典
+    /// </summary>
+    private readonly ConcurrentDictionary<string, object> _fileLocks = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// 编译缓存条目
     /// </summary>
     private sealed class CompilationCacheEntry
     {
+        /// <summary>
+        /// 程序集字节数组
+        /// </summary>
         public byte[] AssemblyBytes { get; init; } = default!;
-        public Type TemplateType { get; init; } = default!;
+
+        /// <summary>
+        /// 模板类型全名
+        /// </summary>
+        public string TemplateTypeName { get; init; } = Penetrates.TemplateTypeName;
     }
 
     /// <summary>
@@ -269,21 +281,34 @@ internal sealed class ViewEngine : IViewEngine
     public IViewEngineTemplate CompileFromCached(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction));
+        fileName = Path.GetFileName(fileName);
         var templatePath = GetTemplateFileName(fileName);
 
-        IViewEngineTemplate template = null;
-
-        if (File.Exists(templatePath))
+        var fileLock = _fileLocks.GetOrAdd(templatePath, _ => new object());
+        lock (fileLock)
         {
-            template = ViewEngineTemplate.LoadFromFile(templatePath);
-        }
-        else
-        {
-            template = Compile(content, builderAction);
-            template.SaveToFile(templatePath);
-        }
+            IViewEngineTemplate template = null;
 
-        return template;
+            try
+            {
+                if (File.Exists(templatePath))
+                {
+                    template = Penetrates.LoadTemplateFromFileSafely(templatePath);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
+            {
+                try { File.Delete(templatePath); } catch { }
+            }
+
+            if (template == null)
+            {
+                template = Compile(content, builderAction);
+                Penetrates.SaveTemplateAtomically(templatePath, template);
+            }
+
+            return template;
+        }
     }
 
     /// <summary>
@@ -313,21 +338,27 @@ internal sealed class ViewEngine : IViewEngine
 
                 using var memoryStream = CreateAndCompileToStream(content, options);
                 var assemblyBytes = memoryStream.ToArray();
-                var templateType = Penetrates.LoadTemplateType(assemblyBytes);
 
-                return new CompilationCacheEntry { AssemblyBytes = assemblyBytes, TemplateType = templateType };
+                return new CompilationCacheEntry
+                {
+                    AssemblyBytes = assemblyBytes,
+                    TemplateTypeName = Penetrates.TemplateTypeName
+                };
             })!;
         }
         else
         {
             using var memoryStream = CreateAndCompileToStream(content, options);
             var assemblyBytes = memoryStream.ToArray();
-            var templateType = Penetrates.LoadTemplateType(assemblyBytes);
 
-            cacheEntry = new CompilationCacheEntry { AssemblyBytes = assemblyBytes, TemplateType = templateType };
+            cacheEntry = new CompilationCacheEntry
+            {
+                AssemblyBytes = assemblyBytes,
+                TemplateTypeName = Penetrates.TemplateTypeName
+            };
         }
 
-        return new ViewEngineTemplate(cacheEntry.AssemblyBytes, cacheEntry.TemplateType);
+        return new ViewEngineTemplate(cacheEntry.AssemblyBytes, cacheEntry.TemplateTypeName);
     }
 
     /// <summary>
@@ -340,21 +371,34 @@ internal sealed class ViewEngine : IViewEngine
     public async Task<IViewEngineTemplate> CompileFromCachedAsync(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction));
+        fileName = Path.GetFileName(fileName);
         var templatePath = GetTemplateFileName(fileName);
 
-        IViewEngineTemplate template = null;
-
-        if (File.Exists(templatePath))
+        var fileLock = _fileLocks.GetOrAdd(templatePath, _ => new object());
+        lock (fileLock)
         {
-            template = await ViewEngineTemplate.LoadFromFileAsync(templatePath);
-        }
-        else
-        {
-            template = await CompileAsync(content, builderAction);
-            await template.SaveToFileAsync(templatePath);
-        }
+            IViewEngineTemplate template = null;
 
-        return template;
+            try
+            {
+                if (File.Exists(templatePath))
+                {
+                    template = Penetrates.LoadTemplateFromFileSafely(templatePath);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
+            {
+                try { File.Delete(templatePath); } catch { }
+            }
+
+            if (template == null)
+            {
+                template = Compile(content, builderAction);
+                Penetrates.SaveTemplateAtomically(templatePath, template);
+            }
+
+            return template;
+        }
     }
 
     /// <summary>
@@ -380,21 +424,34 @@ internal sealed class ViewEngine : IViewEngine
         where T : IViewEngineModel
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction, typeof(T)));
+        fileName = Path.GetFileName(fileName);
         var templatePath = GetTemplateFileName(fileName);
 
-        IViewEngineTemplate<T> template = null;
-
-        if (File.Exists(templatePath))
+        var fileLock = _fileLocks.GetOrAdd(templatePath, _ => new object());
+        lock (fileLock)
         {
-            template = ViewEngineTemplate<T>.LoadFromFile(templatePath);
-        }
-        else
-        {
-            template = Compile<T>(content, builderAction);
-            template.SaveToFile(templatePath);
-        }
+            IViewEngineTemplate<T> template = null;
 
-        return template;
+            try
+            {
+                if (File.Exists(templatePath))
+                {
+                    template = Penetrates.LoadTemplateFromFileSafely<T>(templatePath);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
+            {
+                try { File.Delete(templatePath); } catch { }
+            }
+
+            if (template == null)
+            {
+                template = Compile<T>(content, builderAction);
+                Penetrates.SaveTemplateAtomically(templatePath, template);
+            }
+
+            return template;
+        }
     }
 
     /// <summary>
@@ -428,21 +485,27 @@ internal sealed class ViewEngine : IViewEngine
 
                 using var memoryStream = CreateAndCompileToStream(content, options);
                 var assemblyBytes = memoryStream.ToArray();
-                var templateType = Penetrates.LoadTemplateType(assemblyBytes);
 
-                return new CompilationCacheEntry { AssemblyBytes = assemblyBytes, TemplateType = templateType };
+                return new CompilationCacheEntry
+                {
+                    AssemblyBytes = assemblyBytes,
+                    TemplateTypeName = Penetrates.TemplateTypeName
+                };
             })!;
         }
         else
         {
             using var memoryStream = CreateAndCompileToStream(content, options);
             var assemblyBytes = memoryStream.ToArray();
-            var templateType = Penetrates.LoadTemplateType(assemblyBytes);
 
-            cacheEntry = new CompilationCacheEntry { AssemblyBytes = assemblyBytes, TemplateType = templateType };
+            cacheEntry = new CompilationCacheEntry
+            {
+                AssemblyBytes = assemblyBytes,
+                TemplateTypeName = Penetrates.TemplateTypeName
+            };
         }
 
-        return new ViewEngineTemplate<T>(cacheEntry.AssemblyBytes, cacheEntry.TemplateType);
+        return new ViewEngineTemplate<T>(cacheEntry.AssemblyBytes, cacheEntry.TemplateTypeName);
     }
 
     /// <summary>
@@ -457,21 +520,34 @@ internal sealed class ViewEngine : IViewEngine
         where T : IViewEngineModel
     {
         var fileName = cacheFileName ?? GenerateCacheKey(content, BuildOptionsForCacheKey(builderAction, typeof(T)));
+        fileName = Path.GetFileName(fileName);
         var templatePath = GetTemplateFileName(fileName);
 
-        IViewEngineTemplate<T> template = null;
-
-        if (File.Exists(templatePath))
+        var fileLock = _fileLocks.GetOrAdd(templatePath, _ => new object());
+        lock (fileLock)
         {
-            template = await ViewEngineTemplate<T>.LoadFromFileAsync(templatePath);
-        }
-        else
-        {
-            template = await CompileAsync<T>(content, builderAction);
-            await template.SaveToFileAsync(templatePath);
-        }
+            IViewEngineTemplate<T> template = null;
 
-        return template;
+            try
+            {
+                if (File.Exists(templatePath))
+                {
+                    template = Penetrates.LoadTemplateFromFileSafely<T>(templatePath);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
+            {
+                try { File.Delete(templatePath); } catch { }
+            }
+
+            if (template == null)
+            {
+                template = Compile<T>(content, builderAction);
+                Penetrates.SaveTemplateAtomically(templatePath, template);
+            }
+
+            return template;
+        }
     }
 
     /// <summary>
@@ -500,7 +576,20 @@ internal sealed class ViewEngine : IViewEngine
             .OrderBy(n => n);
         var sortedUsings = options.DefaultUsings.OrderBy(u => u);
 
-        var hashOptions = MD5Encryption.Encrypt(string.Join("|", assemblyNames.Concat(sortedUsings)));
+        var inheritName = options.Inherits ?? string.Empty;
+        var namespaceName = options.TemplateNamespace ?? string.Empty;
+        var metadataRefs = options.MetadataReferences
+            .Select(m => m.Display ?? m.ToString())
+            .OrderBy(d => d);
+
+        var combined = string.Join("|",
+            assemblyNames
+            .Concat(sortedUsings)
+            .Append(inheritName)
+            .Append(namespaceName)
+            .Concat(metadataRefs));
+
+        var hashOptions = MD5Encryption.Encrypt(combined);
 
         return hashContent + hashOptions;
     }
