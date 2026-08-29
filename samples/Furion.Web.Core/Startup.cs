@@ -19,7 +19,7 @@ namespace Furion.Web.Core;
 [AppStartup(700)]
 public sealed class Startup : AppStartup
 {
-    public void ConfigureServices(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddConsoleFormatter();
 
