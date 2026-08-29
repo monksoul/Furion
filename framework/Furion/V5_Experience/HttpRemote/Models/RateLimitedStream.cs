@@ -288,6 +288,7 @@ public sealed class RateLimitedStream : Stream
         var newTokens = _bytesPerSecond * timePassed / 1000.0;
 
         // 更新可用令牌，但不超过每秒允许的最大值
+        // ReSharper disable once InconsistentlySynchronizedField
         _availableTokens = Math.Min(_bytesPerSecond, _availableTokens + newTokens);
 
         // 更新最后一次填充令牌的时间戳

@@ -89,7 +89,7 @@ public static class HttpRemoteServiceCollectionExtensions
     ///     </para>
     ///     <para>注意：请确保使用的是根容器（Root ServiceProvider），使用作用域容器可能导致对象生命周期异常。</para>
     /// </remarks>
-    /// <param name="serviceProvider">应用程序的根服务提供器，必须已完成 <see cref="IHttpRemoteService" /> 的注册。</param>
+    /// <param name="serviceProvider">应用程序的根服务提供器，必须已完成 <see cref="IHttpRemoteService" /> 的注册</param>
     /// <returns>
     ///     <see cref="IServiceProvider" />
     /// </returns>

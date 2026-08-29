@@ -86,7 +86,7 @@ public static partial class HttpRemoteExtensions
     /// <param name="builder">
     ///     <see cref="IHttpClientBuilder" />
     /// </param>
-    /// <param name="disableInProduction">是否在生产环境中禁用。默认值为：<c>false</c>。</param>
+    /// <param name="disableInProduction">是否在生产环境中禁用。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="IHttpClientBuilder" />
     /// </returns>

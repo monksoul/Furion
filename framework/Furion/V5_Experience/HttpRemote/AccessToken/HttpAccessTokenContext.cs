@@ -34,15 +34,15 @@ public sealed class HttpAccessTokenContext
     ///     <inheritdoc cref="HttpAccessTokenContext" />
     /// </summary>
     /// <param name="httpClientName"><see cref="HttpClient" /> 实例的配置名称</param>
-    /// <param name="httpAccessTokenProvider"><see cref="IHttpAccessTokenProvider" /> 实例</param>
+    /// <param name="accessTokenProvider"><see cref="IHttpAccessTokenProvider" /> 实例</param>
     /// <exception cref="ArgumentNullException"></exception>
-    internal HttpAccessTokenContext(string? httpClientName, IHttpAccessTokenProvider httpAccessTokenProvider)
+    internal HttpAccessTokenContext(string? httpClientName, IHttpAccessTokenProvider accessTokenProvider)
     {
         // 空检查
-        ArgumentNullException.ThrowIfNull(httpAccessTokenProvider);
+        ArgumentNullException.ThrowIfNull(accessTokenProvider);
 
         HttpClientName = httpClientName ?? string.Empty;
-        HttpAccessTokenProvider = httpAccessTokenProvider;
+        AccessTokenProvider = accessTokenProvider;
     }
 
     /// <summary>
@@ -62,5 +62,5 @@ public sealed class HttpAccessTokenContext
     /// <summary>
     ///     <see cref="IHttpAccessTokenProvider" /> 实例
     /// </summary>
-    public IHttpAccessTokenProvider HttpAccessTokenProvider { get; }
+    public IHttpAccessTokenProvider AccessTokenProvider { get; }
 }

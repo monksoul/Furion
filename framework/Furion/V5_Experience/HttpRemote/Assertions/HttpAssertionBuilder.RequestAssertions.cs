@@ -272,7 +272,7 @@ public sealed partial class HttpAssertionBuilder
     }
 
     /// <summary>
-    ///     自定义请求消息断言（同步检查）
+    ///     自定义请求消息断言
     /// </summary>
     /// <param name="assertion">断言委托，参数为 <see cref="HttpRequestMessage" /></param>
     /// <returns>
@@ -298,7 +298,7 @@ public sealed partial class HttpAssertionBuilder
     }
 
     /// <summary>
-    ///     自定义请求消息断言（异步检查）
+    ///     自定义请求消息断言
     /// </summary>
     /// <param name="assertion">异步断言委托</param>
     /// <returns>

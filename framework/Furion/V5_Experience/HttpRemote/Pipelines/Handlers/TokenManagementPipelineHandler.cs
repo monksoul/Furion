@@ -66,7 +66,7 @@ internal sealed class TokenManagementPipelineHandler(
         var httpClientOptions = HttpRemoteUtility.ResolveHttpClientOptions(serviceProvider, httpClientName);
 
         // 检查是否配置了 Access Token 提供器
-        if (httpClientOptions?.HttpAccessTokenProvider is not { } httpAccessTokenProvider)
+        if (httpClientOptions?.AccessTokenProvider is not { } httpAccessTokenProvider)
         {
             // 调用下一个处理器的委托
             return await next();

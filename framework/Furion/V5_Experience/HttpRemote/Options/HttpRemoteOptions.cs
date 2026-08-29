@@ -121,7 +121,7 @@ public sealed class HttpRemoteOptions
     ///     <see cref="HttpRequestBuilder" /> 统一配置器
     /// </summary>
     /// <remarks>用于在构建 <see cref="HttpRequestMessage" /> 时调用。</remarks>
-    public IHttpRequestBuilderConfigurator? HttpRequestBuilderConfigurator { get; set; }
+    public IHttpRequestBuilderConfigurator? RequestBuilderConfigurator { get; set; }
 
     /// <summary>
     ///     未注册日志服务时的备用日志输出委托
@@ -132,7 +132,7 @@ public sealed class HttpRemoteOptions
     ///     自定义 HTTP 声明式 <see cref="IHttpDeclarativeExtractor" /> 集合提供器
     /// </summary>
     /// <value>返回多个包含实现 <see cref="IHttpDeclarativeExtractor" /> 集合的集合。</value>
-    internal IReadOnlyList<Func<IEnumerable<IHttpDeclarativeExtractor>>>? HttpDeclarativeExtractors { get; set; }
+    internal IReadOnlyList<Func<IEnumerable<IHttpDeclarativeExtractor>>>? DeclarativeExtractors { get; set; }
 
     /// <summary>
     ///     自定义 <see cref="IHttpRequestPipelineHandler" /> 类型集合

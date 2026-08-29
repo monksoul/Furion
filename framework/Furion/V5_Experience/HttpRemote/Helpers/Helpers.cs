@@ -47,6 +47,34 @@ namespace Furion.HttpRemote;
 internal static partial class Helpers
 {
     /// <summary>
+    ///     共享 <see cref="HttpClient" /> 实例
+    /// </summary>
+    /// <remarks>参考文献：https://learn.microsoft.com/zh-cn/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use。</remarks>
+    internal static readonly Lazy<HttpClient> SharedClient = new(() =>
+    {
+        // 初始化 HttpClient 实例
+        var httpClient = new HttpClient(new SocketsHttpHandler
+        {
+            // 2 分钟轮换一次连接
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1),
+            // 防止突发流量击穿下游
+            MaxConnectionsPerServer = 100
+        });
+
+        // 限制响应内容最大缓存字节数（100MB）
+        httpClient.MaxResponseContentBufferSize = 104857600L;
+
+        // 为 HttpClient 启用标准请求标头
+        httpClient.UseStandardRequestHeaders();
+
+        // 设置默认 User-Agent
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
+
+        return httpClient;
+    });
+
+    /// <summary>
     ///     HTTP QUERY <see cref="HttpMethod" /> 静态实例
     /// </summary>
     internal static readonly HttpMethod HttpQuery = new("QUERY");
@@ -150,15 +178,13 @@ internal static partial class Helpers
     /// </summary>
     /// <param name="requestUri">互联网 URL 地址</param>
     /// <param name="configure">自定义配置委托</param>
-    /// <param name="maxResponseContentBufferSize">响应内容的最大缓存大小。默认值为：<c>100MB</c>。</param>
     /// <param name="httpMethod"><see cref="HttpMethod" />，默认值为：<see cref="HttpMethod.Get" /></param>
     /// <returns>
     ///     <see cref="Stream" />
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    internal static Stream GetStreamFromRemote(string requestUri,
-        Action<HttpClient, HttpRequestMessage>? configure = null, long maxResponseContentBufferSize = 104857600L,
+    internal static Stream GetStreamFromRemote(string requestUri, Action<HttpRequestMessage>? configure = null,
         HttpMethod? httpMethod = null)
     {
         // 空检查
@@ -170,28 +196,17 @@ internal static partial class Helpers
             throw new ArgumentException($"Invalid internet address: `{requestUri}`.", nameof(requestUri));
         }
 
-        // 初始化 HttpClient 实例
-        using var httpClient = new HttpClient();
-
-        // 限制流大小
-        httpClient.MaxResponseContentBufferSize = maxResponseContentBufferSize;
-
-        // 为 HttpClient 启用标准请求标头
-        httpClient.UseStandardRequestHeaders();
-
-        // 设置默认 User-Agent
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
-
         try
         {
             // 初始化 HttpRequestMessage 实例
             var httpRequestMessage = new HttpRequestMessage(httpMethod ?? HttpMethod.Get, requestUri);
 
             // 调用自定义配置委托
-            configure?.Invoke(httpClient, httpRequestMessage);
+            configure?.Invoke(httpRequestMessage);
 
             // 发送 HTTP 远程请求
-            var httpResponseMessage = httpClient.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
+            var httpResponseMessage =
+                SharedClient.Value.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
 
             // 确保请求成功
             httpResponseMessage.EnsureSuccessStatusCode();

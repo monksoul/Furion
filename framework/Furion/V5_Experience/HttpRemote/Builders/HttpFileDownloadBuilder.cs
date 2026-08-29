@@ -60,7 +60,7 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     ///     用于传输操作的缓冲区大小
     /// </summary>
     /// <remarks>
-    ///     <para>以字节为单位，默认值为 <c>80 KB</c>。</para>
+    ///     <para>以字节为单位，默认值为：<c>80 KB</c>。</para>
     ///     <para>建议下载小于 <c>10M</c> 的文件使用默认配置，若文件较大，建议设置为 <c>1M</c>（即 <c>1024 * 1024</c>）。</para>
     /// </remarks>
     public int BufferSize { get; private set; } = 80 * 1024;
@@ -151,7 +151,7 @@ public sealed class HttpFileDownloadBuilder : HttpRequestBuilderConfigurator<Htt
     /// </summary>
     /// <param name="bufferSize">用于传输操作的缓冲区大小</param>
     /// <remarks>
-    ///     <para>以字节为单位，默认值为 <c>80 KB</c>。</para>
+    ///     <para>以字节为单位，默认值为：<c>80 KB</c>。</para>
     ///     <para>建议下载小于 <c>10M</c> 的文件使用默认配置，若文件较大，建议设置为 <c>1M</c>（即 <c>1024 * 1024</c>）。</para>
     /// </remarks>
     /// <returns>

@@ -168,7 +168,7 @@ public sealed class HttpDeclarativeParsingContext : IServiceProvider
     ///     获取被调用方法指定特性的所有实例
     /// </summary>
     /// <param name="inherit">是否在基类或被代理的接口中搜索</param>
-    /// <param name="methodScanFirst">是否优先查找 <see cref="MethodInfo" /> 的特性。默认值为：<c>true</c>。</param>
+    /// <param name="methodScanFirst">是否优先查找 <see cref="MethodInfo" /> 的特性。默认值为：<c>true</c></param>
     /// <typeparam name="TAttribute">
     ///     <see cref="Attribute" />
     /// </typeparam>

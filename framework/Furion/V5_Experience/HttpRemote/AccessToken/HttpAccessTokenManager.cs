@@ -180,7 +180,7 @@ internal sealed class HttpAccessTokenManager : IHttpAccessTokenManager
 
                 // 获取新的 Access Token
                 var httpAccessToken =
-                    await context.HttpAccessTokenProvider.RefreshAsync(context, _current, cancellationToken);
+                    await context.AccessTokenProvider.RefreshAsync(context, _current, cancellationToken);
 
                 // 更新缓存
                 _current = httpAccessToken;
@@ -216,7 +216,7 @@ internal sealed class HttpAccessTokenManager : IHttpAccessTokenManager
             {
                 // 刷新 Access Token
                 var httpAccessToken =
-                    await context.HttpAccessTokenProvider.RefreshAsync(context, _current, cancellationToken);
+                    await context.AccessTokenProvider.RefreshAsync(context, _current, cancellationToken);
 
                 // 更新缓存
                 _current = httpAccessToken;

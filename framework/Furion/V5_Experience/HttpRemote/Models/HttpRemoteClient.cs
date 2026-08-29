@@ -251,7 +251,7 @@ public static class HttpRemoteClient
     /// </summary>
     internal static void ReleaseInternalServiceProvider()
     {
-        // 如果服务提供器支持释放资源，则执行释放操作
+        // 如果服务提供器是否实现 IDisposable 接口
         if (_serviceProvider is IDisposable disposable)
         {
             disposable.Dispose();

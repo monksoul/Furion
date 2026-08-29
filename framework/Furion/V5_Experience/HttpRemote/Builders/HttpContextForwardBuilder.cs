@@ -74,7 +74,7 @@ public sealed class HttpContextForwardBuilder
     ///     <inheritdoc cref="HttpContextForwardBuilder" />
     /// </summary>
     /// <param name="httpMethod">转发方式</param>
-    /// <param name="requestUri">转发地址。若为空则尝试从请求标头 <c>X-Forward-To</c> 中获取目标地址。</param>
+    /// <param name="requestUri">转发地址。若为空则尝试从请求标头 <c>X-Forward-To</c> 中获取目标地址</param>
     /// <exception cref="ArgumentNullException"></exception>
     internal HttpContextForwardBuilder(HttpMethod httpMethod, Uri? requestUri = null)
     {

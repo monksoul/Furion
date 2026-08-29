@@ -35,6 +35,10 @@ public sealed class HttpClientOptions
     /// <summary>
     ///     JSON 序列化配置
     /// </summary>
+    /// <remarks>
+    ///     在应用程序启动时，<c>IHttpClientBuilder.ConfigureOptions(Action)</c> 方法会读取
+    ///     <see cref="HttpRemoteOptions.JsonSerializerOptions" /> 的值，并将其设置到此属性。
+    /// </remarks>
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = null!;
 
     /// <summary>
@@ -54,12 +58,12 @@ public sealed class HttpClientOptions
     /// <summary>
     ///     Access Token 提供器配置
     /// </summary>
-    public IHttpAccessTokenProvider? HttpAccessTokenProvider { get; set; }
+    public IHttpAccessTokenProvider? AccessTokenProvider { get; set; }
 
     /// <summary>
     ///     事件处理程序提供器配置
     /// </summary>
-    public IHttpRequestEventHandler? HttpRequestEventHandler { get; set; }
+    public IHttpRequestEventHandler? RequestEventHandler { get; set; }
 
     /// <summary>
     ///     接口调用配额限制配置

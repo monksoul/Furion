@@ -82,7 +82,7 @@ public sealed partial class HttpRequestBuilder
         ArgumentNullException.ThrowIfNull(HttpMethod);
 
         // 调用 HttpRequestBuilder 统一配置器
-        httpRemoteOptions.HttpRequestBuilderConfigurator?.Configure(this);
+        httpRemoteOptions.RequestBuilderConfigurator?.Configure(this);
 
         // 构建最终的请求地址
         var finalRequestUri = BuildFinalRequestUri(clientBaseAddress, httpRemoteOptions);
@@ -497,7 +497,7 @@ public sealed partial class HttpRequestBuilder
     /// </param>
     internal void AppendAuthentication(HttpRequestMessage httpRequestMessage)
     {
-        // 检查是否是 Digest 摘要认证
+        // 检查是否是 Digest（摘要）认证
         if (Items?.TryGetValue(Constants.INTERNAL_AUTH_SCHEME_KEY, out var schemeObj) == true &&
             schemeObj is string scheme &&
             scheme.Equals(Constants.DIGEST_AUTHENTICATION_SCHEME, StringComparison.OrdinalIgnoreCase))
@@ -517,7 +517,7 @@ public sealed partial class HttpRequestBuilder
                 return;
             }
 
-            // 获取 Digest 摘要认证授权凭证
+            // 获取 Digest（摘要）认证授权凭证
             var digestCredentials =
                 DigestCredentials.GetDigestCredentials(httpRequestMessage.RequestUri?.OriginalString, username,
                     password, HttpMethod!);

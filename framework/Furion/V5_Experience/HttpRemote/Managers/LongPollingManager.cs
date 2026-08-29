@@ -39,7 +39,7 @@ namespace Furion.HttpRemote;
 internal sealed class LongPollingManager
 {
     /// <summary>
-    ///     通道最大容量，用于背压控制
+    ///     通道最大容量
     /// </summary>
     internal const int ChannelCapacity = 100;
 

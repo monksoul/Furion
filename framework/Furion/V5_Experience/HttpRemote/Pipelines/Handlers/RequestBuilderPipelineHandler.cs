@@ -72,7 +72,7 @@ internal sealed class RequestBuilderPipelineHandler(
             HttpRemoteUtility.ResolveHttpClientOptions(serviceProvider, httpRequestBuilder.HttpClientName);
 
         // 获取全局的 IHttpRequestEventHandler 事件处理程序
-        var globalEventHandler = httpClientOptions?.HttpRequestEventHandler;
+        var globalEventHandler = httpClientOptions?.RequestEventHandler;
 
         // 解析 IHttpRequestEventHandler 事件处理程序
         var requestEventHandler = context.Items.TryGetValue(Constants.REQUEST_EVENT_HANDLER_KEY, out var eventHandler)

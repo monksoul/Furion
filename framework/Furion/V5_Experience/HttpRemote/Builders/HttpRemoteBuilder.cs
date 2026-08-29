@@ -550,7 +550,7 @@ public sealed class HttpRemoteBuilder
         // 注册并配置 HttpRemoteOptions 选项服务
         services.Configure<HttpRemoteOptions>(options =>
         {
-            options.HttpDeclarativeExtractors = _httpDeclarativeExtractors?.AsReadOnly();
+            options.DeclarativeExtractors = _httpDeclarativeExtractors?.AsReadOnly();
             options.PipelineHandlerTypes = distinctPipelineHandlerTypes.AsReadOnly();
         });
 

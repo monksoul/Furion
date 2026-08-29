@@ -147,7 +147,7 @@ public partial interface IHttpRemoteService
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -166,7 +166,7 @@ public partial interface IHttpRemoteService
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -185,7 +185,7 @@ public partial interface IHttpRemoteService
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
     /// <param name="cancellationToken">
@@ -203,7 +203,7 @@ public partial interface IHttpRemoteService
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
     /// <param name="cancellationToken">
@@ -333,7 +333,7 @@ public partial interface IHttpRemoteService
     ///     压力测试
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />
@@ -353,7 +353,7 @@ public partial interface IHttpRemoteService
     ///     压力测试
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <param name="completionOption">
     ///     <see cref="HttpCompletionOption" />

@@ -102,14 +102,14 @@ public sealed class QueryParamAttribute : Attribute
     public string? Prefix { get; set; }
 
     /// <summary>
-    ///     是否替换已存在的查询参数。默认值为 <c>false</c>
+    ///     是否替换已存在的查询参数。默认值为：<c>false</c>
     /// </summary>
     public bool Replace { get; set; }
 
     /// <summary>
     ///     是否忽略空值
     /// </summary>
-    /// <remarks>设置为 <c>true</c> 之后，当参数值为 <c>null</c> 时将被忽略。默认值为 <c>false</c>。</remarks>
+    /// <remarks>设置为 <c>true</c> 之后，当参数值为 <c>null</c> 时将被忽略。默认值为：<c>false</c>。</remarks>
     public bool IgnoreNullValues { get; set; }
 
     /// <summary>

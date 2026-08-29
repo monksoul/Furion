@@ -81,6 +81,7 @@ public class IActionResultContentConverter : HttpContentConverterBase<IActionRes
                     // 尝试解压内容流，解决部分内容流被压缩的情况
                     var decompressedStream = Helpers.WrapDecompressionStream(rawStream, httpResponseMessage);
 
+                    // 初始化 FileStreamResult 实例
                     var streamResult = new FileStreamResult(decompressedStream, contentType?.ToString()!)
                     {
                         LastModified = contentHeaders.LastModified?.UtcDateTime

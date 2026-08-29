@@ -174,7 +174,9 @@ public sealed class HttpDeclarativeBuilder
         if (Interlocked.CompareExchange(ref _hasLoadedExtractors, 1, 0) == 0)
         {
             // 批量添加自定义 HTTP 声明式提取器列表
-            var customExtractors = httpRemoteOptions.HttpDeclarativeExtractors?.SelectMany(u => u.Invoke()) ?? [];
+            var customExtractors = httpRemoteOptions.DeclarativeExtractors?.SelectMany(u => u.Invoke()) ?? [];
+
+            // 遍历所有自定义 HTTP 声明式提取器
             foreach (var extractor in customExtractors)
             {
                 // 获取 HTTP 声明式提取器类型

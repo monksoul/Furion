@@ -104,7 +104,7 @@ internal sealed class JsonAuthExtractor : HttpJsonExtractorBase
 
                     break;
                 }
-            // 处理 Digest 摘要认证
+            // 处理 Digest（摘要）认证
             case "digest":
                 {
                     var username = authObj["username"]?.GetValue<string>();
@@ -113,7 +113,7 @@ internal sealed class JsonAuthExtractor : HttpJsonExtractorBase
                     // 空检查
                     if (!string.IsNullOrWhiteSpace(username))
                     {
-                        // 设置 Digest 摘要身份认证凭据请求授权标头
+                        // 设置 Digest（摘要）身份认证凭据请求授权标头
                         httpRequestBuilder.AddDigestAuthentication(username, password ?? string.Empty);
                     }
 

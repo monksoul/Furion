@@ -299,7 +299,7 @@ public sealed partial class WebSocketClient : IDisposable
     ///     向服务器发送消息
     /// </summary>
     /// <param name="message">字符串消息</param>
-    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为 <c>true</c>。</param>
+    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为：<c>true</c></param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -313,7 +313,7 @@ public sealed partial class WebSocketClient : IDisposable
     /// <param name="webSocketMessageType">
     ///     <see cref="WebSocketMessageType" />
     /// </param>
-    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为 <c>true</c>。</param>
+    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为：<c>true</c></param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -349,7 +349,7 @@ public sealed partial class WebSocketClient : IDisposable
     ///     向服务器发送消息
     /// </summary>
     /// <param name="byteArray">二进制消息</param>
-    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为 <c>true</c>。</param>
+    /// <param name="endOfMessage">是否作为消息的最后一部分，默认值为：<c>true</c></param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>
@@ -393,7 +393,7 @@ public sealed partial class WebSocketClient : IDisposable
     /// <param name="closeStatus">
     ///     <see cref="WebSocketCloseStatus" />
     /// </param>
-    /// <param name="closeDescription">关闭描述。默认值为：<c>Closing</c>。</param>
+    /// <param name="closeDescription">关闭描述。默认值为：<c>Closing</c></param>
     /// <param name="cancellationToken">
     ///     <see cref="CancellationToken" />
     /// </param>

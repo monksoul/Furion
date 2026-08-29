@@ -272,8 +272,7 @@ public sealed partial class HttpRequestBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     public HttpRequestBuilder SetFileContent(string filePath, string? fileName = null, string? contentType = null,
-        Encoding? contentEncoding = null, Action<HttpClient, HttpRequestMessage>? configure = null,
-        HttpMethod? httpMethod = null)
+        Encoding? contentEncoding = null, Action<HttpRequestMessage>? configure = null, HttpMethod? httpMethod = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -289,7 +288,7 @@ public sealed partial class HttpRequestBuilder
             effectiveFileName = fileName ?? Helpers.GetFileNameFromUri(uri);
 
             // 尝试从互联网 URL 地址中加载流
-            stream = Helpers.GetStreamFromRemote(filePath, configure, httpMethod: httpMethod);
+            stream = Helpers.GetStreamFromRemote(filePath, configure, httpMethod);
         }
         else
         {
@@ -451,7 +450,7 @@ public sealed partial class HttpRequestBuilder
     ///     如果 <see cref="RawContent" /> 实现了 <see cref="IDisposable" />，并且此前已通过 <see cref="AddDisposable" />
     ///     将其添加到可释放对象列表中，则该方法会将其从列表中移除。
     /// </remarks>
-    /// <param name="disposeRawContent">是否需要是否原始内容（若实现 <see cref="IDisposable" /> 接口）。默认值为：<c>false</c>。</param>
+    /// <param name="disposeRawContent">是否需要是否原始内容（若实现 <see cref="IDisposable" /> 接口）。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -624,7 +623,7 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="headerValue">请求标头值格式化字符串</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
-    /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的请求标头。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -646,7 +645,7 @@ public sealed partial class HttpRequestBuilder
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
-    /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的请求标头。默认值为：<c>false</c></param>
     /// <param name="format">要使用的格式，仅当 <paramref name="value" /> 实现 <see cref="IFormattable" /> 时有效</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
@@ -674,7 +673,7 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="headers">请求标头集合</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
-    /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的请求标头。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -717,7 +716,7 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="headerSource">请求标头源对象</param>
     /// <param name="escape">是否转义字符串，默认 <c>false</c></param>
-    /// <param name="replace">是否替换已存在的请求标头。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的请求标头。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -864,8 +863,8 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
-    /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的查询参数。默认值为：<c>false</c></param>
+    /// <param name="ignoreNullValues">是否忽略空值。默认值为：<c>false</c></param>
     /// <param name="format">要使用的格式，仅当 <paramref name="value" /> 实现 <see cref="IFormattable" /> 时有效</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
@@ -893,8 +892,8 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="key">键</param>
     /// <param name="valueProvider">值提供器</param>
-    /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
-    /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的查询参数。默认值为：<c>false</c></param>
+    /// <param name="ignoreNullValues">是否忽略空值。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -914,8 +913,8 @@ public sealed partial class HttpRequestBuilder
     /// <remarks>支持多次调用。</remarks>
     /// <param name="key">键</param>
     /// <param name="valueProvider">值提供器</param>
-    /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
-    /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的查询参数。默认值为：<c>false</c></param>
+    /// <param name="ignoreNullValues">是否忽略空值。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -934,8 +933,8 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
     /// <param name="parameters">查询参数集合</param>
-    /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
-    /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="replace">是否替换已存在的查询参数。默认值为：<c>false</c></param>
+    /// <param name="ignoreNullValues">是否忽略空值。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -976,9 +975,9 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
     /// <param name="parameterSource">查询参数集合</param>
-    /// <param name="prefix">参数前缀。对于对象类型可生成如 <c>prefix.Name=furion</c> 与 <c>prefix.Age=30</c> 参数格式。</param>
-    /// <param name="replace">是否替换已存在的查询参数。默认值为 <c>false</c></param>
-    /// <param name="ignoreNullValues">是否忽略空值。默认值为 <c>false</c></param>
+    /// <param name="prefix">参数前缀。对于对象类型可生成如 <c>prefix.Name=furion</c> 与 <c>prefix.Age=30</c> 参数格式</param>
+    /// <param name="replace">是否替换已存在的查询参数。默认值为：<c>false</c></param>
+    /// <param name="ignoreNullValues">是否忽略空值。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -1091,7 +1090,7 @@ public sealed partial class HttpRequestBuilder
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
     /// <param name="parameterSource">路径参数源对象</param>
-    /// <param name="prefix">模板字符串前缀。若该参数值不为空，则支持 <c>{prefix.Prop.SubProp}</c> 对象路径方式。</param>
+    /// <param name="prefix">模板字符串前缀。若该参数值不为空，则支持 <c>{prefix.Prop.SubProp}</c> 对象路径方式</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -1508,7 +1507,7 @@ public sealed partial class HttpRequestBuilder
     }
 
     /// <summary>
-    ///     设置 Digest 摘要身份认证凭据请求授权标头
+    ///     设置 Digest（摘要）身份认证凭据请求授权标头
     /// </summary>
     /// <remarks>建议先使用 <see cref="DigestCredentials.GetDigestCredentials" /> 获取凭证并缓存，再直接设置 <c>Authorization</c> 标头，避免每次请求触发探测。</remarks>
     /// <param name="username">用户名</param>
@@ -2070,7 +2069,7 @@ public sealed partial class HttpRequestBuilder
     ///     设置异常抑制
     /// </summary>
     /// <remarks>重复调用仅最后一次调用生效。</remarks>
-    /// <param name="enable">是否启用异常抑制。当设置为 <c>false</c> 时，将禁用异常抑制机制。</param>
+    /// <param name="enable">是否启用异常抑制。当设置为 <c>false</c> 时，将禁用异常抑制机制</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -2347,7 +2346,7 @@ public sealed partial class HttpRequestBuilder
     ///     设置在创建重定向构建器时进行额外配置的委托
     /// </summary>
     /// <remarks>支持多次调用。</remarks>
-    /// <param name="configure">自定义配置委托。第一个参数是当前（原始）构建器，第二个参数是即将用于重定向的克隆构建器。可以在此处移除敏感的 Header、修改 URL 等。</param>
+    /// <param name="configure">自定义配置委托。第一个参数是当前（原始）构建器，第二个参数是即将用于重定向的克隆构建器。可以在此处移除敏感的 Header、修改 URL 等</param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>
@@ -2496,7 +2495,7 @@ public sealed partial class HttpRequestBuilder
     ///     设置 SOAP 请求地址
     /// </summary>
     /// <param name="soapAction">SOAPAction 头的值</param>
-    /// <param name="addQuotes">是否自动为该值添加双引号（"）包裹。SOAP 1.1 规范建议将非空值用双引号括起，但并非强制。默认值为：<c>false</c>。</param>
+    /// <param name="addQuotes">是否自动为该值添加双引号（"）包裹。SOAP 1.1 规范建议将非空值用双引号括起，但并非强制。默认值为：<c>false</c></param>
     /// <returns>
     ///     <see cref="HttpRequestBuilder" />
     /// </returns>

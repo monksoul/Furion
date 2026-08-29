@@ -150,7 +150,7 @@ internal sealed class CurlAuthExtractor : IHttpCurlExtractor
         // 根据最新的 flag 切换方案
         if (string.Equals(flag, "--digest", StringComparison.OrdinalIgnoreCase))
         {
-            // 设置 Digest 摘要身份验证凭据请求授权标头
+            // 设置 Digest（摘要）身份验证凭据请求授权标头
             httpRequestBuilder.AddDigestAuthentication(username, password ?? string.Empty);
         }
         else if (string.Equals(flag, "--basic", StringComparison.OrdinalIgnoreCase))

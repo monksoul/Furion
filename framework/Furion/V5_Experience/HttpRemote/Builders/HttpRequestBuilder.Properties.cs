@@ -306,7 +306,7 @@ public sealed partial class HttpRequestBuilder
     /// <summary>
     ///     如果 HTTP 响应的 <c>IsSuccessStatusCode</c> 属性是 <c>false</c>，则引发异常。
     /// </summary>
-    /// <remarks>默认值为 <c>false</c>。</remarks>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
     internal bool EnsureSuccessStatusCodeEnabled { get; private set; }
 
     /// <summary>

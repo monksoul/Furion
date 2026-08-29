@@ -43,7 +43,7 @@ public sealed class SuppressExceptionsAttribute : Attribute
     /// <summary>
     ///     <inheritdoc cref="SuppressExceptionsAttribute" />
     /// </summary>
-    /// <param name="enabled">是否启用异常抑制。当设置为 <c>false</c> 时，将禁用异常抑制机制。</param>
+    /// <param name="enabled">是否启用异常抑制。当设置为 <c>false</c> 时，将禁用异常抑制机制</param>
     public SuppressExceptionsAttribute(bool enabled) => Types = enabled ? [typeof(Exception)] : [];
 
     /// <summary>

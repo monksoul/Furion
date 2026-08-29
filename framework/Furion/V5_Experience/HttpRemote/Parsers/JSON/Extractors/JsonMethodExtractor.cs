@@ -36,6 +36,9 @@ internal sealed class JsonMethodExtractor : HttpJsonExtractorBase
     protected override string PropertyName => "method";
 
     /// <inheritdoc />
+    protected override string[]? Aliases => ["httpMethod"];
+
+    /// <inheritdoc />
     protected override void Extract(HttpRequestBuilder httpRequestBuilder, JsonNode node,
         HttpJsonParsingContext context)
     {

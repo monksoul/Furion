@@ -73,8 +73,9 @@ public sealed class HttpCurlParsingContext
     public bool IsEndOfTokens => CurrentIndex >= Tokens.Count;
 
     /// <summary>
-    ///     预览下一个 Token（不移动指针）
+    ///     预览下一个 Token
     /// </summary>
+    /// <remarks>不移动指针。</remarks>
     /// <returns>
     ///     <see cref="string" />
     /// </returns>
@@ -83,7 +84,7 @@ public sealed class HttpCurlParsingContext
     /// <summary>
     ///     前进指定步数
     /// </summary>
-    /// <param name="count">前进步数，默认值为 <c>1</c>。</param>
+    /// <param name="count">前进步数，默认值为：<c>1</c></param>
     public void Advance(int count = 1) => CurrentIndex += count;
 
     /// <summary>

@@ -111,7 +111,7 @@ public sealed class WebSocketClientOptions
     /// <summary>
     ///     接收服务器新消息缓冲区大小
     /// </summary>
-    /// <remarks>以字节为单位，默认值为 <c>4 KB</c>。</remarks>
+    /// <remarks>以字节为单位，默认值为：<c>4 KB</c>。</remarks>
     public int ReceiveBufferSize { get; set; } = 1024 * 4;
 
     /// <summary>

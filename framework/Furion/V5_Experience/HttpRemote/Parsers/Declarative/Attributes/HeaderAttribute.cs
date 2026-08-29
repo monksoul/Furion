@@ -101,7 +101,7 @@ public sealed class HeaderAttribute : Attribute
     public bool Escape { get; set; }
 
     /// <summary>
-    ///     是否替换已存在的请求标头。默认值为 <c>false</c>
+    ///     是否替换已存在的请求标头。默认值为：<c>false</c>
     /// </summary>
     public bool Replace { get; set; }
 

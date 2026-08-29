@@ -177,7 +177,7 @@ public sealed class HttpMultipartFormDataBuilder
     ///     添加 JSON 内容
     /// </summary>
     /// <param name="rawJson">JSON 字符串/原始对象</param>
-    /// <param name="name">表单名称。该值不为空时作为表单的一项。否则将遍历对象类型的每一个公开属性作为表单的项。</param>
+    /// <param name="name">表单名称。该值不为空时作为表单的一项。否则将遍历对象类型的每一个公开属性作为表单的项</param>
     /// <param name="contentEncoding">内容编码</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="jsonSerializerOptions">
@@ -312,7 +312,7 @@ public sealed class HttpMultipartFormDataBuilder
     ///     添加对象内容
     /// </summary>
     /// <param name="rawObject">原始对象</param>
-    /// <param name="name">表单名称。该值不为空时作为表单的一项。否则将遍历对象类型的每一个公开属性作为表单的项。</param>
+    /// <param name="name">表单名称。该值不为空时作为表单的一项。否则将遍历对象类型的每一个公开属性作为表单的项</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="contentEncoding">内容编码</param>
     /// <returns>
@@ -398,8 +398,8 @@ public sealed class HttpMultipartFormDataBuilder
     /// </returns>
     /// <exception cref="ArgumentException"></exception>
     public HttpMultipartFormDataBuilder AddFileFromRemote(string url, string name = "file", string? fileName = null,
-        string? contentType = null, Encoding? contentEncoding = null,
-        Action<HttpClient, HttpRequestMessage>? configure = null, HttpMethod? httpMethod = null)
+        string? contentType = null, Encoding? contentEncoding = null, Action<HttpRequestMessage>? configure = null,
+        HttpMethod? httpMethod = null)
     {
         // 空检查
         ArgumentException.ThrowIfNullOrWhiteSpace(url);
@@ -409,7 +409,7 @@ public sealed class HttpMultipartFormDataBuilder
         var newFileName = fileName ?? Helpers.GetFileNameFromUri(new Uri(url, UriKind.Absolute));
 
         // 尝试从互联网 URL 地址中加载流
-        var fileStream = Helpers.GetStreamFromRemote(url, configure, httpMethod: httpMethod);
+        var fileStream = Helpers.GetStreamFromRemote(url, configure, httpMethod);
 
         return AddStream(fileStream, name, newFileName, contentType ?? FileTypeMapper.GetContentType(newFileName!),
             contentEncoding, true);
@@ -498,7 +498,7 @@ public sealed class HttpMultipartFormDataBuilder
     /// <param name="fileName">文件的名称</param>
     /// <param name="contentType">内容类型</param>
     /// <param name="contentEncoding">内容编码</param>
-    /// <param name="progressInterval">进度更新（通知）的间隔时间。默认值为 250 毫秒。</param>
+    /// <param name="progressInterval">进度更新（通知）的间隔时间。默认值为 250 毫秒</param>
     /// <returns>
     ///     <see cref="HttpMultipartFormDataBuilder" />
     /// </returns>

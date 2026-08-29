@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 namespace Furion.HttpRemote;
 
 /// <summary>
-///     摘要认证
+///     Digest（摘要）认证
 /// </summary>
 public sealed class DigestCredentials
 {
@@ -88,7 +88,7 @@ public sealed class DigestCredentials
     public string? Opaque { get; private init; }
 
     /// <summary>
-    ///     获取 Digest 摘要认证授权凭证
+    ///     获取 Digest（摘要）认证授权凭证
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="username">用户名</param>
@@ -111,20 +111,11 @@ public sealed class DigestCredentials
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
         ArgumentNullException.ThrowIfNull(httpMethod);
 
-        // 初始化 HttpClient 实例
-        using var httpClient = new HttpClient();
-
-        // 设置默认 User-Agent
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(HeaderNames.UserAgent, UserAgents.Edge.PC);
-
-        // 为 HttpClient 启用标准请求标头
-        httpClient.UseStandardRequestHeaders();
-
         try
         {
             // 发送 HTTP 远程请求（默认 HEAD 请求）
-            using var httpResponseMessage = httpClient.Send(new HttpRequestMessage(HttpMethod.Head, requestUri),
-                HttpCompletionOption.ResponseHeadersRead);
+            using var httpResponseMessage = Helpers.SharedClient.Value.Send(
+                new HttpRequestMessage(HttpMethod.Head, requestUri), HttpCompletionOption.ResponseHeadersRead);
 
             // 检查响应状态码是否是 401 且响应标头是否包含 WWW-Authenticate 
             if (httpResponseMessage is not

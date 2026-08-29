@@ -48,7 +48,7 @@ public sealed class MultipartFormAttribute : Attribute
     /// <summary>
     ///     多部分表单内容的边界
     /// </summary>
-    public string? Boundary { get; set; } = $"--------------------------{DateTime.Now.Ticks:x}";
+    public string? Boundary { get; set; } = $"----{DateTime.Now.Ticks:x}";
 
     /// <summary>
     ///     是否移除默认的多部分内容的 <c>Content-Type</c>

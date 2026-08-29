@@ -248,7 +248,7 @@ public sealed class HttpServerSentEventsBuilder : HttpRequestBuilderConfigurator
     /// <summary>
     ///     设置是否自动修正请求方法
     /// </summary>
-    /// <param name="enabled">若为 <c>true</c> 则当请求为 GET 或 HEAD 且包含请求内容时，自动将方法改为 POST；默认值为：<c>true</c>。</param>
+    /// <param name="enabled">若为 <c>true</c> 则当请求为 GET 或 HEAD 且包含请求内容时，自动将方法改为 POST；默认值为：<c>true</c></param>
     /// <returns>
     ///     <see cref="HttpServerSentEventsBuilder" />
     /// </returns>

@@ -405,7 +405,7 @@ public static class HttpBuilder
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -423,7 +423,7 @@ public static class HttpBuilder
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -440,7 +440,7 @@ public static class HttpBuilder
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -457,7 +457,7 @@ public static class HttpBuilder
     /// </summary>
     /// <param name="requestUri">请求地址</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="name">表单名称；默认值为 <c>file</c>。</param>
+    /// <param name="name">表单名称；默认值为：<c>file</c></param>
     /// <param name="onProgressChanged">用于传输进度发生变化时执行的委托</param>
     /// <param name="fileName">文件的名称</param>
     /// <param name="configure">自定义配置委托</param>
@@ -585,7 +585,7 @@ public static class HttpBuilder
     /// </summary>
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />
@@ -599,7 +599,7 @@ public static class HttpBuilder
     /// </summary>
     /// <param name="httpMethod">请求方式</param>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />
@@ -612,7 +612,7 @@ public static class HttpBuilder
     ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />
@@ -625,7 +625,7 @@ public static class HttpBuilder
     ///     创建 <see cref="HttpStressTestHarnessBuilder" /> 构建器
     /// </summary>
     /// <param name="requestUri">请求地址</param>
-    /// <param name="numberOfRequests">并发请求数量，默认值为：100。</param>
+    /// <param name="numberOfRequests">并发请求数量，默认值为：100</param>
     /// <param name="configure">自定义配置委托</param>
     /// <returns>
     ///     <see cref="HttpStressTestHarnessBuilder" />

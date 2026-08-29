@@ -192,7 +192,7 @@ public sealed class HttpFileUploadBuilder : HttpRequestBuilderConfigurator<HttpF
     /// <summary>
     ///     设置允许的文件大小
     /// </summary>
-    /// <param name="maxFileSizeInBytes">允许的文件大小。以字节为单位。</param>
+    /// <param name="maxFileSizeInBytes">允许的文件大小。以字节为单位</param>
     /// <returns>
     ///     <see cref="HttpFileUploadBuilder" />
     /// </returns>
