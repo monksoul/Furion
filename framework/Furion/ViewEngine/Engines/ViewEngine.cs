@@ -222,7 +222,10 @@ internal sealed class ViewEngine : IViewEngine
             return CompileForAnonymousType<TModel>(content, builderAction);
         }
 
-        var baseType = typeof(ViewEngineModel<TModel>);
+        var baseType = typeof(TModel).IsSubclassOf(typeof(ViewEngineModel))
+            ? typeof(TModel)
+            : typeof(ViewEngineModel<TModel>);
+
         var compileOptions = new ViewEngineCompileOptions(_globalOptions);
         compileOptions.AddAssemblyReference(typeof(TModel).Assembly);
         compileOptions.Inherits(baseType);
@@ -248,7 +251,10 @@ internal sealed class ViewEngine : IViewEngine
             return CompileFromCachedForAnonymousType<TModel>(content, builderAction, cacheFileName);
         }
 
-        var baseType = typeof(ViewEngineModel<TModel>);
+        var baseType = typeof(TModel).IsSubclassOf(typeof(ViewEngineModel))
+            ? typeof(TModel)
+            : typeof(ViewEngineModel<TModel>);
+
         var compileOptionsForCacheKey = BuildOptionsForCacheKey(builderAction, baseType);
         var fileName = cacheFileName ?? GenerateCacheKey(content, compileOptionsForCacheKey);
         fileName = Path.GetFileName(fileName);

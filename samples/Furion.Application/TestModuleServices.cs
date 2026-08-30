@@ -11,7 +11,6 @@ using Furion.ViewEngine;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MyApp.Helpers;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Swagger;
 using System.ComponentModel;
@@ -206,7 +205,7 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
      @GetResult()
      """;
 
-        var str = await viewEngine.RunCompileFromCachedAsync(template, null);
+        var str = await viewEngine.RunCompileFromCachedAsync(template);
 
         return str;
     }
@@ -601,7 +600,7 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
         var order_nos = query.Select(u => u.order_no).ToList();
 
         //var result = await viewEngine.RunCompileAsync(sql, clay);
-        var result = await viewEngine.RunCompileAsync(sql, (object)clay);
+        var result = await viewEngine.RunCompileAsync(sql, clay);
 
         var result2 = viewEngine.RunCompile("Hello @Model.Name", new { Name = "Furion" });
         return result;
@@ -804,8 +803,8 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
         var result = viewEngine.RunCompileFromCached(@"<p>@Model.Description.Truncate(50)</p>", new DescModel { Description = "这是一个很长的描述，需要截断显示。" },
             builder =>
             {
-                builder.AddAssemblyReference(typeof(MyApp.Helpers.StringExtensions).Assembly);
-                builder.AddUsing("MyApp.Helpers");
+                builder.AddAssemblyReference(typeof(StringExtensions).Assembly);
+                builder.AddUsing("Furion.Application");
             });
 
         return result;
@@ -814,7 +813,7 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
     public string 测试模板组合与复用()
     {
         var headerTemplate = viewEngine.RunCompileFromCached("<header>@Model.Title</header>", new { Title = "Furion" });
-        var footerTemplate = viewEngine.RunCompileFromCached("<footer>@Model.Year</footer>", new { Year = DateTime.Now.Year });
+        var footerTemplate = viewEngine.RunCompileFromCached("<footer>@Model.Year</footer>", new { DateTime.Now.Year });
 
         var pageTemplate = viewEngine.RunCompile(@"<body>@Model.Header @Model.Body @Model.Footer</body>",
             new

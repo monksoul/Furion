@@ -1,4 +1,4 @@
-﻿namespace MyApp.Helpers;
+﻿namespace Furion.Application;
 
 public static class StringExtensions
 {
@@ -6,9 +6,4 @@ public static class StringExtensions
     {
         return value?.Length > maxLength ? value[..maxLength] + "..." : value;
     }
-}
-
-public class DescModel
-{
-    public string Description { get; set; }
 }

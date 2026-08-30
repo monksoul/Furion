@@ -716,5 +716,21 @@
             数据
             </summary>
         </member>
+        <member name="T:Furion.Application.TestViewEngine">
+            <summary>
+            测试视图引擎
+            </summary>
+            <param name="viewEngine"></param>
+            <param name="serviceProvider"></param>
+            <param name="configuration"></param>
+        </member>
+        <member name="M:Furion.Application.TestViewEngine.#ctor(Furion.ViewEngine.IViewEngine,System.IServiceProvider,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            测试视图引擎
+            </summary>
+            <param name="viewEngine"></param>
+            <param name="serviceProvider"></param>
+            <param name="configuration"></param>
+        </member>
     </members>
 </doc>

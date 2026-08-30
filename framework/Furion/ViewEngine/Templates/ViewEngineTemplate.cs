@@ -24,6 +24,8 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace Furion.ViewEngine;
 
@@ -254,6 +256,11 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     private string? _cacheFilePath;
 
     /// <summary>
+    /// 模型成员缓存
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, (PropertyInfo Property, FieldInfo? Field)[]> _memberCache = new();
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
@@ -331,25 +338,39 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     {
         ThrowIfDisposed();
 
+        ArgumentNullException.ThrowIfNull(model);
+
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
             var instance = Activator.CreateInstance(type);
 
-            if (instance is ViewEngineModel<TModel> strongTypedInstance)
+            if (typeof(TModel).IsSubclassOf(typeof(ViewEngineModel)))
             {
-                strongTypedInstance.Model = model;
-                strongTypedInstance.Execute();
+                var templateInstance = (ViewEngineModel)instance;
+                CopyModelState(model, instance);
+                templateInstance.Model = templateInstance;
+                templateInstance.Execute();
 
-                return strongTypedInstance.Result();
+                return templateInstance.Result();
             }
             else
             {
-                var dynamicInstance = (IViewEngineModel)instance;
-                dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
-                dynamicInstance.Execute();
+                if (instance is ViewEngineModel<TModel> strongTypedInstance)
+                {
+                    strongTypedInstance.Model = model;
+                    strongTypedInstance.Execute();
 
-                return dynamicInstance.Result();
+                    return strongTypedInstance.Result();
+                }
+                else
+                {
+                    var dynamicInstance = (IViewEngineModel)instance;
+                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                    dynamicInstance.Execute();
+
+                    return dynamicInstance.Result();
+                }
             }
         }
         catch (InvalidCastException ex)
@@ -371,25 +392,39 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     {
         ThrowIfDisposed();
 
+        ArgumentNullException.ThrowIfNull(model);
+
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
             var instance = Activator.CreateInstance(type);
 
-            if (instance is ViewEngineModel<TModel> strongTypedInstance)
+            if (typeof(TModel).IsSubclassOf(typeof(ViewEngineModel)))
             {
-                strongTypedInstance.Model = model;
-                await strongTypedInstance.ExecuteAsync();
+                var templateInstance = (ViewEngineModel)instance;
+                CopyModelState(model, instance);
+                templateInstance.Model = templateInstance;
+                await templateInstance.ExecuteAsync();
 
-                return await strongTypedInstance.ResultAsync();
+                return await templateInstance.ResultAsync();
             }
             else
             {
-                var dynamicInstance = (IViewEngineModel)instance;
-                dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
-                await dynamicInstance.ExecuteAsync();
+                if (instance is ViewEngineModel<TModel> strongTypedInstance)
+                {
+                    strongTypedInstance.Model = model;
+                    await strongTypedInstance.ExecuteAsync();
 
-                return await dynamicInstance.ResultAsync();
+                    return await strongTypedInstance.ResultAsync();
+                }
+                else
+                {
+                    var dynamicInstance = (IViewEngineModel)instance;
+                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                    await dynamicInstance.ExecuteAsync();
+
+                    return await dynamicInstance.ResultAsync();
+                }
             }
         }
         catch (InvalidCastException ex)
@@ -409,9 +444,80 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
         _disposed = true;
 
         // 释放引用
-        _assemblyBytes = null!;
-        _templateTypeName = null!;
-        _cacheFilePath = null!;
+        _assemblyBytes = null;
+        _templateTypeName = null;
+        _cacheFilePath = null;
+    }
+
+    /// <summary>
+    /// 将源模型对象的所有可写成员复制到目标模板实例
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="target"></param>
+    private static void CopyModelState(object source, object target)
+    {
+        if (source == null || target == null) return;
+
+        var sourceType = source.GetType();
+        var targetType = target.GetType();
+
+        var members = GetMembersForType(sourceType);
+
+        foreach (var (Property, Field) in members)
+        {
+            if (Property != null)
+            {
+                var targetProp = targetType.GetProperty(Property.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (targetProp != null && targetProp.CanWrite)
+                {
+                    targetProp.SetValue(target, Property.GetValue(source));
+                }
+            }
+            else if (Field != null)
+            {
+                var targetField = targetType.GetField(Field.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (targetField != null && !targetField.IsInitOnly && !targetField.IsStatic)
+                {
+                    targetField.SetValue(target, Field.GetValue(source));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 递归收集类型及其自定义父类的所有声明成员
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    private static (PropertyInfo Property, FieldInfo? Field)[] GetMembersForType(Type type)
+    {
+        return _memberCache.GetOrAdd(type, t =>
+        {
+            var list = new List<(PropertyInfo Property, FieldInfo? Field)>();
+
+            for (var current = t; current != null && current != typeof(ViewEngineModel) && current != typeof(object); current = current.BaseType)
+            {
+                var props = current.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                foreach (var prop in props)
+                {
+                    if (prop.CanWrite && prop.GetIndexParameters().Length == 0 && !list.Any(p => p.Property?.Name == prop.Name))
+                    {
+                        list.Add((prop, null));
+                    }
+                }
+
+                var fields = current.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                foreach (var field in fields)
+                {
+                    if (!field.IsInitOnly && !field.IsStatic && !list.Any(p => p.Field?.Name == field.Name))
+                    {
+                        list.Add((null, field));
+                    }
+                }
+            }
+
+            return list.ToArray();
+        });
     }
 
     /// <summary>
