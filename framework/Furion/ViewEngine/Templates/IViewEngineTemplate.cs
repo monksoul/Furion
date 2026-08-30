@@ -26,7 +26,7 @@
 namespace Furion.ViewEngine;
 
 /// <summary>
-/// 视图引擎模板（编译后）
+/// 视图模板接口
 /// </summary>
 public interface IViewEngineTemplate : IDisposable
 {
@@ -57,14 +57,14 @@ public interface IViewEngineTemplate : IDisposable
     Task SaveToFileAsync(string fullName);
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
     string Run(object model = null);
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
@@ -72,11 +72,11 @@ public interface IViewEngineTemplate : IDisposable
 }
 
 /// <summary>
-/// 泛型视图编译模板接口
+/// 视图模板接口
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public interface IViewEngineTemplate<out T> : IDisposable
-    where T : IViewEngineModel
+/// <typeparam name="TModel">模型类型</typeparam>
+public interface IViewEngineTemplate<TModel> : IDisposable
+    where TModel : class
 {
     /// <summary>
     /// 保存到流中
@@ -105,16 +105,16 @@ public interface IViewEngineTemplate<out T> : IDisposable
     Task SaveToFileAsync(string fullName);
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
-    /// <param name="initializer"></param>
+    /// <param name="model"></param>
     /// <returns></returns>
-    string Run(Action<T> initializer);
+    string Run(TModel model);
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
-    /// <param name="initializer"></param>
+    /// <param name="model"></param>
     /// <returns></returns>
-    Task<string> RunAsync(Action<T> initializer);
+    Task<string> RunAsync(TModel model);
 }

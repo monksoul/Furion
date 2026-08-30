@@ -57,34 +57,10 @@ internal static class Penetrates
     }
 
     /// <summary>
-    /// 从文件加载模板
-    /// </summary>
-    internal static IViewEngineTemplate LoadTemplateFromFileSafely(string templatePath)
-    {
-        var bytes = File.ReadAllBytes(templatePath);
-
-        var (_, alc) = LoadTemplateType(bytes);
-        alc.Unload();
-
-        return new ViewEngineTemplate(bytes, TemplateTypeName, templatePath);
-    }
-
-    /// <summary>
-    /// 从文件加载模板
-    /// </summary>
-    internal static IViewEngineTemplate<T> LoadTemplateFromFileSafely<T>(string templatePath) where T : IViewEngineModel
-    {
-        var bytes = File.ReadAllBytes(templatePath);
-
-        var (_, alc) = LoadTemplateType(bytes);
-        alc.Unload();
-
-        return new ViewEngineTemplate<T>(bytes, TemplateTypeName, templatePath);
-    }
-
-    /// <summary>
     /// 写入模板文件
     /// </summary>
+    /// <param name="templatePath"></param>
+    /// <param name="template"></param>
     internal static void SaveTemplateAtomically(string templatePath, IViewEngineTemplate template)
     {
         var tempPath = templatePath + ".tmp";
@@ -92,19 +68,24 @@ internal static class Penetrates
         {
             template.SaveToStream(stream);
         }
+
         File.Move(tempPath, templatePath, overwrite: true);
     }
 
     /// <summary>
     /// 写入模板文件
     /// </summary>
-    internal static void SaveTemplateAtomically<T>(string templatePath, IViewEngineTemplate<T> template) where T : IViewEngineModel
+    /// <typeparam name="TModel"></typeparam>
+    /// <param name="templatePath"></param>
+    /// <param name="template"></param>
+    internal static void SaveTemplateAtomically<TModel>(string templatePath, IViewEngineTemplate<TModel> template) where TModel : class
     {
         var tempPath = templatePath + ".tmp";
         using (var stream = File.Create(tempPath))
         {
             template.SaveToStream(stream);
         }
+
         File.Move(tempPath, templatePath, overwrite: true);
     }
 }

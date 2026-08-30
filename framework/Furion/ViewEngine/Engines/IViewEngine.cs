@@ -49,29 +49,7 @@ public interface IViewEngine
     Task<string> RunCompileAsync(string content, object model = null, Action<IViewEngineCompileOptions> builderAction = null);
 
     /// <summary>
-    /// 编译并运行
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="content"></param>
-    /// <param name="model"></param>
-    /// <param name="builderAction"></param>
-    /// <returns></returns>
-    string RunCompile<T>(string content, T model, Action<IViewEngineCompileOptions> builderAction = null)
-        where T : class, new();
-
-    /// <summary>
-    /// 编译并运行
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="content"></param>
-    /// <param name="model"></param>
-    /// <param name="builderAction"></param>
-    /// <returns></returns>
-    Task<string> RunCompileAsync<T>(string content, T model, Action<IViewEngineCompileOptions> builderAction = null)
-        where T : class, new();
-
-    /// <summary>
-    /// 通过缓存解析模板
+    /// 通过缓存编译并运行
     /// </summary>
     /// <param name="content"></param>
     /// <param name="model"></param>
@@ -81,7 +59,7 @@ public interface IViewEngine
     string RunCompileFromCached(string content, object model = null, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
 
     /// <summary>
-    /// 通过缓存解析模板
+    /// 通过缓存编译并运行
     /// </summary>
     /// <param name="content"></param>
     /// <param name="model"></param>
@@ -89,39 +67,6 @@ public interface IViewEngine
     /// <param name="cacheFileName"></param>
     /// <returns></returns>
     Task<string> RunCompileFromCachedAsync(string content, object model = null, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
-
-    /// <summary>
-    /// 通过缓存解析模板
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="content"></param>
-    /// <param name="model"></param>
-    /// <param name="builderAction"></param>
-    /// <param name="cacheFileName"></param>
-    /// <returns></returns>
-    string RunCompileFromCached<T>(string content, T model, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
-        where T : class, new();
-
-    /// <summary>
-    /// 通过缓存解析模板
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="content"></param>
-    /// <param name="model"></param>
-    /// <param name="builderAction"></param>
-    /// <param name="cacheFileName"></param>
-    /// <returns></returns>
-    Task<string> RunCompileFromCachedAsync<T>(string content, T model, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
-        where T : class, new();
-
-    /// <summary>
-    /// 从缓存中编译模板
-    /// </summary>
-    /// <param name="content"></param>
-    /// <param name="builderAction"></param>
-    /// <param name="cacheFileName"></param>
-    /// <returns></returns>
-    IViewEngineTemplate CompileFromCached(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
 
     /// <summary>
     /// 编译模板
@@ -132,15 +77,6 @@ public interface IViewEngine
     IViewEngineTemplate Compile(string content, Action<IViewEngineCompileOptions> builderAction = null);
 
     /// <summary>
-    /// 从缓存中编译模板
-    /// </summary>
-    /// <param name="content"></param>
-    /// <param name="builderAction"></param>
-    /// <param name="cacheFileName"></param>
-    /// <returns></returns>
-    Task<IViewEngineTemplate> CompileFromCachedAsync(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
-
-    /// <summary>
     /// 编译模板
     /// </summary>
     /// <param name="content"></param>
@@ -149,44 +85,108 @@ public interface IViewEngine
     Task<IViewEngineTemplate> CompileAsync(string content, Action<IViewEngineCompileOptions> builderAction = null);
 
     /// <summary>
-    /// 从缓存中编译模板
+    /// 从缓存编译模板
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     /// <param name="content"></param>
     /// <param name="builderAction"></param>
     /// <param name="cacheFileName"></param>
     /// <returns></returns>
-    IViewEngineTemplate<T> CompileFromCached<T>(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
-        where T : IViewEngineModel;
+    IViewEngineTemplate CompileFromCached(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
 
     /// <summary>
-    /// 编译模板
+    /// 从缓存编译模板
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="content"></param>
-    /// <param name="builderAction"></param>
-    /// <returns></returns>
-    IViewEngineTemplate<T> Compile<T>(string content, Action<IViewEngineCompileOptions> builderAction = null)
-        where T : IViewEngineModel;
-
-    /// <summary>
-    /// 从缓存中编译模板
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
     /// <param name="content"></param>
     /// <param name="builderAction"></param>
     /// <param name="cacheFileName"></param>
     /// <returns></returns>
-    Task<IViewEngineTemplate<T>> CompileFromCachedAsync<T>(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
-        where T : IViewEngineModel;
+    Task<IViewEngineTemplate> CompileFromCachedAsync(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default);
+
+    /// <summary>
+    /// 编译并运行
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="model"></param>
+    /// <param name="builderAction"></param>
+    /// <returns></returns>
+    string RunCompile<TModel>(string content, TModel model, Action<IViewEngineCompileOptions> builderAction = null)
+        where TModel : class;
+
+    /// <summary>
+    /// 编译并运行
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="model"></param>
+    /// <param name="builderAction"></param>
+    /// <returns></returns>
+    Task<string> RunCompileAsync<TModel>(string content, TModel model, Action<IViewEngineCompileOptions> builderAction = null)
+        where TModel : class;
+
+    /// <summary>
+    /// 通过缓存编译并运行
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="model"></param>
+    /// <param name="builderAction"></param>
+    /// <param name="cacheFileName"></param>
+    /// <returns></returns>
+    string RunCompileFromCached<TModel>(string content, TModel model, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
+        where TModel : class;
+
+    /// <summary>
+    /// 通过缓存编译并运行
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="model"></param>
+    /// <param name="builderAction"></param>
+    /// <param name="cacheFileName"></param>
+    /// <returns></returns>
+    Task<string> RunCompileFromCachedAsync<TModel>(string content, TModel model, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
+        where TModel : class;
 
     /// <summary>
     /// 编译模板
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TModel">模型类型</typeparam>
     /// <param name="content"></param>
     /// <param name="builderAction"></param>
     /// <returns></returns>
-    Task<IViewEngineTemplate<T>> CompileAsync<T>(string content, Action<IViewEngineCompileOptions> builderAction = null)
-        where T : IViewEngineModel;
+    IViewEngineTemplate<TModel> Compile<TModel>(string content, Action<IViewEngineCompileOptions> builderAction = null)
+        where TModel : class;
+
+    /// <summary>
+    /// 编译模板
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="builderAction"></param>
+    /// <returns></returns>
+    Task<IViewEngineTemplate<TModel>> CompileAsync<TModel>(string content, Action<IViewEngineCompileOptions> builderAction = null)
+        where TModel : class;
+
+    /// <summary>
+    /// 从缓存编译模板
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="builderAction"></param>
+    /// <param name="cacheFileName"></param>
+    /// <returns></returns>
+    IViewEngineTemplate<TModel> CompileFromCached<TModel>(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
+        where TModel : class;
+
+    /// <summary>
+    /// 从缓存编译模板
+    /// </summary>
+    /// <typeparam name="TModel">模型类型</typeparam>
+    /// <param name="content"></param>
+    /// <param name="builderAction"></param>
+    /// <param name="cacheFileName"></param>
+    /// <returns></returns>
+    Task<IViewEngineTemplate<TModel>> CompileFromCachedAsync<TModel>(string content, Action<IViewEngineCompileOptions> builderAction = null, string cacheFileName = default)
+        where TModel : class;
 }

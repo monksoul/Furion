@@ -28,7 +28,7 @@ using Furion.Extensions;
 namespace Furion.ViewEngine;
 
 /// <summary>
-/// 视图引擎模板（编译后）
+/// 视图模板实现类
 /// </summary>
 public class ViewEngineTemplate : IViewEngineTemplate
 {
@@ -85,8 +85,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// <param name="stream"></param>
     public void SaveToStream(Stream stream)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate));
-
+        ThrowIfDisposed();
         stream.Write(_assemblyBytes, 0, _assemblyBytes.Length);
     }
 
@@ -107,8 +106,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// <param name="fullName"></param>
     public void SaveToFile(string fullName)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate));
-
+        ThrowIfDisposed();
         File.WriteAllBytes(fullName, _assemblyBytes);
     }
 
@@ -124,13 +122,13 @@ public class ViewEngineTemplate : IViewEngineTemplate
     }
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
     public string Run(object model = null)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate));
+        ThrowIfDisposed();
 
         if (model != null && model.IsAnonymous())
         {
@@ -157,13 +155,13 @@ public class ViewEngineTemplate : IViewEngineTemplate
     }
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
     public async Task<string> RunAsync(object model = null)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate));
+        ThrowIfDisposed();
 
         if (model != null && model.IsAnonymous())
         {
@@ -189,54 +187,6 @@ public class ViewEngineTemplate : IViewEngineTemplate
         }
     }
 
-    /// <summary>
-    /// 从文件中加载模板
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public static IViewEngineTemplate LoadFromFile(string fullName)
-    {
-        var bytes = File.ReadAllBytes(fullName);
-        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName, fullName);
-    }
-
-    /// <summary>
-    /// 从文件中加载模板
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public static async Task<IViewEngineTemplate> LoadFromFileAsync(string fullName)
-    {
-        var bytes = await File.ReadAllBytesAsync(fullName);
-        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName, fullName);
-    }
-
-    /// <summary>
-    /// 从流中加载模板
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public static IViewEngineTemplate LoadFromStream(Stream stream)
-    {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var bytes = ms.ToArray();
-        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName);
-    }
-
-    /// <summary>
-    /// 从流中加载模板
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public static async Task<IViewEngineTemplate> LoadFromStreamAsync(Stream stream)
-    {
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var bytes = ms.ToArray();
-        return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName);
-    }
-
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -250,27 +200,38 @@ public class ViewEngineTemplate : IViewEngineTemplate
     }
 
     /// <summary>
+    /// 检查对象是否已释放
+    /// </summary>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(ViewEngineTemplate));
+        }
+    }
+
+    /// <summary>
     /// 生成缓存不匹配异常
     /// </summary>
+    /// <param name="ex"></param>
     /// <returns></returns>
     private Exception GetCacheMismatchException(InvalidCastException ex)
     {
         if (_cacheFilePath != null)
         {
             return new InvalidOperationException(
-                $"Failed to cast template type. The cached file may be incompatible with the current model. " +
-                $"Please delete the cache file and try again. File path: `{_cacheFilePath}`.", ex);
+                $"Failed to cast template type. The cached file may be incompatible. File path: `{_cacheFilePath}`.", ex);
         }
         return ex;
     }
 }
 
 /// <summary>
-/// 视图引擎模板（编译后）
+/// 视图模板实现类
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
-    where T : IViewEngineModel
+/// <typeparam name="TModel">模型类型</typeparam>
+public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
+    where TModel : class
 {
     /// <summary>
     /// 程序集字节码
@@ -325,8 +286,7 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     /// <param name="stream"></param>
     public void SaveToStream(Stream stream)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
-
+        ThrowIfDisposed();
         stream.Write(_assemblyBytes, 0, _assemblyBytes.Length);
     }
 
@@ -342,18 +302,17 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     }
 
     /// <summary>
-    /// 保存到文件中
+    /// 保存到文件
     /// </summary>
     /// <param name="fullName"></param>
     public void SaveToFile(string fullName)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
-
+        ThrowIfDisposed();
         File.WriteAllBytes(fullName, _assemblyBytes);
     }
 
     /// <summary>
-    /// 保存到文件中
+    /// 保存到文件
     /// </summary>
     /// <param name="fullName"></param>
     /// <returns></returns>
@@ -364,22 +323,34 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     }
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
-    /// <param name="initializer"></param>
+    /// <param name="model"></param>
     /// <returns></returns>
-    public string Run(Action<T> initializer)
+    public string Run(TModel model)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
+        ThrowIfDisposed();
 
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (T)Activator.CreateInstance(type);
-            initializer(instance);
+            var instance = Activator.CreateInstance(type);
 
-            instance.Execute();
-            return instance.Result();
+            if (instance is ViewEngineModel<TModel> strongTypedInstance)
+            {
+                strongTypedInstance.Model = model;
+                strongTypedInstance.Execute();
+
+                return strongTypedInstance.Result();
+            }
+            else
+            {
+                var dynamicInstance = (IViewEngineModel)instance;
+                dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                dynamicInstance.Execute();
+
+                return dynamicInstance.Result();
+            }
         }
         catch (InvalidCastException ex)
         {
@@ -392,22 +363,34 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     }
 
     /// <summary>
-    /// 执行编译
+    /// 执行模板
     /// </summary>
-    /// <param name="initializer"></param>
+    /// <param name="model"></param>
     /// <returns></returns>
-    public async Task<string> RunAsync(Action<T> initializer)
+    public async Task<string> RunAsync(TModel model)
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ViewEngineTemplate<T>));
+        ThrowIfDisposed();
 
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
         try
         {
-            var instance = (T)Activator.CreateInstance(type);
-            initializer(instance);
+            var instance = Activator.CreateInstance(type);
 
-            await instance.ExecuteAsync();
-            return await instance.ResultAsync();
+            if (instance is ViewEngineModel<TModel> strongTypedInstance)
+            {
+                strongTypedInstance.Model = model;
+                await strongTypedInstance.ExecuteAsync();
+
+                return await strongTypedInstance.ResultAsync();
+            }
+            else
+            {
+                var dynamicInstance = (IViewEngineModel)instance;
+                dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                await dynamicInstance.ExecuteAsync();
+
+                return await dynamicInstance.ResultAsync();
+            }
         }
         catch (InvalidCastException ex)
         {
@@ -417,54 +400,6 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
         {
             alc.Unload();
         }
-    }
-
-    /// <summary>
-    /// 从文件中加载模板
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public static IViewEngineTemplate<T> LoadFromFile(string fullName)
-    {
-        var bytes = File.ReadAllBytes(fullName);
-        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName, fullName);
-    }
-
-    /// <summary>
-    /// 从文件中加载模板
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public static async Task<IViewEngineTemplate<T>> LoadFromFileAsync(string fullName)
-    {
-        var bytes = await File.ReadAllBytesAsync(fullName);
-        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName, fullName);
-    }
-
-    /// <summary>
-    /// 从流中加载模板
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public static IViewEngineTemplate<T> LoadFromStream(Stream stream)
-    {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var bytes = ms.ToArray();
-        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName);
-    }
-
-    /// <summary>
-    /// 从流中加载模板
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public static async Task<IViewEngineTemplate<T>> LoadFromStreamAsync(Stream stream)
-    {
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var bytes = ms.ToArray();
-        return new ViewEngineTemplate<T>(bytes, Penetrates.TemplateTypeName);
     }
 
     /// <inheritdoc/>
@@ -480,16 +415,27 @@ public class ViewEngineTemplate<T> : IViewEngineTemplate<T>
     }
 
     /// <summary>
+    /// 检查对象是否已释放
+    /// </summary>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(ViewEngineTemplate<TModel>));
+        }
+    }
+
+    /// <summary>
     /// 生成缓存不匹配异常
     /// </summary>
+    /// <param name="ex"></param>
     /// <returns></returns>
     private Exception GetCacheMismatchException(InvalidCastException ex)
     {
         if (_cacheFilePath != null)
         {
             return new InvalidOperationException(
-                $"Failed to cast template type. The cached file may be incompatible with the current model. " +
-                $"Please delete the cache file and try again. File path: `{_cacheFilePath}`.", ex);
+                $"Failed to cast template type. The cached file may be incompatible. File path: `{_cacheFilePath}`.", ex);
         }
         return ex;
     }
