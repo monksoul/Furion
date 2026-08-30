@@ -30,14 +30,19 @@ using System.Text.Json;
 namespace Furion.JsonSerialization;
 
 /// <summary>
-/// 默认 JSON 序列化提供器
+/// 默认 JSON 序列化提供器实现类
 /// </summary>
-internal class DefaultJsonSerializerProvider : IJsonSerializerProvider
+internal sealed class DefaultJsonSerializerProvider : IJsonSerializerProvider
 {
     /// <summary>
     /// 获取 JSON 配置选项
     /// </summary>
     private readonly JsonOptions _jsonOptions;
+
+    /// <summary>
+    /// 基础序列化选项
+    /// </summary>
+    private readonly JsonSerializerOptions _baseJsonSerializerOptions;
 
     /// <summary>
     /// 构造函数
@@ -46,47 +51,32 @@ internal class DefaultJsonSerializerProvider : IJsonSerializerProvider
     public DefaultJsonSerializerProvider(IOptions<JsonOptions> options)
     {
         _jsonOptions = options.Value;
+
+        _baseJsonSerializerOptions = new JsonSerializerOptions(_jsonOptions.JsonSerializerOptions)
+        {
+            PropertyNameCaseInsensitive = true
+        };
     }
 
-    /// <summary>
-    /// 序列化对象
-    /// </summary>
-    /// <param name="value"></param>
-    /// <param name="jsonSerializerOptions"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public string Serialize(object value, object jsonSerializerOptions = null)
     {
         return JsonSerializer.Serialize(value, GetJsonSerializerOptions(jsonSerializerOptions));
     }
 
-    /// <summary>
-    /// 反序列化字符串
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="json"></param>
-    /// <param name="jsonSerializerOptions"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public T Deserialize<T>(string json, object jsonSerializerOptions = null)
     {
         return JsonSerializer.Deserialize<T>(json, GetJsonSerializerOptions(jsonSerializerOptions));
     }
 
-    /// <summary>
-    /// 反序列化字符串
-    /// </summary>
-    /// <param name="json"></param>
-    /// <param name="returnType"></param>
-    /// <param name="jsonSerializerOptions"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public object Deserialize(string json, Type returnType, object jsonSerializerOptions = null)
     {
         return JsonSerializer.Deserialize(json, returnType, GetJsonSerializerOptions(jsonSerializerOptions));
     }
 
-    /// <summary>
-    /// 返回读取全局配置的 JSON 选项
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc />
     public object GetSerializerOptions()
     {
         return _jsonOptions?.JsonSerializerOptions;
@@ -99,14 +89,11 @@ internal class DefaultJsonSerializerProvider : IJsonSerializerProvider
     /// <returns></returns>
     private JsonSerializerOptions GetJsonSerializerOptions(object jsonSerializerOptions = null)
     {
-        var source = (jsonSerializerOptions as JsonSerializerOptions)
-                      ?? GetSerializerOptions() as JsonSerializerOptions
-                      ?? new JsonSerializerOptions();
-
-        var optionsCopy = new JsonSerializerOptions(source);
-
-        // 默认不区分大小写匹配
-        optionsCopy.PropertyNameCaseInsensitive = true;
+        var source = jsonSerializerOptions as JsonSerializerOptions ?? _baseJsonSerializerOptions;
+        var optionsCopy = new JsonSerializerOptions(source)
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         return optionsCopy;
     }

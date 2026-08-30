@@ -26,7 +26,7 @@
 namespace Furion.JsonSerialization;
 
 /// <summary>
-/// Json 序列化提供器
+/// Json 序列化提供器接口
 /// </summary>
 public interface IJsonSerializerProvider
 {
