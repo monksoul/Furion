@@ -163,7 +163,7 @@ internal sealed class ViewEngine : IViewEngine
                     var bytes = File.ReadAllBytes(templatePath);
                     var (_, alc) = Penetrates.LoadTemplateType(bytes);
                     alc.Unload();
-                    return new ViewEngineTemplate(bytes, Penetrates.TemplateTypeName, templatePath);
+                    return new ViewEngineTemplate(bytes, templatePath);
                 }
             }
             catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
@@ -270,7 +270,7 @@ internal sealed class ViewEngine : IViewEngine
                     var bytes = File.ReadAllBytes(templatePath);
                     var (_, alc) = Penetrates.LoadTemplateType(bytes);
                     alc.Unload();
-                    return new ViewEngineTemplate<TModel>(bytes, Penetrates.TemplateTypeName, templatePath);
+                    return new ViewEngineTemplate<TModel>(bytes, templatePath);
                 }
             }
             catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)
@@ -335,7 +335,7 @@ internal sealed class ViewEngine : IViewEngine
                     var bytes = File.ReadAllBytes(templatePath);
                     var (_, alc) = Penetrates.LoadTemplateType(bytes);
                     alc.Unload();
-                    return new ViewEngineTemplate<TModel>(bytes, Penetrates.TemplateTypeName, templatePath);
+                    return new ViewEngineTemplate<TModel>(bytes, templatePath);
                 }
             }
             catch (Exception ex) when (ex is IOException or BadImageFormatException or InvalidOperationException)

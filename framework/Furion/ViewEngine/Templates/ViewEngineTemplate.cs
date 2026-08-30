@@ -40,11 +40,6 @@ public class ViewEngineTemplate : IViewEngineTemplate
     private byte[] _assemblyBytes;
 
     /// <summary>
-    /// 模板类型全名
-    /// </summary>
-    private string _templateTypeName;
-
-    /// <summary>
     /// 是否已释放
     /// </summary>
     private bool _disposed;
@@ -58,9 +53,8 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateTypeName">模板类型全名</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName)
-        : this(assemblyBytes, templateTypeName, null)
+    internal ViewEngineTemplate(byte[] assemblyBytes)
+        : this(assemblyBytes, null)
     {
     }
 
@@ -68,16 +62,13 @@ public class ViewEngineTemplate : IViewEngineTemplate
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateTypeName">模板类型全名</param>
     /// <param name="cacheFilePath">缓存文件路径</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName, string? cacheFilePath)
+    internal ViewEngineTemplate(byte[] assemblyBytes, string? cacheFilePath)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(assemblyBytes);
-        ArgumentNullException.ThrowIfNull(templateTypeName);
 
         _assemblyBytes = assemblyBytes;
-        _templateTypeName = templateTypeName;
         _cacheFilePath = cacheFilePath;
     }
 
@@ -99,27 +90,6 @@ public class ViewEngineTemplate : IViewEngineTemplate
     public Task SaveToStreamAsync(Stream stream)
     {
         SaveToStream(stream);
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    public void SaveToFile(string fullName)
-    {
-        ThrowIfDisposed();
-        File.WriteAllBytes(fullName, _assemblyBytes);
-    }
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public Task SaveToFileAsync(string fullName)
-    {
-        SaveToFile(fullName);
         return Task.CompletedTask;
     }
 
@@ -196,9 +166,8 @@ public class ViewEngineTemplate : IViewEngineTemplate
         _disposed = true;
 
         // 释放引用
-        _assemblyBytes = null!;
-        _templateTypeName = null!;
-        _cacheFilePath = null!;
+        _assemblyBytes = null;
+        _cacheFilePath = null;
     }
 
     /// <summary>
@@ -241,11 +210,6 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     private byte[] _assemblyBytes;
 
     /// <summary>
-    /// 模板类型全名
-    /// </summary>
-    private string _templateTypeName;
-
-    /// <summary>
     /// 是否已释放
     /// </summary>
     private bool _disposed;
@@ -264,9 +228,8 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateTypeName">模板类型全名</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName)
-        : this(assemblyBytes, templateTypeName, null)
+    internal ViewEngineTemplate(byte[] assemblyBytes)
+        : this(assemblyBytes, null)
     {
     }
 
@@ -274,16 +237,13 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     /// 构造函数
     /// </summary>
     /// <param name="assemblyBytes">程序集字节数组</param>
-    /// <param name="templateTypeName">模板类型全名</param>
     /// <param name="cacheFilePath">缓存文件路径</param>
-    internal ViewEngineTemplate(byte[] assemblyBytes, string templateTypeName, string? cacheFilePath)
+    internal ViewEngineTemplate(byte[] assemblyBytes, string? cacheFilePath)
     {
         // 空检查
         ArgumentNullException.ThrowIfNull(assemblyBytes);
-        ArgumentNullException.ThrowIfNull(templateTypeName);
 
         _assemblyBytes = assemblyBytes;
-        _templateTypeName = templateTypeName;
         _cacheFilePath = cacheFilePath;
     }
 
@@ -305,27 +265,6 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
     public Task SaveToStreamAsync(Stream stream)
     {
         SaveToStream(stream);
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    public void SaveToFile(string fullName)
-    {
-        ThrowIfDisposed();
-        File.WriteAllBytes(fullName, _assemblyBytes);
-    }
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    public Task SaveToFileAsync(string fullName)
-    {
-        SaveToFile(fullName);
         return Task.CompletedTask;
     }
 
@@ -445,7 +384,6 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
 
         // 释放引用
         _assemblyBytes = null;
-        _templateTypeName = null;
         _cacheFilePath = null;
     }
 

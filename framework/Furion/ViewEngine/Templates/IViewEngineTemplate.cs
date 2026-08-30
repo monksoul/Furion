@@ -44,19 +44,6 @@ public interface IViewEngineTemplate : IDisposable
     Task SaveToStreamAsync(Stream stream);
 
     /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    void SaveToFile(string fullName);
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    Task SaveToFileAsync(string fullName);
-
-    /// <summary>
     /// 执行模板
     /// </summary>
     /// <param name="model"></param>
@@ -90,19 +77,6 @@ public interface IViewEngineTemplate<TModel> : IDisposable
     /// <param name="stream"></param>
     /// <returns></returns>
     Task SaveToStreamAsync(Stream stream);
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    void SaveToFile(string fullName);
-
-    /// <summary>
-    /// 保存到文件
-    /// </summary>
-    /// <param name="fullName"></param>
-    /// <returns></returns>
-    Task SaveToFileAsync(string fullName);
 
     /// <summary>
     /// 执行模板
