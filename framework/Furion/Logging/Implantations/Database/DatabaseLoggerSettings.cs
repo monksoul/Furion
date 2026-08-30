@@ -38,8 +38,9 @@ public sealed class DatabaseLoggerSettings
     public LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
 
     /// <summary>
-    /// 是否使用 UTC 时间戳，默认 false
+    /// 是否使用 UTC 时间戳
     /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool UseUtcTimestamp { get; set; }
 
     /// <summary>
@@ -55,7 +56,7 @@ public sealed class DatabaseLoggerSettings
     /// <summary>
     /// 忽略日志循环输出
     /// </summary>
-    /// <remarks>对性能有些许影响</remarks>
+    /// <remarks>对性能有些许影响。</remarks>
     public bool IgnoreReferenceLoop { get; set; } = true;
 
     /// <summary>
@@ -64,7 +65,8 @@ public sealed class DatabaseLoggerSettings
     public bool WithTraceId { get; set; } = false;
 
     /// <summary>
-    /// 显示堆栈框架（程序集和方法签名）
+    /// 显示堆栈框架
     /// </summary>
+    /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
 }

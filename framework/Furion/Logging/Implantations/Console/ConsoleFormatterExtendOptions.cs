@@ -75,18 +75,18 @@ public sealed class ConsoleFormatterExtendOptions : ConsoleFormatterOptions
     public bool WithTraceId { get; set; } = false;
 
     /// <summary>
-    /// 显示堆栈框架（程序集和方法签名）
+    /// 显示堆栈框架
     /// </summary>
+    /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
 
     /// <summary>
-    /// 日志消息内容转换（如脱敏处理）
+    /// 日志消息内容转换
     /// </summary>
     public Func<string, string> MessageProcess { get; set; }
 
     /// <summary>
     /// 格式化提供器
     /// </summary>
-    /// <remarks></remarks>
     public IFormatProvider? FormatProvider { get; set; } = CultureInfo.InvariantCulture;
 }

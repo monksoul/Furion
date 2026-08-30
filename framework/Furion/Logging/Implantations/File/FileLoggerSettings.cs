@@ -33,8 +33,9 @@ namespace Furion.Logging;
 public sealed class FileLoggerSettings
 {
     /// <summary>
-    /// 日志文件完整路径或文件名，推荐 .log 作为扩展名
+    /// 日志文件完整路径或文件名
     /// </summary>
+    /// <remarks>推荐 .log 作为扩展名。</remarks>
     public string FileName { get; set; } = "application.log";
 
     /// <summary>
@@ -43,15 +44,15 @@ public sealed class FileLoggerSettings
     public bool Append { get; set; } = true;
 
     /// <summary>
-    /// 控制每一个日志文件最大存储大小，默认无限制，单位是 B，也就是 1024 才等于 1KB
+    /// 控制每一个日志文件最大存储大小
     /// </summary>
-    /// <remarks>如果指定了该值，那么日志文件大小超出了该配置就会创建的日志文件，新创建的日志文件命名规则：文件名+[递增序号].log</remarks>
+    /// <remarks>默认无限制，单位是 B，也就是 1024 才等于 1KB。如果指定了该值，那么日志文件大小超出了该配置就会创建的日志文件，新创建的日志文件命名规则：文件名+[递增序号].log。</remarks>
     public long FileSizeLimitBytes { get; set; } = 0;
 
     /// <summary>
-    /// 控制最大创建的日志文件数量，默认无限制，配合 <see cref="FileSizeLimitBytes"/> 使用
+    /// 控制最大创建的日志文件数量
     /// </summary>
-    /// <remarks>如果指定了该值，那么超出该值将从最初日志文件中从头写入覆盖</remarks>
+    /// <remarks>默认无限制，配合 <see cref="FileSizeLimitBytes"/> 使用。如果指定了该值，那么超出该值将从最初日志文件中从头写入覆盖。</remarks>
     public int MaxRollingFiles { get; set; } = 0;
 
     /// <summary>
@@ -60,8 +61,9 @@ public sealed class FileLoggerSettings
     public LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
 
     /// <summary>
-    /// 是否使用 UTC 时间戳，默认 false
+    /// 是否使用 UTC 时间戳
     /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool UseUtcTimestamp { get; set; }
 
     /// <summary>
@@ -80,7 +82,8 @@ public sealed class FileLoggerSettings
     public bool WithTraceId { get; set; } = false;
 
     /// <summary>
-    /// 显示堆栈框架（程序集和方法签名）
+    /// 显示堆栈框架
     /// </summary>
+    /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
 }

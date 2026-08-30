@@ -107,7 +107,7 @@ public sealed class DatabaseLogger : ILogger
         // 获取格式化后的消息
         var message = formatter(state, exception);
 
-        // 日志消息内容转换（如脱敏处理）
+        // 日志消息内容转换
         if (_options.MessageProcess != null)
         {
             message = _options.MessageProcess(message);
@@ -152,7 +152,7 @@ public sealed class DatabaseLogger : ILogger
                     return;
                 }
 
-                // 第二道防线：调用栈检测（用于处理其他复杂递归场景）
+                // 第二道防线：调用栈检测，用于处理其他复杂递归场景
                 if (IsInWriterCallStack())
                 {
                     _options.FallbackLogAction?.Invoke(logMsg);
@@ -175,7 +175,7 @@ public sealed class DatabaseLogger : ILogger
     }
 
     /// <summary>
-    /// 检查当前调用栈中是否包含 IDatabaseLoggingWriter 接口的实现方法
+    /// 检查当前调用栈中是否包含 <see cref="IDatabaseLoggingWriter"/> 接口的实现方法
     /// </summary>
     /// <returns></returns>
     private bool IsInWriterCallStack()

@@ -51,12 +51,14 @@ public sealed class DatabaseLoggerOptions
     /// <summary>
     /// 自定义数据库日志写入错误程序
     /// </summary>
-    /// <remarks>主要解决日志在写入过程出现异常问题</remarks>
-    /// <example>
+    /// <remarks>
+    /// 主要解决日志在写入过程出现异常问题。
+    /// <code>
     /// options.HandleWriteError = (err) => {
     ///     // do anything
     /// };
-    /// </example>
+    /// </code>
+    /// </remarks>
     public Action<DatabaseWriteError> HandleWriteError { get; set; }
 
     /// <summary>
@@ -66,8 +68,9 @@ public sealed class DatabaseLoggerOptions
     public Action<LogMessage> FallbackLogAction { get; set; }
 
     /// <summary>
-    /// 是否使用 UTC 时间戳，默认 false
+    /// 是否使用 UTC 时间戳
     /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool UseUtcTimestamp { get; set; }
 
     /// <summary>
@@ -83,7 +86,7 @@ public sealed class DatabaseLoggerOptions
     /// <summary>
     /// 忽略日志循环输出
     /// </summary>
-    /// <remarks>对性能有些许影响</remarks>
+    /// <remarks>对性能有些许影响。</remarks>
     public bool IgnoreReferenceLoop { get; set; } = true;
 
     /// <summary>
@@ -92,18 +95,18 @@ public sealed class DatabaseLoggerOptions
     public bool WithTraceId { get; set; } = false;
 
     /// <summary>
-    /// 显示堆栈框架（程序集和方法签名）
+    /// 显示堆栈框架
     /// </summary>
+    /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
 
     /// <summary>
-    /// 日志消息内容转换（如脱敏处理）
+    /// 日志消息内容转换
     /// </summary>
     public Func<string, string> MessageProcess { get; set; }
 
     /// <summary>
     /// 格式化提供器
     /// </summary>
-    /// <remarks></remarks>
     public IFormatProvider? FormatProvider { get; set; } = CultureInfo.InvariantCulture;
 }

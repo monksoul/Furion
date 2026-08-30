@@ -106,7 +106,7 @@ public sealed class FileLogger : ILogger
         // 获取格式化后的消息
         var message = formatter(state, exception);
 
-        // 日志消息内容转换（如脱敏处理）
+        // 日志消息内容转换
         if (_options.MessageProcess != null)
         {
             message = _options.MessageProcess(message);

@@ -34,7 +34,7 @@ namespace Furion.Logging;
 /// <summary>
 /// 日志监视器配置
 /// </summary>
-/// <remarks>默认配置节点：Logging:Monitor，支持自定义</remarks>
+/// <remarks>默认配置节点：Logging:Monitor，支持自定义。</remarks>
 public sealed class LoggingMonitorSettings
 {
     /// <summary>
@@ -43,15 +43,15 @@ public sealed class LoggingMonitorSettings
     public bool GlobalEnabled { get; set; } = false;
 
     /// <summary>
-    /// 配置包含拦截的方法名列表（完全限定名格式：程序集名称.类名.方法名），注意无需添加参数签名
+    /// 配置包含拦截的方法名列表
     /// </summary>
-    /// <remarks>结合 <seealso cref="GlobalEnabled"/> 使用，当 <see cref="GlobalEnabled"/> 为 false 时有效，</remarks>
+    /// <remarks>完全限定名格式：程序集名称.类名.方法名，注意无需添加参数签名。结合 <seealso cref="GlobalEnabled"/> 使用，当 <see cref="GlobalEnabled"/> 为 false 时有效。</remarks>
     public string[] IncludeOfMethods { get; set; } = [];
 
     /// <summary>
-    /// 配置排除拦截的方法名列表（完全限定名格式：程序集名称.类名.方法名），注意无需添加参数签名
+    /// 配置排除拦截的方法名列表
     /// </summary>
-    /// <remarks>结合 <seealso cref="GlobalEnabled"/> 使用，当 <see cref="GlobalEnabled"/> 为 true 时有效，</remarks>
+    /// <remarks>完全限定名格式：程序集名称.类名.方法名，注意无需添加参数签名。结合 <seealso cref="GlobalEnabled"/> 使用，当 <see cref="GlobalEnabled"/> 为 true 时有效。</remarks>
     public string[] ExcludeOfMethods { get; set; } = [];
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class LoggingMonitorSettings
     /// <summary>
     /// 业务日志消息级别
     /// </summary>
-    /// <remarks>控制 Oops.Oh 或 Oops.Bah 日志记录位置，默认写入 <see cref="LogLevel.Information"/></remarks>
+    /// <remarks>控制 Oops.Oh 或 Oops.Bah 日志记录位置，默认写入 <see cref="LogLevel.Information"/>。</remarks>
     public LogLevel BahLogLevel { get; set; } = LogLevel.Information;
 
     /// <summary>
@@ -79,7 +79,7 @@ public sealed class LoggingMonitorSettings
     /// <summary>
     /// 设置返回值阈值
     /// </summary>
-    /// <remarks>配置返回值字符串阈值，超过这个阈值将截断，默认全量输出</remarks>
+    /// <remarks>配置返回值字符串阈值，超过这个阈值将截断，默认全量输出。</remarks>
     public int ReturnValueThreshold { get; set; } = 0;
 
     /// <summary>
@@ -88,7 +88,7 @@ public sealed class LoggingMonitorSettings
     public JsonBehavior JsonBehavior { get; set; } = JsonBehavior.None;
 
     /// <summary>
-    /// 配置 序列化属性命名规则（返回值）
+    /// 配置序列化属性命名规则
     /// </summary>
     public ContractResolverTypes ContractResolver { get; set; } = ContractResolverTypes.CamelCase;
 
@@ -115,13 +115,13 @@ public sealed class LoggingMonitorSettings
     /// <summary>
     /// 是否 Mvc Filter 方式注册
     /// </summary>
-    /// <remarks>解决过去 Mvc Filter 全局注册的问题</remarks>
+    /// <remarks>解决过去 Mvc Filter 全局注册的问题。</remarks>
     internal bool IsMvcFilterRegister { get; set; } = true;
 
     /// <summary>
     /// 是否来自全局触发器
     /// </summary>
-    /// <remarks>解决局部和全局触发器同时配置触发两次问题</remarks>
+    /// <remarks>解决局部和全局触发器同时配置触发两次问题。</remarks>
     internal bool FromGlobalFilter { get; set; } = false;
 
     /// <summary>
@@ -137,11 +137,11 @@ public sealed class LoggingMonitorSettings
     /// <summary>
     /// 日志条目过滤
     /// </summary>
-    /// <remarks>返回 false 隐藏</remarks>
+    /// <remarks>返回 false 隐藏。</remarks>
     internal static Func<string, bool> InternalItemFilter { get; set; }
 
     /// <summary>
-    /// 配置日志更多功能（外部调用）
+    /// 配置日志更多功能
     /// </summary>
     /// <param name="configure"></param>
     public void ConfigureLogger(Action<ILogger, LogContext, FilterContext> configure)

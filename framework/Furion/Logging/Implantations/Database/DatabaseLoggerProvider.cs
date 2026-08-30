@@ -44,7 +44,7 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     private readonly ConcurrentDictionary<string, DatabaseLogger> _databaseLoggers = new();
 
     /// <summary>
-    /// 日志消息队列（线程安全）
+    /// 日志消息队列
     /// </summary>
     private readonly Channel<LogMessage> _logMessageChannel;
 
@@ -81,7 +81,7 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     /// <summary>
     /// 长时间运行的后台任务
     /// </summary>
-    /// <remarks>实现不间断写入</remarks>
+    /// <remarks>实现不间断写入。</remarks>
     private readonly Task _processQueueTask;
 
     /// <summary>
@@ -207,7 +207,7 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
             // 检查是否已释放
             if (_isDisposed) break;
 
-            // 读取一批消息（最多 100 条）
+            // 读取一批消息，最多 100 条
             var batch = new List<LogMessage>(100);
             while (_logMessageChannel.Reader.TryRead(out var logMsg) && batch.Count < 100)
             {

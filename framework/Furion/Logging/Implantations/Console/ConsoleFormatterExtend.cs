@@ -77,7 +77,7 @@ public sealed class ConsoleFormatterExtend : ConsoleFormatter, IDisposable
         // 获取格式化后的消息
         var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
 
-        // 日志消息内容转换（如脱敏处理）
+        // 日志消息内容转换
         if (options.MessageProcess != null && message != null)
         {
             message = options.MessageProcess(message);

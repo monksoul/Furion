@@ -1,6 +1,5 @@
 ﻿using Furion.Application.Persons;
 using Furion.Logging;
-using Furion.Logging.Extensions;
 using Furion.Templates;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
@@ -34,7 +33,7 @@ public class TestLoggerServices : IDynamicApiController
 
     public void 测试日志异常()
     {
-        _logger.LogError(new Exception("错误啦"), "测试日志异常", 20);
+        _logger.LogError(new Exception("错误啦"), "测试日志异常{id}", 20);
     }
 
     [LoggingMonitor]
@@ -139,11 +138,6 @@ public class TestLoggerServices : IDynamicApiController
         }).Start();
     }
 
-    public void 测试字符串扩展日志()
-    {
-        "This is log".LogInformation<TestLoggerServices>();
-    }
-
     public void 测试日志上下文()
     {
         using var scope = _logger.ScopeContext(new Dictionary<object, object>
@@ -168,7 +162,6 @@ public class TestLoggerServices : IDynamicApiController
 
     public void 测试日志上下文3()
     {
-        "设置日志上下文".ScopeContext(ctx => ctx.Set("name", "Furion")).LogWarning();
         var (logger, scoped) = Log.ScopeContext(ctx => ctx.Set("name", "Furion"));
         logger.LogInformation("dddd");
         scoped?.Dispose();

@@ -61,7 +61,7 @@ internal class FileLoggingWriter
     private StreamWriter _textWriter;
 
     /// <summary>
-    /// 缓存上次返回的基本日志文件名，避免重复解析
+    /// 缓存上次返回的基本日志文件名
     /// </summary>
     private string _lastBaseFileName;
 
@@ -76,8 +76,9 @@ internal class FileLoggingWriter
     private long _lastScanTimestamp;
 
     /// <summary>
-    /// 目录扫描缓存有效期（毫秒），默认 5 秒
+    /// 目录扫描缓存有效期（毫秒）
     /// </summary>
+    /// <remarks>默认值为：5000 毫秒。</remarks>
     private const long DirectoryScanCacheTtlMs = 5000;
 
     /// <summary>
@@ -98,19 +99,21 @@ internal class FileLoggingWriter
     private static readonly UTF8Encoding _utf8Encoding = new(encoderShouldEmitUTF8Identifier: false);
 
     /// <summary>
-    /// 写入计数器，用于周期性检查文件存在性
+    /// 写入计数器
     /// </summary>
+    /// <remarks>用于周期性检查文件存在性。</remarks>
     private int _writeCount = 0;
 
     /// <summary>
-    /// 周期性检查文件的间隔（写入次数）
+    /// 周期性检查文件的间隔
     /// </summary>
     /// <remarks>默认 100 次。</remarks>
     private const int PeriodicCheckInterval = 100;
 
     /// <summary>
-    /// 重连锁，避免多线程同时重连
+    /// 重连锁
     /// </summary>
+    /// <remarks>避免多线程同时重连。</remarks>
     private int _reconnecting = 0;
 
     /// <summary>
@@ -231,7 +234,8 @@ internal class FileLoggingWriter
             var cachedDir = Path.GetDirectoryName(_cachedLogFiles[0]?.FullName);
             if (!string.Equals(cachedDir, logDirName, StringComparison.OrdinalIgnoreCase))
             {
-                _cachedLogFiles = null; // 强制重建缓存
+                // 强制重建缓存
+                _cachedLogFiles = null;
             }
         }
 
@@ -280,8 +284,9 @@ internal class FileLoggingWriter
     }
 
     /// <summary>
-    /// 重建滚动日志文件列表（从磁盘扫描）
+    /// 重建滚动日志文件列表
     /// </summary>
+    /// <remarks>从磁盘扫描。</remarks>
     private void RebuildRollingFileNames()
     {
         var baseFileName = EnsureAbsolutePath(_lastBaseFileName, GetSafeDefaultLogDirectory());
@@ -348,21 +353,22 @@ internal class FileLoggingWriter
         // 【递增】部分 +1
         var nextFileIndex = currentFileIndex + 1;
 
-        // 如果配置了最大【递增】数，则超出自动从头开始（覆盖写入）
+        // 如果配置了最大【递增】数，则超出自动从头开始
         if (_options.MaxRollingFiles > 0)
         {
             nextFileIndex %= _options.MaxRollingFiles;
         }
 
-        // 返回下一个匹配的日志文件名（完整路径）
+        // 返回下一个匹配的日志文件名
         var nextFileName = baseFileNameOnly + (nextFileIndex > 0 ? "_" + nextFileIndex.ToString() : "") + Path.GetExtension(baseFileName);
         var directory = Path.GetDirectoryName(baseFileName);
         return Path.Combine(directory, nextFileName);
     }
 
     /// <summary>
-    /// 打开文件（仅长连接模式使用）
+    /// 打开文件
     /// </summary>
+    /// <remarks>仅长连接模式使用。</remarks>
     /// <param name="append"></param>
     /// <returns><see cref="Task"/></returns>
     private Task OpenFileAsync(bool append)
@@ -386,7 +392,8 @@ internal class FileLoggingWriter
 
                     // 递归操作，直到应用程序停止
                     GetCurrentFileName();
-                    RebuildRollingFileNames(); // 同步更新滚动列表
+                    // 同步更新滚动列表
+                    RebuildRollingFileNames();
                     CreateFileStream();
                 }
             }
@@ -435,8 +442,11 @@ internal class FileLoggingWriter
     }
 
     /// <summary>
-    /// 兼容模式下的短连接写入方法（每次写入独立打开/关闭文件）
+    /// 兼容模式下的短连接写入方法
     /// </summary>
+    /// <remarks>每次写入独立打开/关闭文件。</remarks>
+    /// <param name="message"></param>
+    /// <returns></returns>
     private async Task WriteWithCompatibleModeAsync(string message)
     {
         // 解析当前写入日志的文件名
@@ -490,8 +500,9 @@ internal class FileLoggingWriter
     }
 
     /// <summary>
-    /// 判断是否需要创建新文件写入（仅长连接模式使用）
+    /// 判断是否需要创建新文件写入
     /// </summary>
+    /// <remarks>仅长连接模式使用。</remarks>
     /// <returns><see cref="Task"/></returns>
     private async Task CheckForNewLogFileAsync()
     {
@@ -603,9 +614,9 @@ internal class FileLoggingWriter
         // 检查是否已释放
         if (_isDisposed) return;
 
-        // 轻量锁：避免多线程同时重连
+        // 避免多线程同时重连
         if (Interlocked.Exchange(ref _reconnecting, 1) == 1)
-            return; // 已有线程在重连，直接返回
+            return;
 
         try
         {
@@ -702,7 +713,7 @@ internal class FileLoggingWriter
                         // 重置计数器
                         _writeCount = 0;
 
-                        // 如果文件不存在，说明被外部删除，需要重连
+                        // 如果文件不存在
                         if (!IsFileStillExists())
                         {
                             await ReconnectFileAsync();
@@ -710,13 +721,13 @@ internal class FileLoggingWriter
                     }
                     break;
                 }
-                // 处理临时性 IO 错误（如文件被短暂锁定）
+                // 处理临时性 IO 错误
                 catch (IOException) when (retry < maxRetries - 1)
                 {
                     retry++;
                     await Task.Delay(baseDelayMs * retry);
                 }
-                // 捕获文件不存在/句柄无效等异常，自动重连
+                // 捕获文件不存在/句柄无效等异常
                 catch (Exception ex) when (IsFileMissingException(ex) && retry < maxRetries - 1)
                 {
                     await ReconnectFileAsync();
@@ -736,8 +747,9 @@ internal class FileLoggingWriter
     }
 
     /// <summary>
-    /// 关闭文本写入器并释放（用于滚动文件或重连时关闭当前流）
+    /// 关闭文本写入器并释放
     /// </summary>
+    /// <remarks>用于滚动文件或重连时关闭当前流。</remarks>
     /// <returns><see cref="Task"/></returns>
     internal async Task CloseAsync()
     {

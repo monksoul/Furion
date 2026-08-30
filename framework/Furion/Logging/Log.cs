@@ -54,7 +54,7 @@ public static class Log
     /// 创建日志工厂
     /// </summary>
     /// <param name="configure">日志构建器</param>
-    /// <remarks><see cref="ILoggerFactory"/> 实现了 <see cref="IDisposable"/> 接口，注意使用 `using` 控制</remarks>
+    /// <remarks><see cref="ILoggerFactory"/> 实现了 <see cref="IDisposable"/> 接口，注意使用 using 控制。</remarks>
     /// <returns></returns>
     public static ILoggerFactory CreateLoggerFactory(Action<ILoggingBuilder> configure = default)
     {

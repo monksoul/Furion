@@ -42,7 +42,7 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
     private readonly ConcurrentDictionary<string, FileLogger> _fileLoggers = new();
 
     /// <summary>
-    /// 日志消息队列（线程安全）
+    /// 日志消息队列
     /// </summary>
     private readonly Channel<LogMessage> _logMessageChannel;
 

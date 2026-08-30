@@ -35,7 +35,7 @@ public enum JsonBehavior
     /// <summary>
     /// 不输出 JSON 格式
     /// </summary>
-    /// <remarks>默认值，输出文本日志</remarks>
+    /// <remarks>默认值，输出文本日志。</remarks>
     [Description("不输出 JSON 格式")]
     None = 0,
 

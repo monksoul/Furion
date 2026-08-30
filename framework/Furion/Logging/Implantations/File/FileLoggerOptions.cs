@@ -39,15 +39,15 @@ public sealed class FileLoggerOptions
     public bool Append { get; set; } = true;
 
     /// <summary>
-    /// 控制每一个日志文件最大存储大小，默认无限制，单位是 B，也就是 1024 才等于 1KB
+    /// 控制每一个日志文件最大存储大小
     /// </summary>
-    /// <remarks>如果指定了该值，那么日志文件大小超出了该配置就会创建的日志文件，新创建的日志文件命名规则：文件名+[递增序号].log</remarks>
+    /// <remarks>默认无限制，单位是 B，也就是 1024 才等于 1KB。如果指定了该值，那么日志文件大小超出了该配置就会创建的日志文件，新创建的日志文件命名规则：文件名+[递增序号].log。</remarks>
     public long FileSizeLimitBytes { get; set; } = 0;
 
     /// <summary>
-    /// 控制最大创建的日志文件数量，默认无限制，配合 <see cref="FileSizeLimitBytes"/> 使用
+    /// 控制最大创建的日志文件数量
     /// </summary>
-    /// <remarks>如果指定了该值，那么超出该值将从最初日志文件中从头写入覆盖</remarks>
+    /// <remarks>默认无限制，配合 <see cref="FileSizeLimitBytes"/> 使用。如果指定了该值，那么超出该值将从最初日志文件中从头写入覆盖。</remarks>
     public int MaxRollingFiles { get; set; } = 0;
 
     /// <summary>
@@ -56,8 +56,9 @@ public sealed class FileLoggerOptions
     public LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
 
     /// <summary>
-    /// 是否使用 UTC 时间戳，默认 false
+    /// 是否使用 UTC 时间戳
     /// </summary>
+    /// <remarks>默认值为：<c>false</c>。</remarks>
     public bool UseUtcTimestamp { get; set; }
 
     /// <summary>
@@ -71,27 +72,31 @@ public sealed class FileLoggerOptions
     public Func<LogMessage, bool> WriteFilter { get; set; }
 
     /// <summary>
-    /// 自定义日志文件名格式化程序（规则）
+    /// 自定义日志文件名格式化程序
     /// </summary>
-    /// <example>
+    /// <remarks>
+    /// <code>
     /// options.FileNameRule = (fileName) => {
     ///     return String.Format(Path.GetFileNameWithoutExtension(fileName) + "_{0:yyyy}-{0:MM}-{0:dd}" + Path.GetExtension(fileName), DateTime.UtcNow);
     ///
     ///     // 或者每天创建一个文件
     ///     // return String.Format(fileName, DateTime.UtcNow);
     /// }
-    /// </example>
+    /// </code>
+    /// </remarks>
     public Func<string, string> FileNameRule { get; set; }
 
     /// <summary>
     /// 自定义日志文件写入错误程序
     /// </summary>
-    /// <remarks>主要解决日志在写入过程中文件被打开或其他应用程序占用的情况，一旦出现上述情况可创建备用日志文件继续写入</remarks>
-    /// <example>
+    /// <remarks>
+    /// 主要解决日志在写入过程中文件被打开或其他应用程序占用的情况，一旦出现上述情况可创建备用日志文件继续写入。
+    /// <code>
     /// options.HandleWriteError = (err) => {
     ///     err.UseRollbackFileName(Path.GetFileNameWithoutExtension(err.CurrentFileName)+ "_alt" + Path.GetExtension(err.CurrentFileName));
     /// };
-    /// </example>
+    /// </code>
+    /// </remarks>
     public Action<FileWriteError> HandleWriteError { get; set; }
 
     /// <summary>
@@ -110,18 +115,18 @@ public sealed class FileLoggerOptions
     public bool WithTraceId { get; set; } = false;
 
     /// <summary>
-    /// 显示堆栈框架（程序集和方法签名）
+    /// 显示堆栈框架
     /// </summary>
+    /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
 
     /// <summary>
-    /// 日志消息内容转换（如脱敏处理）
+    /// 日志消息内容转换
     /// </summary>
     public Func<string, string> MessageProcess { get; set; }
 
     /// <summary>
     /// 格式化提供器
     /// </summary>
-    /// <remarks></remarks>
     public IFormatProvider? FormatProvider { get; set; } = CultureInfo.InvariantCulture;
 }

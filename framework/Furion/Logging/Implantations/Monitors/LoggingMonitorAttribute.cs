@@ -58,7 +58,7 @@ namespace System;
 /// <summary>
 /// 强大的日志监听器
 /// </summary>
-/// <remarks>主要用于将请求的信息打印出来</remarks>
+/// <remarks>主要用于将请求的信息打印出来。</remarks>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
 public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAsyncPageFilter, IOrderedFilter
 {
@@ -97,13 +97,13 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
     /// <summary>
     /// 是否记录返回值
     /// </summary>
-    /// <remarks>bool 类型，默认输出</remarks>
+    /// <remarks>bool 类型，默认输出。</remarks>
     public object WithReturnValue { get; set; } = null;
 
     /// <summary>
     /// 设置返回值阈值
     /// </summary>
-    /// <remarks>配置返回值字符串阈值，超过这个阈值将截断，默认全量输出</remarks>
+    /// <remarks>配置返回值字符串阈值，超过这个阈值将截断，默认全量输出。</remarks>
     public object ReturnValueThreshold { get; set; } = null;
 
     /// <summary>
@@ -124,17 +124,17 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IAs
     /// <summary>
     /// JSON 输出格式化
     /// </summary>
-    /// <remarks>bool 类型，默认输出</remarks>
+    /// <remarks>bool 类型，默认输出。</remarks>
     public object JsonIndented { get; set; } = null;
 
     /// <summary>
     /// 是否处理 Long 转 String
     /// </summary>
-    /// <remarks>bool 类型，默认 false</remarks>
+    /// <remarks>bool 类型，默认 false。</remarks>
     public object LongTypeConverter { get; set; } = null;
 
     /// <summary>
-    /// 序列化属性命名规则（返回值）
+    /// 序列化属性命名规则
     /// </summary>
     public object ContractResolver { get; set; } = null;
 
