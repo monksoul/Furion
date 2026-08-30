@@ -24,7 +24,9 @@
 // ------------------------------------------------------------------------
 
 using Furion.Extensions;
+using System.Collections.Concurrent;
 using System.Dynamic;
+using System.Reflection;
 
 namespace Furion.ViewEngine;
 
@@ -37,6 +39,11 @@ public class AnonymousTypeWrapper : DynamicObject
     /// 匿名模型
     /// </summary>
     private readonly object _model;
+
+    /// <summary>
+    /// 属性缓存
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, PropertyInfo?>> _propertyCache = new();
 
     /// <summary>
     /// 构造函数
@@ -55,7 +62,18 @@ public class AnonymousTypeWrapper : DynamicObject
     /// <returns></returns>
     public override bool TryGetMember(GetMemberBinder binder, out object result)
     {
-        var propertyInfo = _model.GetType().GetProperty(binder.Name);
+        var modelType = _model.GetType();
+
+        if (_model is IDictionary<string, object> dictionary && dictionary.TryGetValue(binder.Name, out var dictValue))
+        {
+            result = dictValue;
+            return true;
+        }
+
+        var typeProperties = _propertyCache.GetOrAdd(modelType, static type =>
+            new ConcurrentDictionary<string, PropertyInfo?>(StringComparer.Ordinal));
+
+        var propertyInfo = typeProperties.GetOrAdd(binder.Name, static (name, type) => type.GetProperty(name), modelType);
 
         if (propertyInfo == null)
         {
@@ -76,7 +94,6 @@ public class AnonymousTypeWrapper : DynamicObject
             return true;
         }
 
-        // 处理集合类型
         if (result is not string && result is IEnumerable enumerable)
         {
             result = ConvertEnumerable(enumerable);
@@ -86,30 +103,26 @@ public class AnonymousTypeWrapper : DynamicObject
     }
 
     /// <summary>
-    /// 将匿名类型元素包装为 <see cref="AnonymousTypeWrapper"/>
+    /// 将集合中的匿名类型元素包装为 <see cref="AnonymousTypeWrapper"/>
     /// </summary>
     /// <param name="enumerable"></param>
     /// <returns></returns>
-    private static object ConvertEnumerable(IEnumerable enumerable)
+    private static IEnumerable ConvertEnumerable(IEnumerable enumerable)
     {
-        var list = new List<object>();
-
         foreach (var item in enumerable)
         {
             if (item == null)
             {
-                list.Add(null);
+                yield return null;
             }
             else if (item.IsAnonymous())
             {
-                list.Add(new AnonymousTypeWrapper(item));
+                yield return new AnonymousTypeWrapper(item);
             }
             else
             {
-                list.Add(item);
+                yield return item;
             }
         }
-
-        return list;
     }
 }
