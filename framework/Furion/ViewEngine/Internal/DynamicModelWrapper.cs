@@ -31,12 +31,12 @@ using System.Reflection;
 namespace Furion.ViewEngine;
 
 /// <summary>
-/// 匿名类型包装器
+/// 动态模型包装器
 /// </summary>
-public class AnonymousTypeWrapper : DynamicObject
+internal class DynamicModelWrapper : DynamicObject
 {
     /// <summary>
-    /// 匿名模型
+    /// 动态模型
     /// </summary>
     private readonly object _model;
 
@@ -49,7 +49,7 @@ public class AnonymousTypeWrapper : DynamicObject
     /// 构造函数
     /// </summary>
     /// <param name="model"></param>
-    public AnonymousTypeWrapper(object model)
+    public DynamicModelWrapper(object model)
     {
         _model = model ?? throw new ArgumentNullException(nameof(model));
     }
@@ -90,7 +90,7 @@ public class AnonymousTypeWrapper : DynamicObject
 
         if (result.IsAnonymous())
         {
-            result = new AnonymousTypeWrapper(result);
+            result = new DynamicModelWrapper(result);
             return true;
         }
 
@@ -103,7 +103,7 @@ public class AnonymousTypeWrapper : DynamicObject
     }
 
     /// <summary>
-    /// 将集合中的匿名类型元素包装为 <see cref="AnonymousTypeWrapper"/>
+    /// 将集合中的匿名类型元素包装为 <see cref="DynamicModelWrapper"/>
     /// </summary>
     /// <param name="enumerable"></param>
     /// <returns></returns>
@@ -117,7 +117,7 @@ public class AnonymousTypeWrapper : DynamicObject
             }
             else if (item.IsAnonymous())
             {
-                yield return new AnonymousTypeWrapper(item);
+                yield return new DynamicModelWrapper(item);
             }
             else
             {

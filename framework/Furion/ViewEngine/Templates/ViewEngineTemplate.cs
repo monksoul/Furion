@@ -134,7 +134,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
 
         if (model != null && model.IsAnonymous())
         {
-            model = new AnonymousTypeWrapper(model);
+            model = new DynamicModelWrapper(model);
         }
 
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
@@ -167,7 +167,7 @@ public class ViewEngineTemplate : IViewEngineTemplate
 
         if (model != null && model.IsAnonymous())
         {
-            model = new AnonymousTypeWrapper(model);
+            model = new DynamicModelWrapper(model);
         }
 
         var (type, alc) = Penetrates.LoadTemplateType(_assemblyBytes);
@@ -366,7 +366,7 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
                 else
                 {
                     var dynamicInstance = (IViewEngineModel)instance;
-                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new DynamicModelWrapper(model) : model;
                     dynamicInstance.Execute();
 
                     return dynamicInstance.Result();
@@ -420,7 +420,7 @@ public class ViewEngineTemplate<TModel> : IViewEngineTemplate<TModel>
                 else
                 {
                     var dynamicInstance = (IViewEngineModel)instance;
-                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new AnonymousTypeWrapper(model) : model;
+                    dynamicInstance.Model = model != null && model.IsAnonymous() ? new DynamicModelWrapper(model) : model;
                     await dynamicInstance.ExecuteAsync();
 
                     return await dynamicInstance.ResultAsync();
