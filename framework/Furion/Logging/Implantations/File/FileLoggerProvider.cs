@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
@@ -69,6 +70,11 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
     private readonly Task _processQueueTask;
 
     /// <summary>
+    /// 是否已释放标志
+    /// </summary>
+    private volatile bool _isDisposed;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="fileName">日志文件名</param>
@@ -101,7 +107,7 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
         // 创建文件日志写入器
         _fileLoggingWriter = new FileLoggingWriter(this);
 
-        _logMessageChannel = Channel.CreateBounded<LogMessage>(new BoundedChannelOptions(12000)
+        _logMessageChannel = Channel.CreateBounded<LogMessage>(new BoundedChannelOptions(LoggerOptions.QueueCapacity)
         {
             FullMode = BoundedChannelFullMode.DropWrite,
             SingleReader = true,
@@ -153,13 +159,22 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
     /// <remarks>控制日志消息队列</remarks>
     public void Dispose()
     {
+        if (_isDisposed) return;
+
+        // 标识已释放
+        _isDisposed = true;
+
         // 标记通道已完成写入
         _logMessageChannel.Writer.Complete();
 
         try
         {
-            // 设置 1.5 秒的缓冲时间，避免还有日志消息没有完成写入文件中
-            _processQueueTask?.Wait(1500);
+            // 等待后台任务完成，避免还有日志消息没有完成写入文件中
+            if (!_processQueueTask.Wait(LoggerOptions.ShutdownTimeout))
+            {
+                // 处理文件日志后台任务未能在关闭超时时间内完成
+                LoggerOptions.HandleWriteError?.TryInvoke(new FileWriteError(FileName, new TimeoutException("File logging background task did not complete within the shutdown timeout.")));
+            }
         }
         catch (TaskCanceledException) { }
         catch (AggregateException ex) when (ex.InnerExceptions.Count == 1 && ex.InnerExceptions[0] is TaskCanceledException) { }
@@ -171,22 +186,26 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
         // 清空滚动文件名记录器
         _rollingFileNames.Clear();
 
-        // 释放内部文件写入器
-        try
+        // 释放文件写入器
+        if (_processQueueTask.IsCompleted)
         {
-            _fileLoggingWriter?.DisposeAsync().Wait(500);
+            try
+            {
+                _fileLoggingWriter?.DisposeAsync().Wait(500);
+            }
+            catch { }
         }
-        catch { }
     }
 
     /// <summary>
     /// 将日志消息写入队列中等待后台任务出队写入文件
     /// </summary>
     /// <param name="logMsg">日志消息</param>
-    internal void WriteToQueue(LogMessage logMsg)
+    /// <returns></returns>
+    internal bool WriteToQueue(LogMessage logMsg)
     {
         // 非阻塞写入
-        _logMessageChannel.Writer.TryWrite(logMsg);
+        return _logMessageChannel.Writer.TryWrite(logMsg);
     }
 
     /// <summary>
@@ -198,6 +217,9 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
         // 持续读取通道中的消息，直到通道关闭
         while (await _logMessageChannel.Reader.WaitToReadAsync())
         {
+            // 检查是否已释放
+            if (_isDisposed) break;
+
             // 读取一批消息（最多 100 条）
             var batch = new List<LogMessage>(100);
             while (_logMessageChannel.Reader.TryRead(out var logMsg) && batch.Count < 100)
@@ -219,8 +241,10 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
                     // 调用文件日志写入器的写入方法
                     await _fileLoggingWriter.WriteAsync(item, !hasMore && i == batch.Count - 1);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // 处理文件写入错误
+                    LoggerOptions.HandleWriteError?.TryInvoke(new FileWriteError(FileName, ex));
                 }
                 finally
                 {

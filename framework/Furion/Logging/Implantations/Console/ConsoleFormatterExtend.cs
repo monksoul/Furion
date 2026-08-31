@@ -93,7 +93,7 @@ public sealed class ConsoleFormatterExtend : ConsoleFormatter, IDisposable
 
         try
         {
-            string standardMessage = null;
+            string standardMessage;
 
             // 是否自定义了自定义日志格式化程序，如果是则使用
             if (options.MessageFormat != null)

@@ -23,6 +23,7 @@
 // 请访问 https://gitee.com/dotnetchina/Furion 获取更多关于 Furion 项目的许可证和版权信息。
 // ------------------------------------------------------------------------
 
+using Furion.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -114,7 +115,7 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
         _serviceProvider = serviceProvider;
         _writerType = writerType;
 
-        _logMessageChannel = Channel.CreateBounded<LogMessage>(new BoundedChannelOptions(12000)
+        _logMessageChannel = Channel.CreateBounded<LogMessage>(new BoundedChannelOptions(LoggerOptions.QueueCapacity)
         {
             FullMode = BoundedChannelFullMode.DropWrite,
             SingleReader = true,
@@ -164,6 +165,8 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
     /// <remarks>控制日志消息队列</remarks>
     public void Dispose()
     {
+        if (_isDisposed) return;
+
         // 标识已释放
         _isDisposed = true;
 
@@ -172,8 +175,12 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
 
         try
         {
-            // 设置 1.5 秒的缓冲时间，避免还有日志消息没有完成写入数据库中
-            _processQueueTask?.Wait(1500);
+            // 等待后台任务完成，避免还有日志消息没有完成写入数据库中
+            if (!_processQueueTask.Wait(LoggerOptions.ShutdownTimeout))
+            {
+                // 处理数据库日志后台任务未能在关闭超时时间内完成
+                LoggerOptions.HandleWriteError?.TryInvoke(new DatabaseWriteError(new TimeoutException("Database logging background task did not complete within the shutdown timeout.")));
+            }
         }
         catch (TaskCanceledException) { }
         catch (AggregateException ex) when (ex.InnerExceptions.Count == 1 && ex.InnerExceptions[0] is TaskCanceledException) { }
@@ -183,17 +190,21 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
         _databaseLoggers.Clear();
 
         // 释放数据库写入器作用域范围
-        _serviceScope?.Dispose();
+        if (_processQueueTask.IsCompleted)
+        {
+            _serviceScope?.Dispose();
+        }
     }
 
     /// <summary>
     /// 将日志消息写入队列中等待后台任务出队写入数据库
     /// </summary>
     /// <param name="logMsg">结构化日志消息</param>
-    internal void WriteToQueue(LogMessage logMsg)
+    /// <returns></returns>
+    internal bool WriteToQueue(LogMessage logMsg)
     {
         // 非阻塞写入
-        _logMessageChannel.Writer.TryWrite(logMsg);
+        return _logMessageChannel.Writer.TryWrite(logMsg);
     }
 
     /// <summary>
@@ -227,7 +238,8 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
             }
             catch (Exception ex)
             {
-                LoggerOptions.HandleWriteError?.Invoke(new DatabaseWriteError(ex));
+                // 处理数据库写入错误
+                LoggerOptions.HandleWriteError?.TryInvoke(new DatabaseWriteError(ex));
 
                 foreach (var msg in batch)
                 {
@@ -252,11 +264,7 @@ public sealed class DatabaseLoggerProvider : ILoggerProvider, ISupportExternalSc
             catch (Exception ex)
             {
                 // 处理数据库写入错误
-                if (LoggerOptions.HandleWriteError != null)
-                {
-                    var databaseWriteError = new DatabaseWriteError(ex);
-                    LoggerOptions.HandleWriteError(databaseWriteError);
-                }
+                LoggerOptions.HandleWriteError?.TryInvoke(new DatabaseWriteError(ex));
             }
             finally
             {

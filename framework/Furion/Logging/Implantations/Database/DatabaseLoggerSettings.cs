@@ -69,4 +69,22 @@ public sealed class DatabaseLoggerSettings
     /// </summary>
     /// <remarks>程序集和方法签名。</remarks>
     public bool WithStackFrame { get; set; } = false;
+
+    /// <summary>
+    /// 日志队列容量
+    /// </summary>
+    /// <remarks>默认值为：12000，当队列满时新日志将被丢弃。</remarks>
+    public int QueueCapacity { get; set; } = 12000;
+
+    /// <summary>
+    /// 关闭时等待后台任务完成的超时时间（毫秒）
+    /// </summary>
+    /// <remarks>默认值为：1500 毫秒，超时后不再等待，避免阻塞关闭流程。</remarks>
+    public int ShutdownTimeout { get; set; } = 1500;
+
+    /// <summary>
+    /// 是否启用调用栈检测来防止递归日志写入
+    /// </summary>
+    /// <remarks>当 <see cref="IgnoreReferenceLoop"/> 为 <c>true</c> 时生效。默认值为：<c>true</c>。</remarks>
+    public bool UseStackTraceGuard { get; set; } = true;
 }

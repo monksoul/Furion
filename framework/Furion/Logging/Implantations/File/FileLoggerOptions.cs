@@ -129,4 +129,16 @@ public sealed class FileLoggerOptions
     /// 格式化提供器
     /// </summary>
     public IFormatProvider? FormatProvider { get; set; } = CultureInfo.InvariantCulture;
+
+    /// <summary>
+    /// 日志队列容量
+    /// </summary>
+    /// <remarks>默认值为：12000，当队列满时新日志将被丢弃。</remarks>
+    public int QueueCapacity { get; set; } = 12000;
+
+    /// <summary>
+    /// 关闭时等待后台任务完成的超时时间（毫秒）
+    /// </summary>
+    /// <remarks>默认值为：1500 毫秒，超时后不再等待，避免阻塞关闭流程。</remarks>
+    public int ShutdownTimeout { get; set; } = 1500;
 }

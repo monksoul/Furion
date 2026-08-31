@@ -69,7 +69,9 @@ internal static class Penetrates
             DateFormat = fileLoggerSettings.DateFormat,
             IncludeScopes = fileLoggerSettings.IncludeScopes,
             WithTraceId = fileLoggerSettings.WithTraceId,
-            WithStackFrame = fileLoggerSettings.WithStackFrame
+            WithStackFrame = fileLoggerSettings.WithStackFrame,
+            QueueCapacity = fileLoggerSettings.QueueCapacity,
+            ShutdownTimeout = fileLoggerSettings.ShutdownTimeout,
         };
 
         // 处理自定义配置
@@ -107,7 +109,10 @@ internal static class Penetrates
             IncludeScopes = databaseLoggerSettings.IncludeScopes,
             IgnoreReferenceLoop = databaseLoggerSettings.IgnoreReferenceLoop,
             WithTraceId = databaseLoggerSettings.WithTraceId,
-            WithStackFrame = databaseLoggerSettings.WithStackFrame
+            WithStackFrame = databaseLoggerSettings.WithStackFrame,
+            QueueCapacity = databaseLoggerSettings.QueueCapacity,
+            ShutdownTimeout = databaseLoggerSettings.ShutdownTimeout,
+            UseStackTraceGuard = databaseLoggerSettings.UseStackTraceGuard
         };
 
         // 处理自定义配置

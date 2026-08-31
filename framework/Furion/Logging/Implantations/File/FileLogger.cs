@@ -141,9 +141,7 @@ public sealed class FileLogger : ILogger
             }
 
             // 写入日志队列
-            _fileLoggerProvider.WriteToQueue(logMsg);
-
-            isEnqueued = true;
+            isEnqueued = _fileLoggerProvider.WriteToQueue(logMsg);
         }
         finally
         {

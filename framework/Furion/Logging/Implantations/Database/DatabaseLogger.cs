@@ -153,7 +153,7 @@ public sealed class DatabaseLogger : ILogger
                 }
 
                 // 第二道防线：调用栈检测，用于处理其他复杂递归场景
-                if (IsInWriterCallStack())
+                if (_options.UseStackTraceGuard && IsInWriterCallStack())
                 {
                     _options.FallbackLogAction?.Invoke(logMsg);
                     return;
@@ -161,9 +161,7 @@ public sealed class DatabaseLogger : ILogger
             }
 
             // 写入日志队列
-            _databaseLoggerProvider.WriteToQueue(logMsg);
-
-            isEnqueued = true;
+            isEnqueued = _databaseLoggerProvider.WriteToQueue(logMsg);
         }
         finally
         {
