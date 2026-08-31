@@ -259,7 +259,7 @@ internal static class AppDbContextBuilder
         var instance = Activator.CreateInstance(lastEntityMutableTableType);
         var tableMeta = (string[]?)getTableNameMethod?.Invoke(instance, [dbContext, dbContextLocator]);
 
-        if (tableMeta != null)
+        if (tableMeta is { Length: > 0 })
         {
             // 设置动态表名
             entityBuilder?.ToTable(tableMeta[0], tableMeta.Length > 1 ? tableMeta[1] : null);
