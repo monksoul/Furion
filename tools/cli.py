@@ -384,6 +384,8 @@ def main():
 // Generate By {fur_tools}
 // -----------------------------------------------------------------------------
 
+#nullable enable
+
 using Furion.DatabaseAccessor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

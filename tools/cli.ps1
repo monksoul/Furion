@@ -671,6 +671,8 @@ try
 // Generate By $FurTools
 // -----------------------------------------------------------------------------
 
+#nullable enable
+
 using Furion.DatabaseAccessor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
