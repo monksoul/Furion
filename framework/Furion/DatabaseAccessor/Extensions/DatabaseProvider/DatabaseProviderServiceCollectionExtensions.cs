@@ -226,6 +226,11 @@ public static class DatabaseProviderServiceCollectionExtensions
         {
             providerName ??= dbContextAttribute?.ProviderName;
 
+            if (string.IsNullOrWhiteSpace(providerName))
+            {
+                throw new InvalidOperationException($"The database provider cannot be determined. Please check the AppDbContext attribute of {typeof(TDbContext).Name} or explicitly specify providerName.");
+            }
+
             // 解析数据库提供器信息
             (var name, var version) = ReadProviderInfo(providerName);
             providerName = name;
@@ -324,7 +329,7 @@ public static class DatabaseProviderServiceCollectionExtensions
     /// <returns></returns>
     private static (MethodInfo UseMethod, object MySqlVersion) GetDatabaseProviderUseMethod(string providerName, string version)
     {
-        return DatabaseProviderUseMethodCollection.GetOrAdd(providerName, Function(providerName, version));
+        return DatabaseProviderUseMethodCollection.GetOrAdd(providerName, key => Function(key, version));
 
         // 本地静态方法
         static (MethodInfo, object) Function(string providerName, string version)
@@ -353,8 +358,18 @@ public static class DatabaseProviderServiceCollectionExtensions
                 _ => null
             };
 
+            if (string.IsNullOrWhiteSpace(databaseProviderServiceExtensionTypeName))
+            {
+                throw new NotSupportedException($"The database provider '{providerName}' is not supported.");
+            }
+
             // 加载扩展类型
             var databaseProviderServiceExtensionType = Reflect.GetType(databaseProviderAssembly, $"Microsoft.EntityFrameworkCore.{databaseProviderServiceExtensionTypeName}");
+
+            if (databaseProviderServiceExtensionType == null)
+            {
+                throw new NotSupportedException($"Failed to load the database provider extension type 'Microsoft.EntityFrameworkCore.{databaseProviderServiceExtensionTypeName}' for provider '{providerName}'.");
+            }
 
             // useXXX方法名
             var useMethodName = providerName switch
@@ -395,6 +410,11 @@ public static class DatabaseProviderServiceCollectionExtensions
                     .FirstOrDefault(u => u.Name == useMethodName && !u.IsGenericMethod && u.GetParameters().Length == 3 && u.GetParameters()[1].ParameterType == typeof(string));
             }
 
+            if (useMethod == null)
+            {
+                throw new NotSupportedException($"The Use method '{useMethodName}' for database provider '{providerName}' was not found.");
+            }
+
             return (useMethod, mySqlVersionInstance);
         }
     }
@@ -406,6 +426,11 @@ public static class DatabaseProviderServiceCollectionExtensions
     /// <returns></returns>
     private static (string name, string version) ReadProviderInfo(string providerName)
     {
+        if (string.IsNullOrWhiteSpace(providerName))
+        {
+            throw new ArgumentException("The database provider name cannot be null or empty.", nameof(providerName));
+        }
+
         // 解析真实的数据库提供器
         var providerNameAndVersion = providerName.Split('@', StringSplitOptions.RemoveEmptyEntries);
         providerName = providerNameAndVersion.First();

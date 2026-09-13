@@ -94,7 +94,7 @@ internal static class Penetrates
         // 添加拦截器
         var interceptorList = DbProvider.GetDefaultInterceptors();
 
-        if (interceptors != null || interceptors.Length > 0)
+        if (interceptors != null && interceptors.Length > 0)
         {
             interceptorList.AddRange(interceptors);
         }
