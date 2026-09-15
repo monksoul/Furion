@@ -113,7 +113,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Information(string message, EventId eventId, params object[] args)
+    public static void Information(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogInformation();
     }
@@ -136,7 +136,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Information(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Information(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogInformation();
     }
@@ -159,7 +159,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Information<TClass>(string message, EventId eventId, params object[] args)
+    public static void Information<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogInformation();
     }
@@ -184,7 +184,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Information<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Information<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogInformation();
     }
@@ -205,7 +205,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Warning(string message, EventId eventId, params object[] args)
+    public static void Warning(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogWarning();
     }
@@ -228,7 +228,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Warning(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Warning(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogWarning();
     }
@@ -251,7 +251,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Warning<TClass>(string message, EventId eventId, params object[] args)
+    public static void Warning<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogWarning();
     }
@@ -276,7 +276,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Warning<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Warning<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogWarning();
     }
@@ -297,7 +297,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Error(string message, EventId eventId, params object[] args)
+    public static void Error(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogError();
     }
@@ -320,7 +320,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Error(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Error(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogError();
     }
@@ -343,7 +343,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Error<TClass>(string message, EventId eventId, params object[] args)
+    public static void Error<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogError();
     }
@@ -368,7 +368,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Error<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Error<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogError();
     }
@@ -389,7 +389,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Debug(string message, EventId eventId, params object[] args)
+    public static void Debug(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogDebug();
     }
@@ -412,7 +412,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Debug(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Debug(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogDebug();
     }
@@ -435,7 +435,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Debug<TClass>(string message, EventId eventId, params object[] args)
+    public static void Debug<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogDebug();
     }
@@ -460,7 +460,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Debug<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Debug<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogDebug();
     }
@@ -481,7 +481,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Trace(string message, EventId eventId, params object[] args)
+    public static void Trace(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogTrace();
     }
@@ -504,7 +504,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Trace(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Trace(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogTrace();
     }
@@ -527,7 +527,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Trace<TClass>(string message, EventId eventId, params object[] args)
+    public static void Trace<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogTrace();
     }
@@ -552,7 +552,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Trace<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Trace<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogTrace();
     }
@@ -573,7 +573,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Critical(string message, EventId eventId, params object[] args)
+    public static void Critical(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).LogCritical();
     }
@@ -596,7 +596,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Critical(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Critical(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogCritical();
     }
@@ -619,7 +619,7 @@ public static class Log
     /// <param name="message"></param>
     /// <param name="eventId"></param>
     /// <param name="args"></param>
-    public static void Critical<TClass>(string message, EventId eventId, params object[] args)
+    public static void Critical<TClass>(EventId eventId, string message, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).LogCritical();
     }
@@ -644,7 +644,7 @@ public static class Log
     /// <param name="eventId"></param>
     /// <param name="exception"></param>
     /// <param name="args"></param>
-    public static void Critical<TClass>(string message, EventId eventId, Exception exception, params object[] args)
+    public static void Critical<TClass>(EventId eventId, string message, Exception exception, params object[] args)
     {
         StringLoggingPart.Default().SetCategory<TClass>().SetMessage(message).SetArgs(args).SetEventId(eventId).SetException(exception).LogCritical();
     }
