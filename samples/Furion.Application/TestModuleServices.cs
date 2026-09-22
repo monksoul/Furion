@@ -844,6 +844,10 @@ public class TestModuleServices(IViewEngine viewEngine) : IDynamicApiController
             dt4 = DateTimeOffset.Parse("2026-08-25 00:00:00"),
             dt5 = DateTimeOffset.Parse("2026-08-25T00:00:00"),
             dt6 = DateTimeOffset.Parse("2026-08-25T00:00:00Z"),
+            dt7 = DateTime.Now,
+            dt8 = DateTime.UtcNow,
+            dt9 = DateTimeOffset.Now,
+            dt10 = DateTimeOffset.UtcNow,
         };
     }
 

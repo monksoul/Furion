@@ -84,7 +84,7 @@ internal static class Penetrates
         }
 
         // 处理日期字符串
-        return ParseDateTimeOffsetString(stringValue, format, localized);
+        return ParseDateTimeOffsetString(stringValue, format);
     }
 
     /// <summary>
@@ -146,15 +146,18 @@ internal static class Penetrates
             throw new JsonException("Cannot parse an empty string to DateTime.");
         }
 
+        // 统一按本地时间解析
+        var dateTimeStyles = DateTimeStyles.AssumeLocal;
+
         // 尝试按指定格式解析
         if (!string.IsNullOrEmpty(format) &&
-            DateTime.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var exactDateTime))
+            DateTime.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, dateTimeStyles, out var exactDateTime))
         {
             return exactDateTime;
         }
 
         // 回退到通用解析
-        if (DateTime.TryParse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+        if (DateTime.TryParse(stringValue, CultureInfo.InvariantCulture, dateTimeStyles, out var dateTime))
         {
             return dateTime;
         }
@@ -167,28 +170,28 @@ internal static class Penetrates
     /// </summary>
     /// <param name="stringValue"></param>
     /// <param name="format"></param>
-    /// <param name="localized"></param>
     /// <returns></returns>
-    private static DateTimeOffset ParseDateTimeOffsetString(string stringValue, string format, bool localized)
+    private static DateTimeOffset ParseDateTimeOffsetString(string stringValue, string format)
     {
         if (string.IsNullOrEmpty(stringValue))
         {
             throw new JsonException("Cannot parse an empty string to DateTimeOffset.");
         }
 
-        var dateTimeStyles = localized ? DateTimeStyles.AssumeLocal : DateTimeStyles.AssumeUniversal;
+        // 统一按本地时间解析
+        var dateTimeStyles = DateTimeStyles.AssumeLocal;
 
         // 尝试按指定格式解析
         if (!string.IsNullOrEmpty(format) &&
             DateTimeOffset.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, dateTimeStyles, out var dtoExact))
         {
-            return localized ? dtoExact.ToLocalTime() : dtoExact.ToUniversalTime();
+            return dtoExact;
         }
 
         // 回退到通用解析
         if (DateTimeOffset.TryParse(stringValue, CultureInfo.InvariantCulture, dateTimeStyles, out var dto))
         {
-            return localized ? dto.ToLocalTime() : dto.ToUniversalTime();
+            return dto;
         }
 
         throw new JsonException($"Cannot parse string '{stringValue}' to DateTimeOffset.");

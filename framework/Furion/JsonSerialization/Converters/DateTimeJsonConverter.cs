@@ -97,7 +97,7 @@ public class DateTimeJsonConverter : JsonConverter<DateTime>
             return;
         }
 
-        var output = Localized ? value.ToLocalTime() : value.ToUniversalTime();
+        var output = Localized ? value.ToLocalTime() : value;
         writer.WriteStringValue(output.ToString(Format));
     }
 }
@@ -182,7 +182,7 @@ public class NullableDateTimeJsonConverter : JsonConverter<DateTime?>
             return;
         }
 
-        var output = Localized ? value.Value.ToLocalTime() : value.Value.ToUniversalTime();
+        var output = Localized ? value.Value.ToLocalTime() : value.Value;
         writer.WriteStringValue(output.ToString(Format));
     }
 }
