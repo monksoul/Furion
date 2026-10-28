@@ -31,14 +31,13 @@ using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Furion.SpecificationDocument;
 
 /// <summary>
 /// 应用自定义多套序列化配置生成 Schema
 /// </summary>
-public partial class UnifySerializerSchemaFilter : IOperationFilter
+public class UnifySerializerSchemaFilter : IOperationFilter
 {
     /// <summary>
     /// 每个文档、每套序列化配置独立的 Schema 缓存
@@ -90,10 +89,6 @@ public partial class UnifySerializerSchemaFilter : IOperationFilter
     {
         // 复制当前全局 Schema 生成器配置
         var generatorOptions = App.GetOptions<SchemaGeneratorOptions>();
-
-        // 包装 SchemaId 选择器，追加序列化配置名称前缀，避免与全局 Schema 冲突
-        var schemaIdSelector = generatorOptions.SchemaIdSelector;
-        generatorOptions.SchemaIdSelector = type => $"{SchemaIdInvalidCharsRegex().Replace(name, "_")}_{schemaIdSelector(type)}";
 
         var dataContractResolver = new JsonSerializerDataContractResolver(jsonSerializerOptions, generatorOptions);
         return new SchemaGenerator(generatorOptions, dataContractResolver);
@@ -162,14 +157,7 @@ public partial class UnifySerializerSchemaFilter : IOperationFilter
     {
         foreach (var schema in schemaRepository.Schemas)
         {
-            context.SchemaRepository.Schemas.TryAdd(schema.Key, schema.Value);
+            context.SchemaRepository.Schemas[schema.Key] = schema.Value;
         }
     }
-
-    /// <summary>
-    /// SchemaId 非法字符正则表达式
-    /// </summary>
-    /// <returns></returns>
-    [GeneratedRegex(@"[^a-zA-Z0-9_]")]
-    private static partial Regex SchemaIdInvalidCharsRegex();
 }

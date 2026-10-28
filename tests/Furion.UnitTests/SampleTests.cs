@@ -65,7 +65,7 @@ public class SampleTests : IDisposable
     [Fact]
     public async Task TestBaidu()
     {
-        var res = await _httpRemoteService.GetAsync("https://www.baidu.com");
+        var res = await _httpRemoteService.GetAsync("https://www.baidu.com", cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(res.IsSuccessStatusCode);
     }
 
