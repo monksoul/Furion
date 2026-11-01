@@ -37,9 +37,9 @@
 		</PackageReference>
 	</ItemGroup>
   <ItemGroup Condition="'$(net11)' == 'True' ">
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="11.0.0-rc.2.26504.105" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="11.0.0-rc.3.26522.148" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="11.0.0-rc.2.26504.105">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="11.0.0-rc.3.26522.148">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
