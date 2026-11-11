@@ -23,7 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net11.0' ">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-rc.3.26522.148" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0" />
 		<PackageReference Include="Mapster" Version="10.0.14" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.14" />
 	</ItemGroup>

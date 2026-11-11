@@ -112,8 +112,11 @@ public class UnifySerializerSchemaFilter : IOperationFilter
 
         foreach (var mediaType in operation.RequestBody.Content.Values)
         {
-            mediaType.Schema = schemaGenerator.GenerateSchema(bodyParameter.ModelMetadata.ModelType, schemaRepository
+            if (mediaType is OpenApiMediaType concreteMediaType)
+            {
+                concreteMediaType.Schema = schemaGenerator.GenerateSchema(bodyParameter.ModelMetadata.ModelType, schemaRepository
                 , bodyParameter.PropertyInfo(), bodyParameter.ParameterInfo());
+            }
         }
     }
 
@@ -143,7 +146,10 @@ public class UnifySerializerSchemaFilter : IOperationFilter
             foreach (var mediaType in response.Content.Values)
             {
                 var schemas = responseTypes.Select(u => schemaGenerator.GenerateSchema(u, schemaRepository)).ToList();
-                mediaType.Schema = schemas.Count == 1 ? schemas[0] : new OpenApiSchema { AnyOf = schemas };
+                if (mediaType is OpenApiMediaType concreteMediaType)
+                {
+                    concreteMediaType.Schema = schemas.Count == 1 ? schemas[0] : new OpenApiSchema { AnyOf = schemas };
+                }
             }
         }
     }
